@@ -1,0 +1,10 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app
+        - database/factories
+        - database/seeders
+    level: 8  # locked for v1
+    # No baseline on greenfield. Add a dated baseline only with an explicit debt note in QUALITY.md.

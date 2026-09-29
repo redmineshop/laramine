@@ -1,0 +1,39 @@
+# SQLite in-memory matches phpunit.xml. MySQL 8 remains a supported app database
+# once domain tests need that engine; this job stays on SQLite so CI does not
+# depend on a database service or parallel test databases.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: mbstring, xml, curl, zip, sqlite, pdo_sqlite, bcmath, intl
+          coverage: none
+
+      - name: Install Composer deps
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Prepare application
+        run: |
+          cp .env.example .env
+          php artisan key:generate --ansi
+
+      - name: Pint
+        run: composer lint
+
+      - name: PHPStan
+        run: composer stan
+
+      - name: Tests
+        run: composer test
