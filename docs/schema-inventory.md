@@ -471,6 +471,8 @@ erDiagram
 
 Migrations in this repository create the **P0** tables only (41). Wiki (P1), SCM / forums / news (P2), and `settings` / `webhooks` / `projects_webhooks` are omitted.
 
+PHPUnit and GitHub Actions apply these migrations on **MySQL 8**. SQLite is an optional local smoke path and is not the authoritative test database.
+
 Eloquent models are stubs. Polymorphic relations are declared, but there is no morph map yet, so Eloquent would persist PHP class names. Rows written with an explicit `*_type` string (for example `Issue`) keep that string. Do not ETL polymorphic type columns through Eloquent until the map is pinned. `type` STI columns are plain strings; PHP subclasses are not mapped.
 
 ### Intentional adapter differences
@@ -485,6 +487,6 @@ Eloquent models are stubs. Polymorphic relations are declared, but there is no m
 | `index_users_on_lower_login` | Expression index on lower(login) | Same expression on SQLite. MySQL 8 and MariaDB use a parenthesized functional index so the server accepts it |
 | Booleans | Boolean | Laravel boolean (`tinyint(1)` on MySQL) |
 | Database foreign keys | Dump declares only the four OAuth foreign keys | Those four, plus non-polymorphic foreign keys whose column is nullable or required without a `0` default. Columns with `null: false, default: 0` stay unconstrained so a Redmine `0` sentinel still loads. Polymorphic ids have no database foreign key |
-| Extra indexes | Not in the dump | MySQL/InnoDB may add a supporting index when a foreign key column is not already indexed (`groups_users.user_id`, `roles_managed_roles.managed_role_id`, `custom_fields_roles.role_id`, `queries_roles.role_id`, `time_entries.author_id`, `custom_field_enumerations.custom_field_id`, `oauth_access_grants.resource_owner_id`) |
+| Extra indexes | Not in the dump | MySQL 8 InnoDB adds a supporting index named `*_foreign` when a foreign key column is not already indexed. Confirmed on 8.0 for `groups_users.user_id`, `roles_managed_roles.managed_role_id`, `custom_fields_roles.role_id`, `queries_roles.role_id`, `time_entries.author_id`, `custom_field_enumerations.custom_field_id`, `oauth_access_grants.resource_owner_id`, `enumerations.parent_id`, `imports.user_id`, `journals.updated_by_id`, `projects.parent_id`, `projects.default_assigned_to_id`, `projects.default_version_id`, `projects.default_issue_query_id`, `roles.default_time_entry_activity_id`, and `trackers.default_status_id` |
 
 Laravel framework tables stay beside this schema: `password_reset_tokens`, `sessions`, `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs`. `sessions.user_id` is a nullable signed integer so it matches `users.id`. `auth_sources` is created in the same migration as `users` so `auth_source_id` can reference it without rebuilding `users` (SQLite drops the `lower(login)` expression when that table is rebuilt).

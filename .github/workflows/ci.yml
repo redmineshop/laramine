@@ -1,6 +1,7 @@
-# SQLite in-memory matches phpunit.xml. MySQL 8 remains a supported app database
-# once domain tests need that engine; this job stays on SQLite so CI does not
-# depend on a database service or parallel test databases.
+# Tests use MySQL 8. phpunit.xml forces the same DB_* values (force="true"),
+# and `php artisan test` starts PHPUnit in a fresh process, so this service
+# must match phpunit.xml. Job env covers Artisan steps that run outside PHPUnit.
+# SQLite is not the CI database.
 name: CI
 
 on:
@@ -12,13 +13,36 @@ jobs:
   quality:
     runs-on: ubuntu-latest
 
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: laramine_testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -ppassword --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+          --health-start-period=20s
+
+    env:
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: laramine_testing
+      DB_USERNAME: root
+      DB_PASSWORD: password
+
     steps:
       - uses: actions/checkout@v4
 
       - uses: shivammathur/setup-php@v2
         with:
           php-version: "8.3"
-          extensions: mbstring, xml, curl, zip, sqlite, pdo_sqlite, bcmath, intl
+          extensions: mbstring, xml, curl, zip, mysql, pdo_mysql, bcmath, intl
           coverage: none
 
       - name: Install Composer deps

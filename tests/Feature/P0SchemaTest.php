@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 /**
- * Proves the P0 migrations apply on SQLite and that core rows can be stored.
+ * Proves the P0 migrations apply on MySQL 8 and that core rows can be stored.
  * This is a schema smoke test. It does not verify Redmine behavior.
  */
 class P0SchemaTest extends TestCase
@@ -137,12 +137,20 @@ class P0SchemaTest extends TestCase
         $this->assertTrue($grantForeignTables->contains('users'));
         $this->assertTrue($grantForeignTables->contains('oauth_applications'));
 
-        if (Schema::getConnection()->getDriverName() === 'sqlite') {
-            $indexSql = DB::selectOne("SELECT sql FROM sqlite_master WHERE name = 'index_users_on_lower_login'");
-            $this->assertNotNull($indexSql);
-            $this->assertIsString($indexSql->sql);
-            $this->assertStringContainsString('lower(login)', $indexSql->sql);
-        }
+        $this->assertSame('mysql', Schema::getConnection()->getDriverName());
+
+        $firstname = collect(Schema::getColumns('users'))->firstWhere('name', 'firstname');
+        $this->assertIsArray($firstname);
+        $this->assertSame('varchar(30)', $firstname['type']);
+
+        $loginIndex = DB::selectOne(
+            'select EXPRESSION as expression from information_schema.STATISTICS where TABLE_SCHEMA = database() and TABLE_NAME = ? and INDEX_NAME = ?',
+            ['users', 'index_users_on_lower_login'],
+        );
+        $this->assertNotNull($loginIndex);
+        $this->assertIsString($loginIndex->expression);
+        $this->assertStringContainsString('lower', strtolower($loginIndex->expression));
+        $this->assertStringContainsString('login', strtolower($loginIndex->expression));
     }
 
     public function test_core_rows_round_trip_with_nested_set_columns(): void

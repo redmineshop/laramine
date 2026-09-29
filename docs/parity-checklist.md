@@ -6,7 +6,7 @@ No row below is VERIFIED. A row becomes VERIFIED only when a fixture-backed test
 
 | Area | Status | Evidence |
 | --- | --- | --- |
-| P0 table and column layout | NOT VERIFIED | Migrations exist and a SQLite migrate smoke test passes. No dump diff against a Redmine 7.0.1 database has been recorded. |
+| P0 table and column layout | NOT VERIFIED | Migrations exist and a MySQL 8 migrate smoke test passes. No dump diff against a Redmine 7.0.1 database has been recorded. |
 | Identity, membership, and permissions | NOT VERIFIED | Tables only. Permission evaluation is not implemented. |
 | Projects and issue nested sets | NOT VERIFIED | `lft` / `rgt` (and issue `root_id`) are stored. Tree maintenance is not implemented. |
 | Workflows | NOT VERIFIED | `workflows` rows can be stored. Transitions are not evaluated. |

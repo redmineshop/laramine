@@ -6,11 +6,11 @@ P0 database migrations follow the Redmine 7.0.1 table and column layout for iden
 
 ## Requirements
 
-- PHP ^8.2 (8.2 or 8.3), with `bcmath`, `ctype`, `curl`, `dom`, `fileinfo`, `mbstring`, `openssl`, `pdo`, `tokenizer`, and `xml`
+- PHP ^8.2 (8.2 or 8.3), with `bcmath`, `ctype`, `curl`, `dom`, `fileinfo`, `mbstring`, `openssl`, `pdo`, `pdo_mysql`, `tokenizer`, and `xml`
 - Composer 2
-- Database: SQLite (default for local setup and CI) or MySQL 8
+- MySQL 8 (supported database for the app and for tests)
 
-CI runs on PHP 8.3 with SQLite in memory.
+CI runs on PHP 8.3 against a MySQL 8.0 service. SQLite is an optional local smoke path and is not authoritative: PHPUnit and GitHub Actions do not use it.
 
 ## Install
 
@@ -20,12 +20,37 @@ cd laramine
 composer install
 cp .env.example .env
 php artisan key:generate
-touch database/database.sqlite
+```
+
+Create a MySQL 8 database named `laramine`, then set these values in `.env` before migrating:
+
+```
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=laramine
+DB_USERNAME=root
+DB_PASSWORD=password
+```
+
+```bash
 php artisan migrate
 php artisan serve
 ```
 
-For MySQL 8, create an empty database and set `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD` in `.env` before migrating.
+Tests need a second database, `laramine_testing`, reachable as `root` / `password` on `127.0.0.1:3306`. Those credentials are fixed in `phpunit.xml` (`force="true"`) and repeated in `.env.testing`. `php artisan test` starts PHPUnit in a new process, so a SQLite `DB_CONNECTION` in `.env` does not redirect the suite. The GitHub Actions job provisions MySQL 8.0 with the same database name, user, and password; it does not override `phpunit.xml`.
+
+```bash
+composer test
+```
+
+SQLite remains available for a quick local migrate smoke only. That path is non-authoritative and is not what CI runs:
+
+```bash
+touch database/database.sqlite
+# keep DB_CONNECTION=sqlite in .env
+php artisan migrate
+```
 
 ## Schema
 
@@ -47,7 +72,7 @@ These commands must pass before merge. Details and the v1 checklist are in [QUAL
 
 PHPStan is locked at level 8 with no baseline. The Parity suite is wired and currently contains only a boot smoke test. It does not verify Redmine compatibility.
 
-GitHub Actions runs Pint, PHPStan, and the full PHPUnit suite on every pull request and on pushes to `main`.
+GitHub Actions runs Pint, PHPStan, and the full PHPUnit suite on MySQL 8 for every pull request and on pushes to `main`. There is no Pest configuration.
 
 ## License
 
