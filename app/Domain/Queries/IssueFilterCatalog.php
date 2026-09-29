@@ -1,0 +1,67 @@
+<?php
+
+namespace App\Domain\Queries;
+
+/**
+ * Core issue filters that this engine compiles.
+ */
+final class IssueFilterCatalog
+{
+    /**
+     * @var array<string, IssueField>|null
+     */
+    private static ?array $fields = null;
+
+    public static function find(string $name): ?IssueField
+    {
+        return self::all()[$name] ?? null;
+    }
+
+    /**
+     * @return array<string, IssueField>
+     */
+    public static function all(): array
+    {
+        if (self::$fields !== null) {
+            return self::$fields;
+        }
+
+        $fields = [
+            self::field('status_id', 'list_status', IssueFilterKind::Status, 'status_id'),
+            self::field('project_id', 'list', IssueFilterKind::List, 'project_id'),
+            self::field('tracker_id', 'list_with_history', IssueFilterKind::List, 'tracker_id'),
+            self::field('priority_id', 'list_with_history', IssueFilterKind::List, 'priority_id'),
+            self::field('author_id', 'list', IssueFilterKind::List, 'author_id'),
+            self::field('assigned_to_id', 'list_optional_with_history', IssueFilterKind::Optional, 'assigned_to_id'),
+            self::field('fixed_version_id', 'list_optional_with_history', IssueFilterKind::Optional, 'fixed_version_id'),
+            self::field('category_id', 'list_optional_with_history', IssueFilterKind::Optional, 'category_id'),
+            self::field('subject', 'text', IssueFilterKind::Text, 'subject'),
+            self::field('description', 'text', IssueFilterKind::Text, 'description'),
+            self::field('created_on', 'date_past', IssueFilterKind::DateTime, 'created_on'),
+            self::field('updated_on', 'date_past', IssueFilterKind::DateTime, 'updated_on'),
+            self::field('closed_on', 'date_past', IssueFilterKind::DateTime, 'closed_on'),
+            self::field('start_date', 'date', IssueFilterKind::Date, 'start_date'),
+            self::field('due_date', 'date', IssueFilterKind::Date, 'due_date'),
+            self::field('estimated_hours', 'hour', IssueFilterKind::Float, 'estimated_hours'),
+            self::field('done_ratio', 'integer', IssueFilterKind::Integer, 'done_ratio'),
+            self::field('is_private', 'list', IssueFilterKind::Bool, 'is_private'),
+            self::field('issue_id', 'integer', IssueFilterKind::Integer, 'id'),
+            self::field('parent_id', 'tree', IssueFilterKind::Parent, 'parent_id'),
+            self::field('child_id', 'tree', IssueFilterKind::Child, 'id'),
+        ];
+
+        $indexed = [];
+        foreach ($fields as $field) {
+            $indexed[$field->name] = $field;
+        }
+
+        self::$fields = $indexed;
+
+        return $indexed;
+    }
+
+    private static function field(string $name, string $filterType, IssueFilterKind $kind, string $column): IssueField
+    {
+        return new IssueField($name, $filterType, $kind, $column);
+    }
+}

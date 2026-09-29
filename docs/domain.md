@@ -81,3 +81,7 @@ No workflow matrix is seeded, because statuses and trackers are not created by t
 - Archived and closed project statuses are not special-cased.
 - Journals are not written.
 - Custom field workflow failures use `CustomFieldValidationException`. Core field workflow failures still use `WorkflowDeniedException`.
+
+## Queries
+
+Saved issue queries and the shipped filter operators live in `app/Domain/Queries`. Storage, visibility, and the operator table are described in [queries.md](queries.md). Project, time entry, and user queries are stubs. The HTTP API is not part of this slice.

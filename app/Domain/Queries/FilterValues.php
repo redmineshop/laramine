@@ -1,0 +1,166 @@
+<?php
+
+namespace App\Domain\Queries;
+
+use DateTimeImmutable;
+
+/**
+ * Normalizes filter values after the operator has been accepted for the field.
+ */
+final class FilterValues
+{
+    public static function assertCount(QueryFilter $filter): void
+    {
+        $mode = OperatorMatrix::valueMode($filter->operator);
+        $count = count(self::present($filter));
+
+        if ($mode === 'none' || ($mode === 'one' && $count >= 1) || ($mode === 'two' && $count >= 2)) {
+            return;
+        }
+
+        if ($mode === 'two') {
+            throw new QueryValidationException('Filter '.$filter->field.' needs two values.');
+        }
+
+        if ($mode === 'one') {
+            throw new QueryValidationException('Filter '.$filter->field.' needs a value.');
+        }
+
+        throw new QueryValidationException('Operator '.$filter->operator.' is not valid for '.$filter->field.'.');
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function present(QueryFilter $filter): array
+    {
+        $values = [];
+        foreach ($filter->values as $value) {
+            if ($value !== '') {
+                $values[] = $value;
+            }
+        }
+
+        return $values;
+    }
+
+    /**
+     * @return list<int>
+     */
+    public static function ids(QueryFilter $filter): array
+    {
+        $ids = [];
+        foreach (self::present($filter) as $value) {
+            if ($value === 'me') {
+                throw new QueryValidationException('Filter value me is deferred.');
+            }
+            if (preg_match('/^[+]?\d+$/', $value) !== 1) {
+                throw new QueryValidationException('Filter '.$filter->field.' needs an id.');
+            }
+            $ids[] = (int) $value;
+        }
+
+        return $ids;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function integers(QueryFilter $filter): array
+    {
+        return self::numbers($filter, '/^[+-]?\d+$/');
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function decimals(QueryFilter $filter): array
+    {
+        return self::numbers($filter, '/^[+-]?\d+(?:\.\d+)?$/');
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function dates(QueryFilter $filter): array
+    {
+        $dates = [];
+        foreach (self::present($filter) as $value) {
+            $parsed = DateTimeImmutable::createFromFormat('!Y-m-d', $value);
+            if ($parsed === false || $parsed->format('Y-m-d') !== $value) {
+                throw new QueryValidationException('Filter '.$filter->field.' needs a YYYY-MM-DD date.');
+            }
+            $dates[] = $value;
+        }
+
+        return $dates;
+    }
+
+    /**
+     * @return list<int>
+     */
+    public static function flags(QueryFilter $filter): array
+    {
+        $flags = [];
+        foreach (self::present($filter) as $value) {
+            $flags[] = match (strtolower($value)) {
+                '1', 'true' => 1,
+                '0', 'false' => 0,
+                default => throw new QueryValidationException('Filter '.$filter->field.' needs 0 or 1.'),
+            };
+        }
+
+        return $flags;
+    }
+
+    /**
+     * Whitespace-separated tokens. Each stored value is split, then the tokens are AND-ed.
+     *
+     * @return list<string>
+     */
+    public static function tokens(QueryFilter $filter): array
+    {
+        $tokens = [];
+        foreach (self::present($filter) as $value) {
+            $parts = preg_split('/\s+/u', trim($value));
+            if ($parts === false) {
+                continue;
+            }
+            foreach ($parts as $part) {
+                if ($part !== '') {
+                    $tokens[] = $part;
+                }
+            }
+        }
+
+        if ($tokens === []) {
+            throw new QueryValidationException('Filter '.$filter->field.' needs a value.');
+        }
+
+        return $tokens;
+    }
+
+    public static function like(string $token): string
+    {
+        $lower = mb_strtolower($token, 'UTF-8');
+        $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $lower);
+
+        return '%'.$escaped.'%';
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function numbers(QueryFilter $filter, string $pattern): array
+    {
+        $numbers = [];
+        foreach (self::present($filter) as $value) {
+            if (preg_match($pattern, $value) !== 1) {
+                throw new QueryValidationException('Filter '.$filter->field.' needs a number.');
+            }
+            $numbers[] = $value;
+        }
+
+        return $numbers;
+    }
+}

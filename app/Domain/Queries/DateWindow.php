@@ -1,0 +1,138 @@
+<?php
+
+namespace App\Domain\Queries;
+
+use App\Models\User;
+use App\Models\UserPreference;
+use Carbon\CarbonImmutable;
+use DateTimeZone;
+use Exception;
+
+/**
+ * Inclusive calendar ranges for the shipped relative date operators.
+ *
+ * Weeks are Monday through Sunday. The anchor day is the user's
+ * `user_preferences.time_zone` when it is a valid zone, otherwise the
+ * application timezone. Datetime columns are compared in the application
+ * timezone after that calendar day is converted.
+ */
+final class DateWindow
+{
+    public function __construct(private readonly CarbonImmutable $today) {}
+
+    public static function forUser(?User $user, ?CarbonImmutable $now = null): self
+    {
+        $zone = self::zone($user);
+        $moment = $now ?? CarbonImmutable::now($zone);
+
+        return new self($moment->timezone($zone)->startOfDay());
+    }
+
+    /**
+     * @return array{0: string, 1: string}
+     */
+    public function dates(string $operator): array
+    {
+        $today = $this->today;
+
+        return match ($operator) {
+            't' => [$today->toDateString(), $today->toDateString()],
+            'ld' => self::span($today->subDay(), $today->subDay()),
+            'w' => self::span(
+                $today->startOfWeek(CarbonImmutable::MONDAY),
+                $today->endOfWeek(CarbonImmutable::SUNDAY),
+            ),
+            'lw' => self::previousWeek($today),
+            'm' => self::span($today->startOfMonth(), $today->endOfMonth()),
+            'lm' => self::previousMonth($today),
+            'y' => self::span($today->startOfYear(), $today->endOfYear()),
+            default => throw new QueryValidationException('Operator '.$operator.' is not a relative date.'),
+        };
+    }
+
+    /**
+     * @return array{0: string, 1: string}
+     */
+    public function datetimes(string $operator): array
+    {
+        [$from, $to] = $this->dates($operator);
+        $zone = $this->today->getTimezone();
+        $app = self::applicationZone();
+        $start = CarbonImmutable::parse($from.' 00:00:00', $zone)->timezone($app);
+        $end = CarbonImmutable::parse($to.' 23:59:59', $zone)->timezone($app);
+
+        return [$start->format('Y-m-d H:i:s'), $end->format('Y-m-d H:i:s')];
+    }
+
+    /**
+     * @return array{0: string, 1: string}
+     */
+    public function explicitDatetimes(string $fromDate, string $toDate): array
+    {
+        $zone = $this->today->getTimezone();
+        $app = self::applicationZone();
+        $start = CarbonImmutable::parse($fromDate.' 00:00:00', $zone)->timezone($app);
+        $end = CarbonImmutable::parse($toDate.' 23:59:59', $zone)->timezone($app);
+
+        return [$start->format('Y-m-d H:i:s'), $end->format('Y-m-d H:i:s')];
+    }
+
+    /**
+     * @return array{0: string, 1: string}
+     */
+    private static function previousWeek(CarbonImmutable $today): array
+    {
+        $anchor = $today->subWeek();
+
+        return self::span(
+            $anchor->startOfWeek(CarbonImmutable::MONDAY),
+            $anchor->endOfWeek(CarbonImmutable::SUNDAY),
+        );
+    }
+
+    /**
+     * @return array{0: string, 1: string}
+     */
+    private static function previousMonth(CarbonImmutable $today): array
+    {
+        $anchor = $today->subMonthNoOverflow();
+
+        return self::span($anchor->startOfMonth(), $anchor->endOfMonth());
+    }
+
+    /**
+     * @return array{0: string, 1: string}
+     */
+    private static function span(CarbonImmutable $from, CarbonImmutable $to): array
+    {
+        return [$from->toDateString(), $to->toDateString()];
+    }
+
+    private static function zone(?User $user): DateTimeZone
+    {
+        if ($user !== null) {
+            $stored = UserPreference::query()->where('user_id', $user->id)->value('time_zone');
+            if (is_string($stored) && $stored !== '') {
+                try {
+                    return new DateTimeZone($stored);
+                } catch (Exception) {
+                    return self::applicationZone();
+                }
+            }
+        }
+
+        return self::applicationZone();
+    }
+
+    private static function applicationZone(): DateTimeZone
+    {
+        $configured = config('app.timezone');
+        $name = is_string($configured) && $configured !== '' ? $configured : 'UTC';
+
+        try {
+            return new DateTimeZone($name);
+        } catch (Exception) {
+            return new DateTimeZone('UTC');
+        }
+    }
+}
