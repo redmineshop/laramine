@@ -47,4 +47,15 @@ class Version extends Model
     {
         return $this->hasMany(Issue::class, 'fixed_version_id');
     }
+
+    /**
+     * Values stored with customized_type = Version.
+     *
+     * @return HasMany<CustomValue, $this>
+     */
+    public function customValues(): HasMany
+    {
+        return $this->hasMany(CustomValue::class, 'customized_id')
+            ->where('custom_values.customized_type', 'Version');
+    }
 }

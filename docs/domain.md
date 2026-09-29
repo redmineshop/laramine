@@ -49,7 +49,7 @@ Several roles use the most open value. This follows the usual Redmine `Issue.vis
 
 Status changes read `workflows` rows with `type = WorkflowTransition` for the user's roles and the tracker. A new issue uses `old_status_id = 0`. Rows with `author = 0` and `assignee = 0` always apply. `author = 1` also applies to the issue author. `assignee = 1` also applies to the assignee or to a member of an assignee group. The assignee considered for that flag is the assignee already stored on the issue, not a new assignee sent in the same update. If no initial row matches, the tracker's default status is allowed. Admins skip the matrix. Saving without a status change does not need a self-transition row.
 
-Field rules (`type = WorkflowPermission`, `rule = readonly|required`) are enforced for the disablable core fields on create and update. On create they are read for the initial status id. Custom field ids are not enforced.
+Field rules (`type = WorkflowPermission`, `rule = readonly|required`) are enforced for the disablable core fields on create and update. On create they are read for the initial status id. Custom field ids are enforced by `CustomValueService` when values are written; see [custom-fields.md](custom-fields.md).
 
 ## Seed
 
@@ -80,4 +80,4 @@ No workflow matrix is seeded, because statuses and trackers are not created by t
 - A user with `status` other than `1` is treated as logged out for ACL, including admins.
 - Archived and closed project statuses are not special-cased.
 - Journals are not written.
-- Field-permission write checks cover disablable core fields only, not custom fields.
+- Custom field workflow failures use `CustomFieldValidationException`. Core field workflow failures still use `WorkflowDeniedException`.

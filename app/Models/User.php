@@ -157,4 +157,23 @@ class User extends Authenticatable
     {
         return $this->hasMany(Issue::class, 'assigned_to_id');
     }
+
+    /**
+     * `User` or `Group`, matching the STI row. Other user types are not customized here.
+     */
+    public function customValueType(): string
+    {
+        return $this->type === self::TYPE_GROUP ? 'Group' : 'User';
+    }
+
+    /**
+     * Values stored with customized_type User or Group.
+     *
+     * @return HasMany<CustomValue, $this>
+     */
+    public function customValues(): HasMany
+    {
+        return $this->hasMany(CustomValue::class, 'customized_id')
+            ->where('custom_values.customized_type', $this->customValueType());
+    }
 }

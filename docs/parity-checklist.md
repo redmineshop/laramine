@@ -10,6 +10,6 @@ No row below is VERIFIED. A row becomes VERIFIED only when a fixture-backed test
 | Identity, membership, and permissions | NOT VERIFIED | `tests/Feature/MembershipAclTest.php` and `tests/Unit/PermissionCatalogTest.php` exercise Laramine allow/deny rules. They do not compare rows with a Redmine 7.0.1 database. |
 | Projects and issue nested sets | NOT VERIFIED | `tests/Feature/ProjectTreeTest.php` and `tests/Feature/IssueWorkflowTest.php` check lft/rgt integrity after create and move. No Redmine dump diff. |
 | Workflows | NOT VERIFIED | `tests/Feature/IssueWorkflowTest.php` checks transition allow/deny, including `old_status_id = 0`. No Redmine dump diff. |
-| Custom fields | NOT VERIFIED | Definition and value tables exist. Format validation is not implemented. |
+| Custom fields | NOT VERIFIED | `tests/Unit/CustomFieldFormatTest.php`, `tests/Unit/CustomFieldRecordFormatTest.php`, and `tests/Feature/CustomFieldValueTest.php` exercise format validation and value writes on MySQL. They do not compare rows with a Redmine 7.0.1 database. |
 | Queries | NOT VERIFIED | `filters` is opaque text. Operators are not implemented. |
 | Time entries and attachments | NOT VERIFIED | Tables only. |

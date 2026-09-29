@@ -177,11 +177,14 @@ class Issue extends Model
     }
 
     /**
-     * @return MorphMany<CustomValue, $this>
+     * Values stored with Redmine's customized type name, not the Eloquent class name.
+     *
+     * @return HasMany<CustomValue, $this>
      */
-    public function customValues(): MorphMany
+    public function customValues(): HasMany
     {
-        return $this->morphMany(CustomValue::class, 'customized');
+        return $this->hasMany(CustomValue::class, 'customized_id')
+            ->where('custom_values.customized_type', 'Issue');
     }
 
     /**

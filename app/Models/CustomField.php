@@ -2,6 +2,10 @@
 
 namespace App\Models;
 
+use App\Domain\Acl\JsonObjectCast;
+use App\Domain\CustomFields\JsonListCast;
+use Database\Factories\CustomFieldFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,16 +13,77 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * Redmine 7.0.1 `custom_fields` row.
  *
- * `type` is the STI name. `field_format`, `format_store`, and `possible_values` are stored only.
+ * `type` is the STI name (`IssueCustomField`, …). `possible_values` and
+ * `format_store` are JSON text. Non-JSON legacy text decodes as null.
  */
 class CustomField extends Model
 {
+    /** @use HasFactory<CustomFieldFactory> */
+    use HasFactory;
+
     public $timestamps = false;
 
     /**
      * @var list<string>
      */
     protected $guarded = ['id'];
+
+    /**
+     * @return list<string>|null
+     */
+    public function possibleValueList(): ?array
+    {
+        $value = $this->getAttribute('possible_values');
+        if (! is_array($value)) {
+            return null;
+        }
+
+        $list = [];
+        foreach ($value as $item) {
+            if (! is_string($item)) {
+                return null;
+            }
+            $list[] = $item;
+        }
+
+        return $list;
+    }
+
+    /**
+     * @param  list<string>|null  $values
+     */
+    public function setPossibleValueList(?array $values): void
+    {
+        $this->setAttribute('possible_values', $values);
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function formatStoreData(): ?array
+    {
+        $value = $this->getAttribute('format_store');
+        if (! is_array($value)) {
+            return null;
+        }
+
+        $store = [];
+        foreach ($value as $key => $item) {
+            if (is_string($key)) {
+                $store[$key] = $item;
+            }
+        }
+
+        return $store;
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $store
+     */
+    public function setFormatStoreData(?array $store): void
+    {
+        $this->setAttribute('format_store', $store);
+    }
 
     /**
      * @return array<string, string>
@@ -33,6 +98,8 @@ class CustomField extends Model
             'multiple' => 'boolean',
             'searchable' => 'boolean',
             'visible' => 'boolean',
+            'possible_values' => JsonListCast::class,
+            'format_store' => JsonObjectCast::class,
         ];
     }
 
