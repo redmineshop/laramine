@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Redmine 7.0.1 `time_entries` row.
@@ -70,5 +71,16 @@ class TimeEntry extends Model
     public function activity(): BelongsTo
     {
         return $this->belongsTo(Enumeration::class, 'activity_id');
+    }
+
+    /**
+     * Values stored with customized_type = TimeEntry.
+     *
+     * @return HasMany<CustomValue, $this>
+     */
+    public function customValues(): HasMany
+    {
+        return $this->hasMany(CustomValue::class, 'customized_id')
+            ->where('custom_values.customized_type', 'TimeEntry');
     }
 }

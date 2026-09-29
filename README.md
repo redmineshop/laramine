@@ -4,7 +4,7 @@ Open-source project management core on Laravel. The domain goal is a clean-room,
 
 P0 database migrations follow the Redmine 7.0.1 table and column layout for identity, projects, issues, custom fields, time entries, attachments, and saved queries. Nested-set columns on projects and issues are included.
 
-Domain services now cover project trees, membership and permission checks, and issue create/update with workflow transitions. Custom fields, saved queries, journals, and the HTTP API are not implemented. Redmine parity is not claimed. Behavior, the permission JSON codec, and seeded roles are described in [docs/domain.md](docs/domain.md).
+Domain services cover project trees, membership and permission checks, issue create/update with workflow transitions, and custom field formats and values. Saved queries, journals, and the HTTP API are not implemented. Redmine parity is not claimed. Behavior, the permission JSON codec, and seeded roles are described in [docs/domain.md](docs/domain.md). Custom fields are described in [docs/custom-fields.md](docs/custom-fields.md).
 
 ## Requirements
 
@@ -58,7 +58,7 @@ php artisan migrate
 
 `php artisan migrate` creates the P0 tables described in [docs/schema-inventory.md](docs/schema-inventory.md), pinned to Redmine 7.0.1. A structure-only dump of that release is kept at [docs/sources/redmine-7.0.1-schema.rb](docs/sources/redmine-7.0.1-schema.rb). Wiki, SCM, forums, news, settings, and webhooks are not migrated.
 
-The column names match that dump so a later ETL can load Redmine rows. Adapter differences (SQLite versus MySQL string lengths, integer width, and the `lower(login)` index) are listed at the bottom of the inventory. Eloquent models under `app/Models` map those tables. Project, membership, and issue services maintain nested sets and evaluate permission names and workflow rows. Query filters and custom-field formats are still not evaluated.
+The column names match that dump so a later ETL can load Redmine rows. Adapter differences (SQLite versus MySQL string lengths, integer width, and the `lower(login)` index) are listed at the bottom of the inventory. Eloquent models under `app/Models` map those tables. Project, membership, and issue services maintain nested sets and evaluate permission names and workflow rows. Custom field formats validate and store `custom_values`. Query filter operators are not evaluated.
 
 The Vite assets in this skeleton are optional. Tests and `php artisan serve` do not need Node. Use `npm install` and `npm run dev` only when you are changing frontend assets.
 

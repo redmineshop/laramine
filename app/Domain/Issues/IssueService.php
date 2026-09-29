@@ -3,6 +3,7 @@
 namespace App\Domain\Issues;
 
 use App\Domain\Acl\PermissionService;
+use App\Domain\CustomFields\CustomValueService;
 use App\Domain\DomainException;
 use App\Domain\PermissionDeniedException;
 use App\Domain\Workflow\WorkflowService;
@@ -17,8 +18,8 @@ use DateTimeInterface;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Creates and updates issues inside a project, including subtask placement
- * and workflow checks. Custom fields and journals are out of scope.
+ * Creates and updates issues inside a project, including subtask placement,
+ * workflow checks, and custom values. Journals are out of scope.
  */
 final class IssueService
 {
@@ -26,6 +27,7 @@ final class IssueService
         private readonly PermissionService $permissions,
         private readonly WorkflowService $workflows,
         private readonly IssueTree $trees,
+        private readonly CustomValueService $customValues,
     ) {}
 
     /**
@@ -76,12 +78,16 @@ final class IssueService
         $rulePayload = $payload;
         $rulePayload['parent_id'] = $parent?->id;
         $this->enforceFieldRules($actor, $probe, $rulePayload, []);
+        $customInputs = $this->customFieldInputs($attributes);
 
-        if ($parent === null) {
-            return $this->trees->createRoot($payload);
-        }
+        return DB::transaction(function () use ($actor, $parent, $payload, $customInputs): Issue {
+            $issue = $parent === null
+                ? $this->trees->createRoot($payload)
+                : $this->trees->createChild($parent, $payload);
+            $this->customValues->sync($actor, $issue, $customInputs, true);
 
-        return $this->trees->createChild($parent, $payload);
+            return $issue->refresh();
+        });
     }
 
     /**
@@ -175,13 +181,15 @@ final class IssueService
             'parent_id' => $parent?->id,
         ];
         $this->enforceFieldRules($actor, $issue, $incoming, $current);
+        $customInputs = $this->customFieldInputs($attributes);
 
-        if ($nextStatus !== null) {
-            $issue->status_id = $nextStatus->id;
-            $issue->closed_on = $nextStatus->is_closed ? ($issue->closed_on ?? now()) : null;
-        }
-
-        return DB::transaction(function () use ($issue, $parent, $parentChanged): Issue {
+        return DB::transaction(function () use ($actor, $issue, $parent, $parentChanged, $nextStatus, $customInputs): Issue {
+            // Field rules use the status already stored on the issue.
+            $this->customValues->sync($actor, $issue, $customInputs, false);
+            if ($nextStatus !== null) {
+                $issue->status_id = $nextStatus->id;
+                $issue->closed_on = $nextStatus->is_closed ? ($issue->closed_on ?? now()) : null;
+            }
             $issue->save();
             if ($parentChanged) {
                 return $this->trees->move($issue, $parent);
@@ -189,6 +197,39 @@ final class IssueService
 
             return $issue->refresh();
         });
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     * @return array<int, mixed>
+     */
+    private function customFieldInputs(array $attributes): array
+    {
+        if (! array_key_exists('custom_fields', $attributes) || $attributes['custom_fields'] === null) {
+            return [];
+        }
+
+        $inputs = $attributes['custom_fields'];
+        if (! is_array($inputs) || ! array_is_list($inputs)) {
+            throw new DomainException('custom_fields must be a list.');
+        }
+
+        $mapped = [];
+        foreach ($inputs as $row) {
+            if (! is_array($row) || ! array_key_exists('id', $row)) {
+                throw new DomainException('Each custom field needs an id.');
+            }
+            if (! is_numeric($row['id'])) {
+                throw new DomainException('Custom field id must be an integer.');
+            }
+            $id = (int) $row['id'];
+            if (array_key_exists($id, $mapped)) {
+                throw new DomainException('Custom field is repeated.');
+            }
+            $mapped[$id] = $row['value'] ?? null;
+        }
+
+        return $mapped;
     }
 
     private function canEdit(User $actor, Issue $issue, Project $project): bool

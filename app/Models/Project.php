@@ -152,4 +152,15 @@ class Project extends Model
     {
         return $this->enabledModules()->where('name', $name)->exists();
     }
+
+    /**
+     * Values stored with customized_type = Project.
+     *
+     * @return HasMany<CustomValue, $this>
+     */
+    public function customValues(): HasMany
+    {
+        return $this->hasMany(CustomValue::class, 'customized_id')
+            ->where('custom_values.customized_type', 'Project');
+    }
 }
