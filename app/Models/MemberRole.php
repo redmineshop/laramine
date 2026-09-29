@@ -42,4 +42,9 @@ class MemberRole extends Model
     {
         return $this->belongsTo(self::class, 'inherited_from');
     }
+
+    public function isInherited(): bool
+    {
+        return $this->inherited_from !== null;
+    }
 }
