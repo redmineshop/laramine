@@ -532,6 +532,15 @@ class IssueQueryOperatorTest extends TestCase
     /**
      * @group pending
      */
+    public function test_history_skips_private_journals(): void
+    {
+        // Redmine ev/cf only reads journals that pass Journal.visible_notes_condition.
+        $this->markTestSkipped('History still reads every attr journal detail, including private notes the actor cannot see.');
+    }
+
+    /**
+     * @group pending
+     */
     public function test_quoted_text_stays_one_token(): void
     {
         // Redmine Tokenizer keeps a quoted phrase as one token. Laramine still splits on every space.
