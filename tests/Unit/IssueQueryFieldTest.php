@@ -41,11 +41,12 @@ class IssueQueryFieldTest extends TestCase
         app(MembershipService::class)->addUserToGroup($group, $member);
         $inside = $this->issue(['author_id' => $member->id, 'subject' => 'Inside']);
         $outside = $this->issue(['author_id' => $outsider->id, 'subject' => 'Outside']);
+        $asGroup = $this->issue(['author_id' => $group->id, 'subject' => 'Group author']);
 
-        $this->assertIds(['author.group' => $this->clause('=', [(string) $group->id])], [$inside->id]);
+        // Redmine author.group is a list. = includes group members and the group id itself. * is not an operator.
+        $this->assertIds(['author.group' => $this->clause('=', [(string) $group->id])], [$inside->id, $asGroup->id]);
         $this->assertIds(['author.group' => $this->clause('!', [(string) $group->id])], [$outside->id]);
-        $this->assertIds(['author.group' => $this->clause('*', [])], [$inside->id]);
-        $this->assertIds(['author.group' => $this->clause('!*', [])], [$outside->id]);
+        $this->expectRejection(['author.group' => $this->clause('*', [])]);
 
         $mine = $this->issue(['subject' => 'Mine']);
         $this->assertIds(['author.role' => $this->clause('=', [(string) $this->world->role->id])], [$mine->id]);
@@ -169,21 +170,21 @@ class IssueQueryFieldTest extends TestCase
     public function test_attachment_filename_and_description(): void
     {
         $file = $this->issue(['subject' => 'File']);
+        $plain = $this->issue(['subject' => 'Plain file']);
         $blank = $this->issue(['subject' => 'Blank']);
-        Attachment::query()->create([
-            'container_id' => $file->id,
-            'container_type' => 'Issue',
-            'filename' => 'spec.pdf',
-            'disk_filename' => 'spec.pdf',
-            'filesize' => 10,
-            'description' => 'design notes',
-            'author_id' => $this->world->user->id,
-        ]);
+        $emptyDescription = $this->issue(['subject' => 'Empty description']);
+        $this->attachment($file, 'spec.pdf', 'design notes');
+        $this->attachment($plain, 'readme.txt', 'other text');
+        $this->attachment($emptyDescription, 'empty.txt', '');
 
+        // Redmine attachment * is any row. attachment_description !* is a blank description, and !~ still requires a description.
         $this->assertIds(['attachment' => $this->clause('~', ['spec'])], [$file->id]);
         $this->assertIds(['attachment' => $this->clause('!*', [])], [$blank->id]);
+        $this->assertIds(['attachment' => $this->clause('*', [])], [$file->id, $plain->id, $emptyDescription->id]);
         $this->assertIds(['attachment_description' => $this->clause('$', ['notes'])], [$file->id]);
-        $this->assertIds(['attachment_description' => $this->clause('!~', ['design'])], [$blank->id]);
+        $this->assertIds(['attachment_description' => $this->clause('!~', ['design'])], [$plain->id]);
+        $this->assertIds(['attachment_description' => $this->clause('!*', [])], [$emptyDescription->id]);
+        $this->assertIds(['attachment_description' => $this->clause('*', [])], [$file->id, $plain->id]);
     }
 
     public function test_watchers_and_journal_authors(): void
@@ -199,13 +200,35 @@ class IssueQueryFieldTest extends TestCase
         $this->note($watched, 'first', false, $other->id);
         $this->note($watched, 'second', false, $this->world->user->id);
 
+        $hidden = $this->issue(['subject' => 'Hidden note']);
+        $this->note($hidden, 'public first', false, $this->world->user->id);
+        $this->note($hidden, 'secret last', true, $other->id);
+        $stranger = User::factory()->create();
+        Watcher::query()->create([
+            'watchable_id' => $watched->id,
+            'watchable_type' => 'Issue',
+            'user_id' => $stranger->id,
+        ]);
+
+        // Redmine watcher_id is a list. Other users need view_issue_watchers. last_updated_by skips private journals.
         $this->assertIds(['watcher_id' => $this->clause('=', ['me'])], [$watched->id]);
-        $this->assertIds(['watcher_id' => $this->clause('!*', [])], [$quiet->id]);
+        $this->assertIds(['watcher_id' => $this->clause('!', ['me'])], [$quiet->id, $hidden->id]);
+        $this->assertSame([], $this->ids(['watcher_id' => $this->clause('=', [(string) $stranger->id])]));
+        $this->expectRejection(['watcher_id' => $this->clause('!*', [])]);
         $this->assertIds(['updated_by' => $this->clause('=', [(string) $other->id])], [$watched->id]);
-        $this->assertIds(['updated_by' => $this->clause('!*', [])], [$quiet->id]);
-        $this->assertIds(['last_updated_by' => $this->clause('=', ['me'])], [$watched->id]);
+        $this->assertIds(['updated_by' => $this->clause('!', [(string) $other->id])], [$quiet->id, $hidden->id]);
+        $this->assertIds(['last_updated_by' => $this->clause('=', ['me'])], [$watched->id, $hidden->id]);
         $this->assertIds(['last_updated_by' => $this->clause('!', ['me'])], [$quiet->id]);
         $this->assertNotContains($watched->id, $this->ids(['last_updated_by' => $this->clause('=', [(string) $other->id])]));
+
+        $permissions = $this->world->role->permissions;
+        $permissions[] = 'view_issue_watchers';
+        $permissions[] = 'view_private_notes';
+        $this->world->role->permissions = $permissions;
+        $this->world->role->save();
+
+        $this->assertIds(['watcher_id' => $this->clause('=', [(string) $stranger->id])], [$watched->id]);
+        $this->assertIds(['last_updated_by' => $this->clause('=', [(string) $other->id])], [$hidden->id]);
     }
 
     public function test_spent_time_sums_hours(): void
@@ -218,6 +241,7 @@ class IssueQueryFieldTest extends TestCase
         ]);
         $logged = $this->issue(['subject' => 'Logged']);
         $empty = $this->issue(['subject' => 'Empty']);
+        $zero = $this->issue(['subject' => 'Zero']);
         TimeEntry::query()->create([
             'project_id' => $this->world->project->id,
             'issue_id' => $logged->id,
@@ -242,12 +266,26 @@ class IssueQueryFieldTest extends TestCase
             'tweek' => 40,
             'tyear' => 2026,
         ]);
+        TimeEntry::query()->create([
+            'project_id' => $this->world->project->id,
+            'issue_id' => $zero->id,
+            'user_id' => $this->world->user->id,
+            'author_id' => $this->world->user->id,
+            'activity_id' => $activity->id,
+            'hours' => 0,
+            'spent_on' => '2026-09-29',
+            'tmonth' => 9,
+            'tweek' => 40,
+            'tyear' => 2026,
+        ]);
 
+        // Redmine spent_time COALESCE(ROUND(SUM(hours), 2), 0). * is > 0. !* is = 0, including a missing sum.
         $this->assertIds(['spent_time' => $this->clause('=', ['5'])], [$logged->id]);
+        $this->assertIds(['spent_time' => $this->clause('=', ['0'])], [$empty->id, $zero->id]);
         $this->assertIds(['spent_time' => $this->clause('>=', ['4'])], [$logged->id]);
-        $this->assertIds(['spent_time' => $this->clause('<=', ['4'])], []);
+        $this->assertIds(['spent_time' => $this->clause('<=', ['4'])], [$empty->id, $zero->id]);
         $this->assertIds(['spent_time' => $this->clause('><', ['1', '4'])], []);
-        $this->assertIds(['spent_time' => $this->clause('!*', [])], [$empty->id]);
+        $this->assertIds(['spent_time' => $this->clause('!*', [])], [$empty->id, $zero->id]);
         $this->assertIds(['spent_time' => $this->clause('*', [])], [$logged->id]);
     }
 
@@ -291,11 +329,28 @@ class IssueQueryFieldTest extends TestCase
             'value' => 'classified',
         ]);
 
+        $noted = $this->issue(['subject' => 'Noted', 'description' => '']);
+        $this->note($noted, 'shipyard token', false);
+        $whispered = $this->issue(['subject' => 'Sealed', 'description' => '']);
+        $this->note($whispered, 'whisper token', true);
+
+        // Redmine any_searchable ~ searches subject, description, visible notes, and searchable custom values.
         $this->assertIds(['any_searchable' => $this->clause('~', ['login'])], [$subject->id]);
         $this->assertIds(['any_searchable' => $this->clause('~', ['widget'])], [$custom->id]);
+        $this->assertIds(['any_searchable' => $this->clause('~', ['shipyard'])], [$noted->id]);
+        $this->assertSame([], $this->ids(['any_searchable' => $this->clause('~', ['whisper'])]));
         $this->assertIds(['any_searchable' => $this->clause('*~', ['login widget'])], [$subject->id, $custom->id]);
         $this->assertSame([], $this->ids(['any_searchable' => $this->clause('~', ['classified'])]));
         $this->assertContains($hiddenIssue->id, $this->ids(['any_searchable' => $this->clause('!~', ['classified'])]));
+    }
+
+    /**
+     * @group pending
+     */
+    public function test_display_subprojects_issues_includes_descendants_without_a_filter(): void
+    {
+        // Redmine Setting.display_subprojects_issues includes descendants when subproject_id is absent.
+        $this->markTestSkipped('Laramine keeps the query project only until subproject_id is set. There is no display_subprojects_issues setting.');
     }
 
     /**
@@ -366,6 +421,19 @@ class IssueQueryFieldTest extends TestCase
             'is_private' => false,
             'lock_version' => 0,
             ...$overrides,
+        ]);
+    }
+
+    private function attachment(Issue $issue, string $filename, string $description): void
+    {
+        Attachment::query()->create([
+            'container_id' => $issue->id,
+            'container_type' => 'Issue',
+            'filename' => $filename,
+            'disk_filename' => $filename,
+            'filesize' => 10,
+            'description' => $description,
+            'author_id' => $this->world->user->id,
         ]);
     }
 

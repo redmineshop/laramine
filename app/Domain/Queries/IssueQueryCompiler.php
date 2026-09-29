@@ -132,6 +132,7 @@ final class IssueQueryCompiler
         $column = $field->sql();
         $operator = $filter->operator;
         $allowMe = $field->name === 'author_id' || $field->name === 'assigned_to_id';
+        $expandGroups = $field->name === 'assigned_to_id';
 
         if ($operator === '*') {
             $query->whereNotNull($column);
@@ -146,12 +147,12 @@ final class IssueQueryCompiler
         }
 
         if (in_array($operator, ['ev', '!ev', 'cf'], true)) {
-            $this->history->apply($query, $field->column, $operator, $this->historyValues($filter, $actor, $allowMe));
+            $this->history->apply($query, $field->column, $operator, $this->historyValues($filter, $actor, $allowMe, $expandGroups));
 
             return;
         }
 
-        $ids = FilterValues::ids($filter, $actor, $allowMe);
+        $ids = FilterValues::ids($filter, $actor, $allowMe, $expandGroups);
         if ($operator === '=') {
             $query->whereIn($column, $ids);
 
@@ -312,6 +313,18 @@ final class IssueQueryCompiler
         $column = $field->sql();
         $operator = $filter->operator;
 
+        if ($field->name === 'updated_on' && $operator === '*') {
+            $query->whereColumn('issues.updated_on', '>', 'issues.created_on');
+
+            return;
+        }
+
+        if ($field->name === 'updated_on' && $operator === '!*') {
+            $query->whereColumn('issues.updated_on', 'issues.created_on');
+
+            return;
+        }
+
         if ($operator === '*') {
             $query->whereNotNull($column);
 
@@ -376,6 +389,18 @@ final class IssueQueryCompiler
 
         if ($operator === '!*') {
             $query->whereNull($column);
+
+            return;
+        }
+
+        if ($operator === '=' && $integer) {
+            $numbers = FilterValues::integerList($filter);
+            if ($numbers === []) {
+                $query->whereRaw('1 = 0');
+
+                return;
+            }
+            $query->whereIn($column, $numbers);
 
             return;
         }
@@ -445,7 +470,7 @@ final class IssueQueryCompiler
         }
 
         if ($operator === '~') {
-            $this->subjectExists($query, 'parent_issues', 'parent_issues.id', 'issues.parent_id', $filter);
+            $this->descendantsOf($query, FilterValues::scannedIds($filter));
 
             return;
         }
@@ -454,7 +479,14 @@ final class IssueQueryCompiler
             throw new QueryValidationException('Operator '.$operator.' is not valid for '.$filter->field.'.');
         }
 
-        $query->whereIn($field->sql(), FilterValues::ids($filter));
+        $ids = FilterValues::scannedIds($filter);
+        if ($ids === []) {
+            $query->whereRaw('1 = 0');
+
+            return;
+        }
+
+        $query->whereIn($field->sql(), $ids);
     }
 
     /**
@@ -464,27 +496,19 @@ final class IssueQueryCompiler
     {
         $operator = $filter->operator;
         if ($operator === '!*') {
-            $query->whereNotExists(function (QueryBuilder $sub): void {
-                $sub->selectRaw('1')
-                    ->from('issues as child_issues')
-                    ->whereColumn('child_issues.parent_id', 'issues.id');
-            });
+            $query->whereRaw('issues.rgt - issues.lft = 1');
 
             return;
         }
 
         if ($operator === '*') {
-            $query->whereExists(function (QueryBuilder $sub): void {
-                $sub->selectRaw('1')
-                    ->from('issues as child_issues')
-                    ->whereColumn('child_issues.parent_id', 'issues.id');
-            });
+            $query->whereRaw('issues.rgt - issues.lft > 1');
 
             return;
         }
 
         if ($operator === '~') {
-            $this->subjectExists($query, 'child_issues', 'child_issues.parent_id', 'issues.id', $filter);
+            $this->ancestorsOf($query, FilterValues::scannedIds($filter));
 
             return;
         }
@@ -493,13 +517,80 @@ final class IssueQueryCompiler
             throw new QueryValidationException('Operator '.$operator.' is not valid for '.$filter->field.'.');
         }
 
-        $ids = FilterValues::ids($filter);
+        $ids = FilterValues::scannedIds($filter);
+        if ($ids === []) {
+            $query->whereRaw('1 = 0');
+
+            return;
+        }
+
         $query->whereIn('issues.id', function (QueryBuilder $sub) use ($ids): void {
             $sub->select('parent_id')
                 ->from('issues as child_issues')
                 ->whereIn('child_issues.id', $ids)
                 ->whereNotNull('child_issues.parent_id');
         });
+    }
+
+    /**
+     * Redmine `parent_id` `~`: issues strictly inside the nested set of each id.
+     *
+     * @param  Builder<Issue>  $query
+     * @param  list<int>  $ids
+     */
+    private function descendantsOf(Builder $query, array $ids): void
+    {
+        $anchors = $ids === []
+            ? []
+            : Issue::query()->whereIn('id', $ids)->get(['id', 'root_id', 'lft', 'rgt'])->all();
+
+        $query->where(function (Builder $inner) use ($anchors): void {
+            /** @var Builder<Issue> $inner */
+            $matched = false;
+            foreach ($anchors as $anchor) {
+                if ($anchor->root_id === null || $anchor->lft === null || $anchor->rgt === null) {
+                    continue;
+                }
+                $rootId = (int) $anchor->root_id;
+                $lft = (int) $anchor->lft;
+                $rgt = (int) $anchor->rgt;
+                $apply = function (Builder $scope) use ($rootId, $lft, $rgt): void {
+                    /** @var Builder<Issue> $scope */
+                    $scope->where('issues.root_id', $rootId)
+                        ->where('issues.lft', '>', $lft)
+                        ->where('issues.rgt', '<', $rgt);
+                };
+                if (! $matched) {
+                    $inner->where($apply);
+                    $matched = true;
+                } else {
+                    $inner->orWhere($apply);
+                }
+            }
+            if (! $matched) {
+                $inner->whereRaw('1 = 0');
+            }
+        });
+    }
+
+    /**
+     * Redmine `child_id` `~`: ancestors of the first scanned issue id.
+     *
+     * @param  Builder<Issue>  $query
+     * @param  list<int>  $ids
+     */
+    private function ancestorsOf(Builder $query, array $ids): void
+    {
+        $anchor = Issue::query()->find($ids[0] ?? 0);
+        if (! $anchor instanceof Issue || $anchor->root_id === null || $anchor->lft === null || $anchor->rgt === null) {
+            $query->whereRaw('1 = 0');
+
+            return;
+        }
+
+        $query->where('issues.root_id', (int) $anchor->root_id)
+            ->where('issues.lft', '<', (int) $anchor->lft)
+            ->where('issues.rgt', '>', (int) $anchor->rgt);
     }
 
     /**
@@ -523,28 +614,12 @@ final class IssueQueryCompiler
     }
 
     /**
-     * @param  Builder<Issue>  $query
-     */
-    private function subjectExists(Builder $query, string $alias, string $left, string $right, QueryFilter $filter): void
-    {
-        $tokens = FilterValues::tokens($filter);
-        $query->whereExists(function (QueryBuilder $sub) use ($alias, $left, $right, $tokens): void {
-            $sub->selectRaw('1')
-                ->from('issues as '.$alias)
-                ->whereColumn($left, $right);
-            foreach ($tokens as $token) {
-                $sub->whereRaw('LOWER('.$alias.'.subject) LIKE ? ESCAPE ?', [FilterValues::like($token), '\\']);
-            }
-        });
-    }
-
-    /**
      * @return list<string>
      */
-    private function historyValues(QueryFilter $filter, ?User $actor, bool $allowMe): array
+    private function historyValues(QueryFilter $filter, ?User $actor, bool $allowMe, bool $expandGroups = false): array
     {
         $values = [];
-        foreach (FilterValues::ids($filter, $actor, $allowMe) as $id) {
+        foreach (FilterValues::ids($filter, $actor, $allowMe, $expandGroups) as $id) {
             $values[] = (string) $id;
         }
 

@@ -31,14 +31,15 @@ class DateWindowTest extends TestCase
         $this->assertSame(['2026-09-14', '2026-09-27'], $this->span($window, 'l2w'));
         $this->assertSame(['2026-10-02', '2026-10-02'], $this->span($window, 't+', 3));
         $this->assertSame(['2026-09-27', '2026-09-27'], $this->span($window, 't-', 2));
-        $this->assertSame([null, '2026-09-30'], $this->span($window, '<t+', 2));
-        $this->assertSame(['2026-10-01', null], $this->span($window, '>t+', 1));
-        $this->assertSame(['2026-09-30', '2026-10-02'], $this->span($window, '><t+', 3));
-        $this->assertSame(['2026-09-26', '2026-09-29'], $this->span($window, '>t-', 3));
-        $this->assertSame([null, '2026-09-25'], $this->span($window, '<t-', 3));
-        $this->assertSame(['2026-09-26', '2026-09-28'], $this->span($window, '><t-', 3));
-        $this->assertTrue($window->calendarBound('><t+', 0)->empty);
-        $this->assertTrue($window->calendarBound('><t-', 0)->empty);
+        // Redmine relative_date_clause: bounds are inclusive calendar days; >t- stays open.
+        $this->assertSame([null, '2026-10-01'], $this->span($window, '<t+', 2));
+        $this->assertSame(['2026-09-30', null], $this->span($window, '>t+', 1));
+        $this->assertSame(['2026-09-29', '2026-10-02'], $this->span($window, '><t+', 3));
+        $this->assertSame(['2026-09-26', null], $this->span($window, '>t-', 3));
+        $this->assertSame([null, '2026-09-26'], $this->span($window, '<t-', 3));
+        $this->assertSame(['2026-09-26', '2026-09-29'], $this->span($window, '><t-', 3));
+        $this->assertSame(['2026-09-29', '2026-09-29'], $this->span($window, '><t+', 0));
+        $this->assertSame(['2026-09-29', '2026-09-29'], $this->span($window, '><t-', 0));
     }
 
     /**

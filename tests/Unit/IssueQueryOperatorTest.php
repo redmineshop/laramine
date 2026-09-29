@@ -2,6 +2,8 @@
 
 namespace Tests\Unit;
 
+use App\Domain\Acl\MembershipService;
+use App\Domain\Issues\IssueTree;
 use App\Domain\Projects\ProjectService;
 use App\Domain\Queries\IssueQueryRunner;
 use App\Domain\Queries\QueryValidationException;
@@ -129,6 +131,9 @@ class IssueQueryOperatorTest extends TestCase
         $this->assertIds(['estimated_hours' => $this->clause('*', [])], [$mid->id, $high->id]);
         $this->assertIds(['estimated_hours' => $this->clause('>=', ['3.5'])], [$mid->id, $high->id]);
         $this->assertIds(['issue_id' => $this->clause('=', [(string) $low->id])], [$low->id]);
+        // Redmine integer = scans every integer in the value ("10,80"), and a valueless scan matches nothing.
+        $this->assertIds(['done_ratio' => $this->clause('=', ['10,80'])], [$low->id, $high->id]);
+        $this->assertSame([], $this->ids(['issue_id' => $this->clause('=', ['none'])]));
     }
 
     public function test_relative_and_explicit_dates(): void
@@ -179,15 +184,16 @@ class IssueQueryOperatorTest extends TestCase
         $this->assertIds(['due_date' => $this->clause('l2w', [])], [$withinPast->id, $older->id, $twoWeeks->id]);
         $this->assertIds(['due_date' => $this->clause('t+', ['3'])], [$plusTwo->id]);
         $this->assertIds(['due_date' => $this->clause('t-', ['3'])], [$withinPast->id]);
+        // Redmine <t+ N is <= T+N, >t+ N is >= T+N, ><t+ is T through T+N, >t- is >= T-N, <t- is <= T-N, ><t- is T-N through T.
         $this->assertIds(['due_date' => $this->clause('<t+', ['2'])], [$today->id, $tomorrow->id, $withinPast->id, $older->id, $twoWeeks->id]);
-        $this->assertIds(['due_date' => $this->clause('>t+', ['1'])], [$plusTwo->id, $nextWeek->id, $nextMonth->id]);
-        $this->assertIds(['due_date' => $this->clause('><t+', ['3'])], [$tomorrow->id, $plusTwo->id]);
-        $this->assertIds(['due_date' => $this->clause('>t-', ['3'])], [$today->id, $withinPast->id]);
-        $this->assertIds(['due_date' => $this->clause('<t-', ['3'])], [$older->id, $twoWeeks->id]);
-        $this->assertIds(['due_date' => $this->clause('><t-', ['3'])], [$withinPast->id]);
-        $this->assertSame([], $this->ids(['due_date' => $this->clause('><t+', ['0'])]));
+        $this->assertIds(['due_date' => $this->clause('>t+', ['1'])], [$tomorrow->id, $plusTwo->id, $nextWeek->id, $nextMonth->id]);
+        $this->assertIds(['due_date' => $this->clause('><t+', ['3'])], [$today->id, $tomorrow->id, $plusTwo->id]);
+        $this->assertIds(['due_date' => $this->clause('>t-', ['3'])], [$today->id, $tomorrow->id, $plusTwo->id, $nextWeek->id, $nextMonth->id, $withinPast->id]);
+        $this->assertIds(['due_date' => $this->clause('<t-', ['3'])], [$withinPast->id, $older->id, $twoWeeks->id]);
+        $this->assertIds(['due_date' => $this->clause('><t-', ['3'])], [$today->id, $withinPast->id]);
+        $this->assertIds(['due_date' => $this->clause('><t+', ['0'])], [$today->id]);
         $this->assertNotContains($today->id, $this->ids(['due_date' => $this->clause('nd', [])]));
-        $this->assertNotContains($tomorrow->id, $this->ids(['due_date' => $this->clause('>t+', ['1'])]));
+        $this->assertNotContains($today->id, $this->ids(['due_date' => $this->clause('>t+', ['1'])]));
     }
 
     public function test_past_datetime_offsets_and_rejected_future_operators(): void
@@ -256,21 +262,25 @@ class IssueQueryOperatorTest extends TestCase
 
     public function test_private_flag_parent_and_child(): void
     {
-        $parent = $this->issue(['subject' => 'Parent', 'is_private' => true]);
-        $child = $this->issue(['subject' => 'Child', 'parent_id' => $parent->id, 'is_private' => false]);
-        $alone = $this->issue(['subject' => 'Alone']);
+        // Redmine parent_id ~ is nested-set descendants; child_id ~ is ancestors; child * is rgt - lft > 1.
+        $tree = app(IssueTree::class);
+        $parent = $tree->createRoot($this->treeAttributes('Parent', true));
+        $child = $tree->createChild($parent, $this->treeAttributes('Child', false));
+        $grand = $tree->createChild($child, $this->treeAttributes('Grand', false));
+        $alone = $tree->createRoot($this->treeAttributes('Alone', false));
 
         $this->assertIds(['is_private' => $this->clause('=', ['1'])], [$parent->id]);
-        $this->assertIds(['is_private' => $this->clause('!', ['true'])], [$child->id, $alone->id]);
+        $this->assertIds(['is_private' => $this->clause('!', ['true'])], [$child->id, $grand->id, $alone->id]);
         $this->assertIds(['parent_id' => $this->clause('=', [(string) $parent->id])], [$child->id]);
+        $this->assertIds(['parent_id' => $this->clause('=', [$parent->id.','.$child->id])], [$child->id, $grand->id]);
         $this->assertIds(['parent_id' => $this->clause('!*', [])], [$parent->id, $alone->id]);
-        $this->assertIds(['parent_id' => $this->clause('*', [])], [$child->id]);
-        $this->assertIds(['parent_id' => $this->clause('~', ['Parent'])], [$child->id]);
+        $this->assertIds(['parent_id' => $this->clause('*', [])], [$child->id, $grand->id]);
+        $this->assertIds(['parent_id' => $this->clause('~', [(string) $parent->id])], [$child->id, $grand->id]);
+        $this->assertIds(['parent_id' => $this->clause('~', ['missing'])], []);
         $this->assertIds(['child_id' => $this->clause('=', [(string) $child->id])], [$parent->id]);
-        $this->assertIds(['child_id' => $this->clause('!*', [])], [$child->id, $alone->id]);
-        $this->assertIds(['child_id' => $this->clause('*', [])], [$parent->id]);
-        $this->assertIds(['child_id' => $this->clause('~', ['Child'])], [$parent->id]);
-        $this->assertSame([], $this->ids(['parent_id' => $this->clause('~', ['missing'])]));
+        $this->assertIds(['child_id' => $this->clause('~', [(string) $grand->id])], [$parent->id, $child->id]);
+        $this->assertIds(['child_id' => $this->clause('!*', [])], [$grand->id, $alone->id]);
+        $this->assertIds(['child_id' => $this->clause('*', [])], [$parent->id, $child->id]);
     }
 
     public function test_filters_combine_with_and(): void
@@ -346,9 +356,14 @@ class IssueQueryOperatorTest extends TestCase
         $theirs = $this->issue(['author_id' => $other->id, 'assigned_to_id' => $other->id, 'subject' => 'Theirs']);
         $this->journal($theirs, 'assigned_to_id', (string) $this->world->user->id, (string) $other->id);
 
+        $group = User::factory()->create(['type' => User::TYPE_GROUP]);
+        app(MembershipService::class)->addUserToGroup($group, $this->world->user);
+        $grouped = $this->issue(['author_id' => $group->id, 'assigned_to_id' => $group->id, 'subject' => 'Grouped']);
+
+        // Redmine me on assigned_to_id includes the actor's groups. author_id me is only the user id.
         $this->assertIds(['author_id' => $this->clause('=', ['me'])], [$mine->id]);
-        $this->assertIds(['assigned_to_id' => $this->clause('=', ['me'])], [$mine->id]);
-        $this->assertIds(['assigned_to_id' => $this->clause('ev', ['me'])], [$mine->id, $theirs->id]);
+        $this->assertIds(['assigned_to_id' => $this->clause('=', ['me'])], [$mine->id, $grouped->id]);
+        $this->assertIds(['assigned_to_id' => $this->clause('ev', ['me'])], [$mine->id, $theirs->id, $grouped->id]);
         $this->assertIds(['assigned_to_id' => $this->clause('!ev', ['me'])], []);
         $this->expectRejection(['tracker_id' => $this->clause('=', ['me'])]);
         $this->expectRejectionFor(null, ['author_id' => $this->clause('=', ['me'])]);
@@ -488,6 +503,41 @@ class IssueQueryOperatorTest extends TestCase
         $this->expectRejection(['cf_'.$hiddenVersion->id.'.status' => $this->clause('=', ['open'])]);
     }
 
+    public function test_updated_on_any_means_the_issue_changed(): void
+    {
+        // Redmine updated_on * is updated_on > created_on. !* is updated_on = created_on.
+        $fresh = $this->issue(['subject' => 'Fresh']);
+        $this->assertIds(['updated_on' => $this->clause('!*', [])], [$fresh->id]);
+
+        Carbon::setTestNow(Carbon::parse('2026-09-29 13:00:00', 'UTC'));
+        $fresh->subject = 'Edited';
+        $fresh->save();
+
+        $this->assertIds(['updated_on' => $this->clause('*', [])], [$fresh->id]);
+        $this->assertSame([], $this->ids(['updated_on' => $this->clause('!*', [])]));
+    }
+
+    public function test_own_visibility_is_anded_with_filters(): void
+    {
+        // Redmine issue visibility is AND-ed with filters. own keeps the author or assignee, then subject ~.
+        $this->world->role->issues_visibility = 'own';
+        $this->world->role->save();
+        $mine = $this->issue(['subject' => 'Fix mine']);
+        $other = User::factory()->create();
+        $this->issue(['subject' => 'Fix theirs', 'author_id' => $other->id, 'assigned_to_id' => null]);
+
+        $this->assertIds(['subject' => $this->clause('~', ['Fix'])], [$mine->id]);
+    }
+
+    /**
+     * @group pending
+     */
+    public function test_quoted_text_stays_one_token(): void
+    {
+        // Redmine Tokenizer keeps a quoted phrase as one token. Laramine still splits on every space.
+        $this->markTestSkipped('Quoted phrases are not implemented. Redmine search tokens treat "fix login" as one phrase.');
+    }
+
     /**
      * @param  array<string, array{operator: string, values: list<string>}>  $filters
      * @param  list<int>  $expected
@@ -544,6 +594,24 @@ class IssueQueryOperatorTest extends TestCase
     private function clause(string $operator, array $values): array
     {
         return ['operator' => $operator, 'values' => $values];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function treeAttributes(string $subject, bool $private): array
+    {
+        return [
+            'project_id' => $this->world->project->id,
+            'tracker_id' => $this->world->tracker->id,
+            'status_id' => $this->world->newStatus->id,
+            'priority_id' => $this->world->priority->id,
+            'author_id' => $this->world->user->id,
+            'subject' => $subject,
+            'done_ratio' => 0,
+            'is_private' => $private,
+            'lock_version' => 0,
+        ];
     }
 
     /**

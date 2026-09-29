@@ -4,6 +4,7 @@ namespace App\Domain\Queries;
 
 use App\Models\User;
 use DateTimeImmutable;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Normalizes filter values after the operator has been accepted for the field.
@@ -48,12 +49,15 @@ final class FilterValues
     /**
      * @return list<int>
      */
-    public static function ids(QueryFilter $filter, ?User $actor = null, bool $allowMe = false): array
+    public static function ids(QueryFilter $filter, ?User $actor = null, bool $allowMe = false, bool $expandGroups = false): array
     {
         $ids = [];
         foreach (self::present($filter) as $value) {
             if ($value === 'me') {
                 $ids[] = self::currentUserId($filter, $actor, $allowMe);
+                if ($expandGroups && $actor !== null) {
+                    array_push($ids, ...self::groupIds($actor));
+                }
 
                 continue;
             }
@@ -86,6 +90,49 @@ final class FilterValues
     public static function integers(QueryFilter $filter): array
     {
         return self::numbers($filter, '/^[+-]?\d+$/');
+    }
+
+    /**
+     * Every integer token in the values. Redmine `=` scans `value.first` with `/[+-]?\d+/`.
+     * An empty scan is a match-nothing list, not a validation error.
+     *
+     * @return list<string>
+     */
+    public static function integerList(QueryFilter $filter): array
+    {
+        $numbers = [];
+        foreach (self::present($filter) as $value) {
+            $matched = preg_match_all('/[+-]?\d+/', $value, $matches);
+            if ($matched === false || $matches[0] === []) {
+                continue;
+            }
+            foreach ($matches[0] as $match) {
+                $numbers[] = $match;
+            }
+        }
+
+        return $numbers;
+    }
+
+    /**
+     * Decimal ids embedded in a tree filter value. Redmine scans `/\d+/` and matches nothing when none remain.
+     *
+     * @return list<int>
+     */
+    public static function scannedIds(QueryFilter $filter): array
+    {
+        $ids = [];
+        foreach (self::present($filter) as $value) {
+            $matched = preg_match_all('/\d+/', $value, $matches);
+            if ($matched === false) {
+                continue;
+            }
+            foreach ($matches[0] as $match) {
+                $ids[] = (int) $match;
+            }
+        }
+
+        return array_values(array_unique($ids));
     }
 
     /**
@@ -183,6 +230,23 @@ final class FilterValues
         }
 
         return (int) $actor->id;
+    }
+
+    /**
+     * Group principals the actor belongs to. Redmine adds these for `assigned_to_id` and `watcher_id` `me`.
+     *
+     * @return list<int>
+     */
+    private static function groupIds(User $actor): array
+    {
+        $ids = [];
+        foreach (DB::table('groups_users')->where('user_id', $actor->id)->pluck('group_id') as $id) {
+            if (is_numeric($id)) {
+                $ids[] = (int) $id;
+            }
+        }
+
+        return $ids;
     }
 
     private static function escaped(string $token): string

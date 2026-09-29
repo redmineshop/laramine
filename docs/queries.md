@@ -57,9 +57,9 @@ Custom field filters use `cf_{id}`. The field must be an `IssueCustomField` with
 
 Relative dates use `user_preferences.time_zone` when it is a valid zone, otherwise the application timezone. Weeks run Monday through Sunday. Datetime columns (`created_on`, `updated_on`, `closed_on`) compare that calendar range after it is converted into the application timezone. An open-ended operator keeps one side unbounded (`>=` the start of the day, or `<=` the end of the day).
 
-Day offsets use a non-negative integer `N` and anchor date T. `nd` is T+1. `nw` is the next Monday–Sunday. `nm` is the next calendar month. `l2w` is the two calendar weeks before this week. `t+` / `t-` are exactly T±N. `<t+` is on or before T+N−1. `>t+` is on or after T+N+1. `><t+` is T+1 through T+N. `>t-` is T−N through T (today included). `<t-` is on or before T−N−1. `><t-` is T−N through T−1 (today excluded). An inverted window (`><t+` or `><t-` with N = 0) matches nothing. `date_past` does not accept the future-only operators (`<t+`, `>t+`, `><t+`, `t+`, `nd`, `nw`, `nm`).
+Day offsets use a non-negative integer `N` and anchor date T, matching Redmine `Query#relative_date_clause`. `nd` is T+1. `nw` is the next Monday–Sunday. `nm` is the next calendar month. `l2w` is the two calendar weeks before this week. `t+` / `t-` are exactly T±N. `<t+` is on or before T+N. `>t+` is on or after T+N. `><t+` is T through T+N. `>t-` is on or after T−N and stays open into the future. `<t-` is on or before T−N. `><t-` is T−N through T. N = 0 is today. `date_past` does not accept the future-only operators (`<t+`, `>t+`, `><t+`, `t+`, `nd`, `nw`, `nm`). `updated_on` `*` means `updated_on` is later than `created_on`. `updated_on` `!*` means the two timestamps are equal.
 
-The value `me` is the current user id. It is accepted on `author_id`, `assigned_to_id` (including `ev` / `!ev` / `cf`), and user custom fields. It is rejected on every other field. It is rejected when the actor is missing, inactive, anonymous, or a group. `me` does not expand to groups.
+The value `me` is the current user id. It is accepted on `author_id`, `assigned_to_id` (including `ev` / `!ev` / `cf`), user custom fields, `watcher_id`, `updated_by`, and `last_updated_by`. It is rejected on every other field, and when the actor is missing, inactive, anonymous, or a group. On `assigned_to_id` and `watcher_id`, `me` also includes the groups that user belongs to. On `author_id`, `updated_by`, `last_updated_by`, and user custom fields it is only that user id.
 
 ## Shipped operators (41)
 
@@ -100,7 +100,7 @@ The value `me` is the current user id. It is accepted on `author_id`, `assigned_
 | `cf_{id}` | format's query filter type | shipped operators for that type, for string, text, int, float, date, list, bool, user, and version |
 | `cf_{id}.due_date` | date | version custom fields only. Compared to `versions.effective_date` |
 | `cf_{id}.status` | list | version custom fields only. `=` / `!` on `versions.status` |
-| `author.group` | list_optional | `=`, `!`, `!*`, `*`. Author is a user in `groups_users` for those groups |
+| `author.group` | list | `=`, `!`. Author is a member of those groups, or the group id itself |
 | `author.role` | list | `=`, `!`. Author has that role on the issue's project |
 | `member_of_group` | list_optional | Assignee is one of those groups, or a user in them |
 | `assigned_to_role` | list_optional | Assignee has that role on the issue's project. `!*` is no such role, including a blank assignee |
@@ -109,15 +109,15 @@ The value `me` is the current user id. It is accepted on `author_id`, `assigned_
 | `project.status` | list | `=` / `!` on `projects.status` (`1` active, `5` closed, `9` archived) |
 | `subproject_id` | list_subprojects | See below |
 | `notes` | text | Journal `notes`. Private notes are skipped unless the actor has `view_private_notes` on that project (admins see them) |
-| `attachment` | text | `attachments.filename` where `container_type` is `Issue` |
-| `attachment_description` | text | `attachments.description` for those rows |
-| `watcher_id` | list_optional | `watchers` for the issue. `me` is allowed |
-| `updated_by` | list_optional | Any journal `user_id`. `me` is allowed. `!*` is no journal |
-| `last_updated_by` | list | `user_id` of the latest journal (`id` descending). No journal matches `!`. `me` is allowed |
-| `spent_time` | float | `SUM(time_entries.hours)` for the issue. `!*` is no time entry. A missing sum is not zero |
-| `any_searchable` | search | `~`, `*~`, `!~` across subject, description, and visible searchable issue custom fields |
+| `attachment` | text | `attachments.filename`. `*` is any attachment row. `!*` is no attachment |
+| `attachment_description` | text | `!*` is an attachment with a blank description. `!~` is a non-blank description that does not contain the tokens |
+| `watcher_id` | list | `=`, `!` on `watchers`. `me` includes the actor's groups. Other users require `view_issue_watchers` |
+| `updated_by` | list | `=`, `!` on a visible journal `user_id`. Private notes are skipped without `view_private_notes`. `me` is the user id only |
+| `last_updated_by` | list | `user_id` of the latest visible journal (`id` descending). No visible journal matches `!` |
+| `spent_time` | hour | `COALESCE(ROUND(SUM(time_entries.hours), 2), 0)`. `*` is greater than 0. `!*` and `=` 0 include a missing sum |
+| `any_searchable` | search | `~`, `*~`, `!~` across subject, description, visible journal notes, and visible searchable issue custom fields |
 
-`child_id` `=` keeps issues whose child id is in the list. `!*` keeps issues that have no children. `*` keeps issues that have a child. `~` matches a child subject (every token). `parent_id` `*` is a non-null parent. `parent_id` `~` matches the parent subject.
+`parent_id` and `child_id` read the issue nested set (`root_id`, `lft`, `rgt`). `=` and `~` scan decimal ids out of the value; a value with no digits matches nothing. `parent_id` `=` is `parent_id` in those ids. `parent_id` `~` is a strict descendant of any of those issues. `parent_id` `*` / `!*` is a non-null parent, or none. `child_id` `=` keeps the direct parent of those child ids. `child_id` `~` keeps ancestors of the first id. `child_id` `*` is `rgt - lft > 1`. `child_id` `!*` is a leaf (`rgt - lft = 1`).
 
 History reads `journal_details` with `property = attr` and `prop_key` equal to the issue column (`status_id`, `tracker_id`, `priority_id`, `assigned_to_id`, `fixed_version_id`, `category_id`). Values are decimal id strings. Custom-field history is not queried. The list, bool, user, and version custom field types do not offer `ev` / `!ev` / `cf`.
 
@@ -127,7 +127,7 @@ Relations are stored once. The canonical `relation_type` is `relates`, `blocks`,
 
 `subproject_id` changes which projects a scoped query reads. With no filter, only the query project is included. `*` adds every descendant. `!*` is the query project only. `=` adds listed descendants and ignores ids that are not descendants. `!` adds every descendant except the listed ones. The query project itself stays in the set. Issues in a descendant are still dropped when the actor lacks `view_issues` there. On a global query, `*` adds no extra constraint, `!*` keeps projects with a null `parent_id`, and `=` / `!` compare `issues.project_id`.
 
-`any_searchable` is a SQL `LIKE` over `issues.subject`, `issues.description`, and `custom_values` for issue custom fields that are `searchable`, implemented, and visible to the actor. It does not search notes, attachments, or a separate index. `~` requires every token to appear in at least one of those places. `*~` requires any token. `!~` is the negation of `~`. A hidden custom field is not searched.
+`any_searchable` is a SQL `LIKE` over `issues.subject`, `issues.description`, visible journal notes, and `custom_values` for issue custom fields that are `searchable`, implemented, and visible to the actor. Private notes follow the same rule as the `notes` filter. It does not search attachment filenames. `~` requires every token to appear in at least one of those places. `*~` requires any token. `!~` is the negation of `~`. A hidden custom field is not searched.
 
 Sort keys (`priority`, `status`, `tracker`, `assigned_to`, …) order by the issue column (`priority_id`, and so on), then `id` when no sort is stored. `group_by` adds a leading `ORDER BY` and does not collapse rows.
 
@@ -150,13 +150,12 @@ An unknown operator or an unknown field is rejected.
 
 - Filter, column, sort, and option payloads are JSON. YAML is read-only compatibility.
 - Text `~` splits on whitespace and AND-s those tokens as `LOWER(column) LIKE`. It does not implement quoted phrases. `*~` ORs the same tokens. `^` and `$` do not split on spaces. `=` on subject and description is exact equality under the database collation (MySQL's default collation is case-insensitive).
-- Day-offset windows follow the readings in this document (T+N−1, next Monday, and so on). That is the Laramine reading of the operator labels.
+- Day-offset windows follow Redmine `relative_date_clause` (inclusive T±N, `>t-` open into the future). Weeks stay Monday–Sunday because there is no `start_of_week` setting.
 - Relation rows are matched from either end using the canonical type on `issue_from_id`. Related issues are not passed through `IssueVisibility`.
 - `ev` / `cf` compare decimal id strings on `journal_details.old_value` and `value` for `property = attr` only.
-- Weeks are Monday–Sunday. There is no `start_of_week` setting.
 - A project-scoped query does not include subprojects until `subproject_id` says so. There is no `display_subprojects_issues` setting.
-- `any_searchable` does not search journal notes or attachment filenames. Those have their own filters.
-- `me` does not expand to the actor's groups. Group filters take group ids.
+- `any_searchable` does not search attachment filenames. Those have their own filter. It also does not call Redmine's search tokenizer, so a quoted phrase is still split on spaces.
+- `me` expands to the actor's groups only on `assigned_to_id` and `watcher_id`. Group filters still take group ids.
 - Sort uses the issue column (for example `priority_id`), not enumeration position or user name.
 - `issues_visibility = all` includes other people's private issues. `default` hides them unless the user is the author or assignee.
 - Active admins can read private saved queries.

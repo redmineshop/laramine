@@ -11,6 +11,7 @@ use App\Models\Project;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Filters that read a related row instead of one issue column.
@@ -40,11 +41,11 @@ final class AssociationFilterSql
             'fixed_version.status' => $this->versionStatus($query, $filter),
             'project.status' => $this->projectStatus($query, $filter),
             'notes' => $this->notes($query, $filter, $actor, $project),
-            'attachment' => $this->attachment($query, $filter, 'attachments.filename'),
-            'attachment_description' => $this->attachment($query, $filter, 'attachments.description'),
-            'watcher_id' => $this->watcher($query, $filter, $actor),
-            'updated_by' => $this->updatedBy($query, $filter, $actor),
-            'last_updated_by' => $this->lastUpdatedBy($query, $filter, $actor),
+            'attachment' => $this->attachmentFile($query, $filter),
+            'attachment_description' => $this->attachmentDescription($query, $filter),
+            'watcher_id' => $this->watcher($query, $filter, $actor, $project),
+            'updated_by' => $this->updatedBy($query, $filter, $actor, $project),
+            'last_updated_by' => $this->lastUpdatedBy($query, $filter, $actor, $project),
             'spent_time' => $this->spentTime($query, $filter),
             'any_searchable' => $this->anySearchable($query, $filter, $actor, $project),
             default => throw new QueryValidationException('Unknown filter field: '.$field->name.'.'),
@@ -57,30 +58,14 @@ final class AssociationFilterSql
     private function authorGroup(Builder $query, QueryFilter $filter): void
     {
         $operator = $filter->operator;
-        if ($operator === '*') {
-            $query->whereExists(function (QueryBuilder $sub): void {
-                $sub->selectRaw('1')
-                    ->from('groups_users')
-                    ->whereColumn('groups_users.user_id', 'issues.author_id');
-            });
-
-            return;
-        }
-
-        if ($operator === '!*') {
-            $query->whereNotExists(function (QueryBuilder $sub): void {
-                $sub->selectRaw('1')
-                    ->from('groups_users')
-                    ->whereColumn('groups_users.user_id', 'issues.author_id');
-            });
-
-            return;
-        }
-
-        $ids = FilterValues::ids($filter);
+        $groupIds = FilterValues::ids($filter);
         if ($operator === '=') {
-            $query->whereIn('issues.author_id', function (QueryBuilder $sub) use ($ids): void {
-                $this->usersInGroups($sub, $ids);
+            $query->where(function (Builder $inner) use ($groupIds): void {
+                /** @var Builder<Issue> $inner */
+                $inner->whereIn('issues.author_id', $groupIds)
+                    ->orWhereIn('issues.author_id', function (QueryBuilder $sub) use ($groupIds): void {
+                        $this->usersInGroups($sub, $groupIds);
+                    });
             });
 
             return;
@@ -90,8 +75,12 @@ final class AssociationFilterSql
             throw new QueryValidationException('Operator '.$operator.' is not valid for '.$filter->field.'.');
         }
 
-        $query->whereNotIn('issues.author_id', function (QueryBuilder $sub) use ($ids): void {
-            $this->usersInGroups($sub, $ids);
+        $query->where(function (Builder $inner) use ($groupIds): void {
+            /** @var Builder<Issue> $inner */
+            $inner->whereNotIn('issues.author_id', $groupIds)
+                ->whereNotIn('issues.author_id', function (QueryBuilder $sub) use ($groupIds): void {
+                    $this->usersInGroups($sub, $groupIds);
+                });
         });
     }
 
@@ -314,55 +303,215 @@ final class AssociationFilterSql
     /**
      * @param  Builder<Issue>  $query
      */
-    private function attachment(Builder $query, QueryFilter $filter, string $column): void
+    private function attachmentFile(Builder $query, QueryFilter $filter): void
     {
-        $this->textExists($query, $filter, $column, function (QueryBuilder $sub): void {
-            $sub->selectRaw('1')
-                ->from('attachments')
-                ->where('attachments.container_type', 'Issue')
-                ->whereColumn('attachments.container_id', 'issues.id');
+        $operator = $filter->operator;
+        if ($operator === '*') {
+            $query->whereExists(function (QueryBuilder $sub): void {
+                $this->attachmentBase($sub);
+            });
+
+            return;
+        }
+
+        if ($operator === '!*') {
+            $query->whereNotExists(function (QueryBuilder $sub): void {
+                $this->attachmentBase($sub);
+            });
+
+            return;
+        }
+
+        $this->textExists($query, $filter, 'attachments.filename', function (QueryBuilder $sub): void {
+            $this->attachmentBase($sub);
         });
     }
 
     /**
+     * Redmine `attachment_description`: `!*` is an attachment whose description is blank.
+     * `!~` is an attachment with a non-blank description that does not contain the tokens.
+     *
      * @param  Builder<Issue>  $query
      */
-    private function watcher(Builder $query, QueryFilter $filter, ?User $actor): void
+    private function attachmentDescription(Builder $query, QueryFilter $filter): void
     {
-        $this->linkedUser($query, $filter, $actor, function (QueryBuilder $sub, ?array $ids): void {
-            $sub->selectRaw('1')
-                ->from('watchers')
-                ->where('watchers.watchable_type', 'Issue')
-                ->whereColumn('watchers.watchable_id', 'issues.id');
-            if ($ids !== null) {
-                $sub->whereIn('watchers.user_id', $ids);
+        $operator = $filter->operator;
+        $column = 'attachments.description';
+        if ($operator === '*') {
+            $query->whereExists(function (QueryBuilder $sub) use ($column): void {
+                $this->attachmentBase($sub);
+                $sub->whereNotNull($column)->where($column, '!=', '');
+            });
+
+            return;
+        }
+
+        if ($operator === '!*') {
+            $query->whereExists(function (QueryBuilder $sub) use ($column): void {
+                $this->attachmentBase($sub);
+                $sub->where(function (QueryBuilder $blank) use ($column): void {
+                    $blank->whereNull($column)->orWhere($column, '=', '');
+                });
+            });
+
+            return;
+        }
+
+        if ($operator === '!~') {
+            $tokens = FilterValues::tokens($filter);
+            $query->whereExists(function (QueryBuilder $sub) use ($column, $tokens): void {
+                $this->attachmentBase($sub);
+                $sub->whereNotNull($column)->where($column, '!=', '');
+                foreach ($tokens as $token) {
+                    $sub->whereRaw('LOWER('.$column.') NOT LIKE ? ESCAPE ?', [FilterValues::like($token), '\\']);
+                }
+            });
+
+            return;
+        }
+
+        $query->whereExists(function (QueryBuilder $sub) use ($column, $filter, $operator): void {
+            $this->attachmentBase($sub);
+            if ($operator === '*~') {
+                $sub->whereNotNull($column)->where($column, '!=', '');
             }
+            $this->positiveText($sub, $column, $filter, $operator);
         });
     }
 
-    /**
-     * @param  Builder<Issue>  $query
-     */
-    private function updatedBy(Builder $query, QueryFilter $filter, ?User $actor): void
+    private function attachmentBase(QueryBuilder $sub): void
     {
-        $this->linkedUser($query, $filter, $actor, function (QueryBuilder $sub, ?array $ids): void {
-            $sub->selectRaw('1')
-                ->from('journals')
-                ->where('journals.journalized_type', 'Issue')
-                ->whereColumn('journals.journalized_id', 'issues.id');
-            if ($ids !== null) {
-                $sub->whereIn('journals.user_id', $ids);
-            }
-        });
+        $sub->selectRaw('1')
+            ->from('attachments')
+            ->where('attachments.container_type', 'Issue')
+            ->whereColumn('attachments.container_id', 'issues.id');
+    }
+
+    /**
+     * Redmine `watcher_id` is a list. `me` includes the actor's groups.
+     * Other user ids require `view_issue_watchers` on the issue project.
+     *
+     * @param  Builder<Issue>  $query
+     */
+    private function watcher(Builder $query, QueryFilter $filter, ?User $actor, ?Project $project): void
+    {
+        $operator = $filter->operator;
+        if ($operator !== '=' && $operator !== '!') {
+            throw new QueryValidationException('Operator '.$operator.' is not valid for '.$filter->field.'.');
+        }
+
+        $ids = FilterValues::ids($filter, $actor, true, true);
+        $self = $this->selfPrincipalIds($actor);
+        $mine = array_values(array_intersect($ids, $self));
+        $others = array_values(array_diff($ids, $self));
+
+        $positive = function (Builder $inner) use ($mine, $others, $actor, $project): void {
+            /** @var Builder<Issue> $inner */
+            $inner->where(function (Builder $match) use ($mine, $others, $actor, $project): void {
+                /** @var Builder<Issue> $match */
+                if ($mine !== []) {
+                    $match->whereExists(function (QueryBuilder $sub) use ($mine): void {
+                        $this->watcherRows($sub, $mine);
+                    });
+                } else {
+                    $match->whereRaw('1 = 0');
+                }
+                if ($others !== []) {
+                    $match->orWhere(function (Builder $other) use ($others, $actor, $project): void {
+                        /** @var Builder<Issue> $other */
+                        $this->watcherPermission($other, $actor, $project);
+                        $other->whereExists(function (QueryBuilder $sub) use ($others): void {
+                            $this->watcherRows($sub, $others);
+                        });
+                    });
+                }
+            });
+        };
+
+        if ($operator === '=') {
+            $query->where($positive);
+
+            return;
+        }
+
+        $query->whereNot($positive);
+    }
+
+    /**
+     * @param  list<int>  $ids
+     */
+    private function watcherRows(QueryBuilder $sub, array $ids): void
+    {
+        $sub->selectRaw('1')
+            ->from('watchers')
+            ->where('watchers.watchable_type', 'Issue')
+            ->whereColumn('watchers.watchable_id', 'issues.id')
+            ->whereIn('watchers.user_id', $ids);
     }
 
     /**
      * @param  Builder<Issue>  $query
      */
-    private function lastUpdatedBy(Builder $query, QueryFilter $filter, ?User $actor): void
+    private function watcherPermission(Builder $query, ?User $actor, ?Project $project): void
+    {
+        if ($actor !== null && $actor->admin && $actor->isActive()) {
+            return;
+        }
+
+        if ($project !== null) {
+            if (! $this->permissions->allowed($actor, 'view_issue_watchers', $project)) {
+                $query->whereRaw('1 = 0');
+            }
+
+            return;
+        }
+
+        $allowed = $this->projectsAllowing($actor, 'view_issue_watchers');
+        if ($allowed === []) {
+            $query->whereRaw('1 = 0');
+
+            return;
+        }
+
+        $query->whereIn('issues.project_id', $allowed);
+    }
+
+    /**
+     * @param  Builder<Issue>  $query
+     */
+    private function updatedBy(Builder $query, QueryFilter $filter, ?User $actor, ?Project $project): void
+    {
+        $operator = $filter->operator;
+        if ($operator !== '=' && $operator !== '!') {
+            throw new QueryValidationException('Operator '.$operator.' is not valid for '.$filter->field.'.');
+        }
+
+        $ids = FilterValues::ids($filter, $actor, true);
+        $callback = function (QueryBuilder $sub) use ($ids, $actor, $project): void {
+            $sub->selectRaw('1')->from('journals');
+            $this->visibleJournal($sub, $actor, $project);
+            $sub->whereIn('journals.user_id', $ids);
+        };
+
+        if ($operator === '=') {
+            $query->whereExists($callback);
+
+            return;
+        }
+
+        $query->whereNotExists($callback);
+    }
+
+    /**
+     * Latest visible journal by id. A private journal is skipped when the actor cannot see it.
+     *
+     * @param  Builder<Issue>  $query
+     */
+    private function lastUpdatedBy(Builder $query, QueryFilter $filter, ?User $actor, ?Project $project): void
     {
         $ids = FilterValues::ids($filter, $actor, true);
-        $latest = '(SELECT journals.user_id FROM journals WHERE journals.journalized_type = ? AND journals.journalized_id = issues.id ORDER BY journals.id DESC LIMIT 1)';
+        $visible = $this->visibleJournalSql($actor, $project);
+        $latest = '(SELECT journals.user_id FROM journals WHERE journals.id = (SELECT MAX(journals.id) FROM journals WHERE journals.journalized_type = ? AND journals.journalized_id = issues.id AND '.$visible.'))';
         $placeholders = implode(', ', array_fill(0, count($ids), '?'));
         $bindings = ['Issue', ...$ids];
 
@@ -389,24 +538,20 @@ final class AssociationFilterSql
     private function spentTime(Builder $query, QueryFilter $filter): void
     {
         $operator = $filter->operator;
+        $sum = 'COALESCE((SELECT ROUND(CAST(SUM(time_entries.hours) AS DECIMAL(30,3)), 2) FROM time_entries WHERE time_entries.issue_id = issues.id), 0)';
         if ($operator === '*') {
-            $query->whereExists(function (QueryBuilder $sub): void {
-                $this->timeRows($sub);
-            });
+            $query->whereRaw($sum.' > 0');
 
             return;
         }
 
         if ($operator === '!*') {
-            $query->whereNotExists(function (QueryBuilder $sub): void {
-                $this->timeRows($sub);
-            });
+            $query->whereRaw($sum.' = 0');
 
             return;
         }
 
         $numbers = FilterValues::decimals($filter);
-        $sum = '(SELECT SUM(time_entries.hours) FROM time_entries WHERE time_entries.issue_id = issues.id)';
         if ($operator === '=') {
             $query->where(function (Builder $inner) use ($sum, $numbers): void {
                 foreach ($numbers as $index => $number) {
@@ -452,16 +597,16 @@ final class AssociationFilterSql
             : [];
 
         if ($operator === '!~') {
-            $query->whereNot(function (Builder $inner) use ($tokens, $fieldIds): void {
+            $query->whereNot(function (Builder $inner) use ($tokens, $fieldIds, $actor, $project): void {
                 /** @var Builder<Issue> $inner */
-                $this->eachTokenSomewhere($inner, $tokens, $fieldIds);
+                $this->eachTokenSomewhere($inner, $tokens, $fieldIds, $actor, $project);
             });
 
             return;
         }
 
         if ($operator === '~') {
-            $this->eachTokenSomewhere($query, $tokens, $fieldIds);
+            $this->eachTokenSomewhere($query, $tokens, $fieldIds, $actor, $project);
 
             return;
         }
@@ -470,11 +615,11 @@ final class AssociationFilterSql
             throw new QueryValidationException('Operator '.$operator.' is not valid for '.$filter->field.'.');
         }
 
-        $query->where(function (Builder $inner) use ($tokens, $fieldIds): void {
+        $query->where(function (Builder $inner) use ($tokens, $fieldIds, $actor, $project): void {
             foreach ($tokens as $index => $token) {
-                $apply = function (Builder $match) use ($token, $fieldIds): void {
+                $apply = function (Builder $match) use ($token, $fieldIds, $actor, $project): void {
                     /** @var Builder<Issue> $match */
-                    $this->tokenSomewhere($match, $token, $fieldIds);
+                    $this->tokenSomewhere($match, $token, $fieldIds, $actor, $project);
                 };
                 if ($index === 0) {
                     $inner->where($apply);
@@ -515,13 +660,6 @@ final class AssociationFilterSql
         return $sub->selectRaw('1')
             ->from('versions')
             ->whereColumn('versions.id', 'issues.fixed_version_id');
-    }
-
-    private function timeRows(QueryBuilder $sub): void
-    {
-        $sub->selectRaw('1')
-            ->from('time_entries')
-            ->whereColumn('time_entries.issue_id', 'issues.id');
     }
 
     /**
@@ -650,44 +788,65 @@ final class AssociationFilterSql
     }
 
     /**
-     * @param  callable(QueryBuilder, list<int>|null): void  $base
-     * @param  Builder<Issue>  $query
+     * SQL fragment for the same private-note rule as {@see visibleJournal()}.
+     * Project ids are integers from this database.
      */
-    private function linkedUser(Builder $query, QueryFilter $filter, ?User $actor, callable $base): void
+    private function visibleJournalSql(?User $actor, ?Project $project): string
     {
-        $operator = $filter->operator;
-        if ($operator === '*') {
-            $query->whereExists(function (QueryBuilder $sub) use ($base): void {
-                $base($sub, null);
-            });
-
-            return;
+        if ($actor !== null && $actor->admin && $actor->isActive()) {
+            return '1 = 1';
         }
 
-        if ($operator === '!*') {
-            $query->whereNotExists(function (QueryBuilder $sub) use ($base): void {
-                $base($sub, null);
-            });
+        if ($project !== null) {
+            if ($this->permissions->allowed($actor, 'view_private_notes', $project)) {
+                return '1 = 1';
+            }
 
-            return;
+            return 'journals.private_notes = 0';
         }
 
-        $ids = FilterValues::ids($filter, $actor, true);
-        if ($operator === '=') {
-            $query->whereExists(function (QueryBuilder $sub) use ($base, $ids): void {
-                $base($sub, $ids);
-            });
-
-            return;
+        $allowed = $this->projectsAllowing($actor, 'view_private_notes');
+        if ($allowed === []) {
+            return 'journals.private_notes = 0';
         }
 
-        if ($operator !== '!') {
-            throw new QueryValidationException('Operator '.$operator.' is not valid for '.$filter->field.'.');
+        return '(journals.private_notes = 0 OR issues.project_id IN ('.implode(',', $allowed).'))';
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function projectsAllowing(?User $actor, string $permission): array
+    {
+        $allowed = [];
+        foreach (Project::query()->orderBy('id')->get() as $candidate) {
+            if ($this->permissions->allowed($actor, $permission, $candidate)) {
+                $allowed[] = (int) $candidate->id;
+            }
         }
 
-        $query->whereNotExists(function (QueryBuilder $sub) use ($base, $ids): void {
-            $base($sub, $ids);
-        });
+        return $allowed;
+    }
+
+    /**
+     * Actor id plus group ids. Redmine treats these watcher values as "me" and skips `view_issue_watchers`.
+     *
+     * @return list<int>
+     */
+    private function selfPrincipalIds(?User $actor): array
+    {
+        if ($actor === null || $actor->type !== User::TYPE_USER) {
+            return [0];
+        }
+
+        $ids = [0, (int) $actor->id];
+        foreach (DB::table('groups_users')->where('user_id', $actor->id)->pluck('group_id') as $id) {
+            if (is_numeric($id)) {
+                $ids[] = (int) $id;
+            }
+        }
+
+        return $ids;
     }
 
     private function calendar(QueryBuilder $sub, string $column, QueryFilter $filter, string $operator, DateWindow $dates): void
@@ -730,25 +889,33 @@ final class AssociationFilterSql
      * @param  list<string>  $tokens
      * @param  list<int>  $fieldIds
      */
-    private function eachTokenSomewhere(Builder $query, array $tokens, array $fieldIds): void
+    private function eachTokenSomewhere(Builder $query, array $tokens, array $fieldIds, ?User $actor, ?Project $project): void
     {
         foreach ($tokens as $token) {
-            $query->where(function (Builder $inner) use ($token, $fieldIds): void {
+            $query->where(function (Builder $inner) use ($token, $fieldIds, $actor, $project): void {
                 /** @var Builder<Issue> $inner */
-                $this->tokenSomewhere($inner, $token, $fieldIds);
+                $this->tokenSomewhere($inner, $token, $fieldIds, $actor, $project);
             });
         }
     }
 
     /**
+     * Subject, description, visible journal notes, and visible searchable custom values.
+     * Redmine's issue search does the same and leaves attachments to their own filter.
+     *
      * @param  Builder<Issue>  $query
      * @param  list<int>  $fieldIds
      */
-    private function tokenSomewhere(Builder $query, string $token, array $fieldIds): void
+    private function tokenSomewhere(Builder $query, string $token, array $fieldIds, ?User $actor, ?Project $project): void
     {
         $like = FilterValues::like($token);
         $query->whereRaw('LOWER(issues.subject) LIKE ? ESCAPE ?', [$like, '\\'])
-            ->orWhereRaw('LOWER(issues.description) LIKE ? ESCAPE ?', [$like, '\\']);
+            ->orWhereRaw('LOWER(issues.description) LIKE ? ESCAPE ?', [$like, '\\'])
+            ->orWhereExists(function (QueryBuilder $sub) use ($like, $actor, $project): void {
+                $sub->selectRaw('1')->from('journals');
+                $this->visibleJournal($sub, $actor, $project);
+                $sub->whereRaw('LOWER(journals.notes) LIKE ? ESCAPE ?', [$like, '\\']);
+            });
         if ($fieldIds === []) {
             return;
         }

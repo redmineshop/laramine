@@ -79,14 +79,14 @@ final class DateWindow
     }
 
     /**
-     * Calendar window for a relative operator. `$days` is used by the offset operators.
-     * An inverted window (`><t+` 0, `><t-` 0) is empty and matches nothing.
+     * Calendar window for a relative operator. `$days` is a non-negative offset N.
      *
-     * Readings, with T = the anchor date: `nd` is T+1; `nw` is the next Monday–Sunday;
-     * `nm` is the next calendar month; `l2w` is the two calendar weeks before this week;
-     * `t+` / `t-` are exactly T±N; `<t+` is on or before T+N−1; `>t+` is on or after T+N+1;
-     * `><t+` is T+1 through T+N; `>t-` is T−N through T; `<t-` is on or before T−N−1;
-     * `><t-` is T−N through T−1.
+     * Redmine `Query#relative_date_clause` (7.0.1), with T the anchor date:
+     * `nd` is T+1; `nw` is the next Monday–Sunday; `nm` is the next calendar month;
+     * `l2w` is the two weeks before this week; `t+` / `t-` are exactly T±N;
+     * `<t+` is on or before T+N; `>t+` is on or after T+N; `><t+` is T through T+N;
+     * `>t-` is on or after T−N (the future stays open); `<t-` is on or before T−N;
+     * `><t-` is T−N through T. N = 0 is today, not an empty window.
      */
     public function calendarBound(string $operator, int $days = 0): DateBound
     {
@@ -110,12 +110,12 @@ final class DateWindow
             ),
             't+' => self::closedDay($today->addDays($days)),
             't-' => self::closedDay($today->subDays($days)),
-            '<t+' => new DateBound(null, $today->addDays($days)->subDay()->toDateString()),
-            '>t+' => new DateBound($today->addDays($days)->addDay()->toDateString(), null),
-            '><t+' => self::between($today->addDay(), $today->addDays($days)),
-            '>t-' => self::between($today->subDays($days), $today),
-            '<t-' => new DateBound(null, $today->subDays($days)->subDay()->toDateString()),
-            '><t-' => self::between($today->subDays($days), $today->subDay()),
+            '<t+' => new DateBound(null, $today->addDays($days)->toDateString()),
+            '>t+' => new DateBound($today->addDays($days)->toDateString(), null),
+            '><t+' => self::between($today, $today->addDays($days)),
+            '>t-' => new DateBound($today->subDays($days)->toDateString(), null),
+            '<t-' => new DateBound(null, $today->subDays($days)->toDateString()),
+            '><t-' => self::between($today->subDays($days), $today),
             default => throw new QueryValidationException('Operator '.$operator.' is not a relative date.'),
         };
     }
