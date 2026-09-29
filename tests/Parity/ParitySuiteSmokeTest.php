@@ -6,7 +6,9 @@ use Tests\TestCase;
 
 /**
  * Keeps the Parity suite executable before Redmine fixture tests exist.
- * This does not assert behavioral compatibility.
+ *
+ * P0 tables can be migrated. This suite does not compare them to a Redmine
+ * database and does not mark any parity row VERIFIED.
  */
 class ParitySuiteSmokeTest extends TestCase
 {

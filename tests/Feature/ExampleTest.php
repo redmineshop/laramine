@@ -16,5 +16,6 @@ class ExampleTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('Laramine');
+        $response->assertSee('not implemented yet');
     }
 }
