@@ -147,4 +147,9 @@ class Project extends Model
     {
         return $this->belongsToMany(Tracker::class, 'projects_trackers', 'project_id', 'tracker_id');
     }
+
+    public function isModuleEnabled(string $name): bool
+    {
+        return $this->enabledModules()->where('name', $name)->exists();
+    }
 }

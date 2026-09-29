@@ -22,6 +22,14 @@ class User extends Authenticatable
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
+    public const TYPE_USER = 'User';
+
+    public const TYPE_GROUP = 'Group';
+
+    public const TYPE_ANONYMOUS = 'AnonymousUser';
+
+    public const STATUS_ACTIVE = 1;
+
     public const CREATED_AT = 'created_on';
 
     public const UPDATED_AT = 'updated_on';
@@ -57,6 +65,11 @@ class User extends Authenticatable
             'last_login_on' => 'datetime',
             'passwd_changed_on' => 'datetime',
         ];
+    }
+
+    public function isActive(): bool
+    {
+        return (int) $this->status === self::STATUS_ACTIVE;
     }
 
     public function getAuthPasswordName(): string

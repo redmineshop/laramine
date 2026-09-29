@@ -473,7 +473,11 @@ Migrations in this repository create the **P0** tables only (41). Wiki (P1), SCM
 
 PHPUnit and GitHub Actions apply these migrations on **MySQL 8**. SQLite is an optional local smoke path and is not the authoritative test database.
 
-Eloquent models are stubs. Polymorphic relations are declared, but there is no morph map yet, so Eloquent would persist PHP class names. Rows written with an explicit `*_type` string (for example `Issue`) keep that string. Do not ETL polymorphic type columns through Eloquent until the map is pinned. `type` STI columns are plain strings; PHP subclasses are not mapped.
+Eloquent models map the P0 tables. Polymorphic relations are declared, but there is no morph map yet, so Eloquent would persist PHP class names. Rows written with an explicit `*_type` string (for example `Issue`) keep that string. Do not ETL polymorphic type columns through Eloquent until the map is pinned. `type` STI columns are plain strings; PHP subclasses are not mapped.
+
+### Role permission codec
+
+`roles.permissions` and `roles.settings` are unchanged text columns. Laramine writes `permissions` as a JSON array of name strings, for example `["view_issues","add_issues"]`. The reader also accepts a Redmine YAML symbol list (`- :view_issues`) so an ETL load can be interpreted before it is rewritten. Empty or unrecognized text grants no non-public permissions. Public permission names are implied and do not need to be stored. `roles.settings` is JSON when written through the model; non-JSON text is ignored at runtime. Per-tracker masks inside settings are not evaluated. Details and seeded roles: [domain.md](domain.md).
 
 ### Intentional adapter differences
 
