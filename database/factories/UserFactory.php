@@ -4,8 +4,6 @@ namespace Database\Factories;
 
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 /**
  * @extends Factory<User>
@@ -13,33 +11,26 @@ use Illuminate\Support\Str;
 class UserFactory extends Factory
 {
     /**
-     * The current password being used by the factory.
-     */
-    protected static ?string $password;
-
-    /**
      * Define the model's default state.
+     *
+     * `hashed_password` is a 40-character placeholder. Redmine's hash-and-salt
+     * algorithm is not applied by this factory.
      *
      * @return array<string, mixed>
      */
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
-            'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
+            'login' => fake()->unique()->userName(),
+            'hashed_password' => str_repeat('0', 40),
+            'firstname' => mb_substr(fake()->firstName(), 0, 30),
+            'lastname' => mb_substr(fake()->lastName(), 0, 255),
+            'mail_notification' => '',
+            'admin' => false,
+            'status' => 1,
+            'language' => 'en',
+            'type' => 'User',
+            'must_change_passwd' => false,
         ];
-    }
-
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
-    public function unverified(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
-        ]);
     }
 }

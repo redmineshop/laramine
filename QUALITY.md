@@ -40,7 +40,7 @@ First public / v1 ship must meet **all** gates below. Same spirit as Redmine cor
 1. `composer install --prefer-dist --no-interaction`
 2. Pint `--test`
 3. PHPStan/Larastan
-4. Full PHPUnit (Unit + Feature + Parity) against CI database
+4. Full PHPUnit (Unit + Feature + Parity) against MySQL 8
 5. Matrix: at least one supported PHP version for v1; expand after first ship
 
 Do not merge with red CI. Do not tag releases from a red commit.

@@ -9,7 +9,7 @@
         <h1>{{ config('app.name') }}</h1>
         <p>
             Open-source project management core on Laravel.
-            This install is the application skeleton. Projects, issues, permissions, and custom fields are not implemented yet.
+            P0 tables follow the Redmine 7.0.1 layout. Workflows, permissions, and the API are not implemented yet.
         </p>
     </body>
 </html>
