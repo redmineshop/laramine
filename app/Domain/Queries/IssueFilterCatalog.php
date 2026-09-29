@@ -57,6 +57,22 @@ final class IssueFilterCatalog
             self::field('follows', 'relation', IssueFilterKind::Relation, 'follows'),
             self::field('copied_to', 'relation', IssueFilterKind::Relation, 'copied_to'),
             self::field('copied_from', 'relation', IssueFilterKind::Relation, 'copied_from'),
+            self::field('author.group', 'list_optional', IssueFilterKind::Association, 'author_id'),
+            self::field('author.role', 'list', IssueFilterKind::Association, 'author_id'),
+            self::field('member_of_group', 'list_optional', IssueFilterKind::Association, 'assigned_to_id'),
+            self::field('assigned_to_role', 'list_optional', IssueFilterKind::Association, 'assigned_to_id'),
+            self::field('fixed_version.due_date', 'date', IssueFilterKind::Association, 'fixed_version_id'),
+            self::field('fixed_version.status', 'list', IssueFilterKind::Association, 'fixed_version_id'),
+            self::field('project.status', 'list', IssueFilterKind::Association, 'project_id'),
+            self::field('subproject_id', 'list_subprojects', IssueFilterKind::Subproject, 'project_id'),
+            self::field('notes', 'text', IssueFilterKind::Association, 'notes'),
+            self::field('attachment', 'text', IssueFilterKind::Association, 'filename'),
+            self::field('attachment_description', 'text', IssueFilterKind::Association, 'description'),
+            self::field('watcher_id', 'list_optional', IssueFilterKind::Association, 'user_id'),
+            self::field('updated_by', 'list_optional', IssueFilterKind::Association, 'user_id'),
+            self::field('last_updated_by', 'list', IssueFilterKind::Association, 'user_id'),
+            self::field('spent_time', 'float', IssueFilterKind::Association, 'hours'),
+            self::field('any_searchable', 'search', IssueFilterKind::Association, 'subject'),
         ];
 
         $indexed = [];

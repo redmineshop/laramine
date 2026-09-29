@@ -22,20 +22,58 @@ final class VisibleIssueScope
         private readonly IssueVisibility $visibility,
         private readonly PermissionService $permissions,
         private readonly MembershipService $memberships,
+        private readonly SubprojectScope $subprojects,
     ) {}
 
     /**
      * @param  Builder<Issue>  $query
+     * @param  list<QueryFilter>  $filters
      * @return Builder<Issue>
      */
-    public function apply(Builder $query, ?User $user, ?Project $project): Builder
+    public function apply(Builder $query, ?User $user, ?Project $project, array $filters = []): Builder
     {
-        if ($project !== null) {
+        $subprojects = [];
+        foreach ($filters as $filter) {
+            if ($filter->field !== 'subproject_id') {
+                continue;
+            }
+            $this->subprojects->assert($filter);
+            $subprojects[] = $filter;
+        }
+
+        if ($project !== null && $subprojects === []) {
             return $this->visibility->apply($query, $user, $project);
         }
 
+        if ($project !== null) {
+            return $this->among($query, $user, $this->subprojects->ids($project, $subprojects));
+        }
+
+        $builder = $this->among($query, $user, null);
+        foreach ($subprojects as $filter) {
+            $this->subprojects->constrainGlobal($builder, $filter);
+        }
+
+        return $builder;
+    }
+
+    /**
+     * @param  Builder<Issue>  $query
+     * @param  list<int>|null  $onlyIds  Null walks every project. An empty list matches nothing.
+     * @return Builder<Issue>
+     */
+    private function among(Builder $query, ?User $user, ?array $onlyIds): Builder
+    {
+        if ($onlyIds === []) {
+            return $query->whereRaw('1 = 0');
+        }
+
         if ($user !== null && $user->admin && $user->isActive()) {
-            return $query;
+            if ($onlyIds === null) {
+                return $query;
+            }
+
+            return $query->whereIn('issues.project_id', $onlyIds);
         }
 
         $groups = [
@@ -44,7 +82,12 @@ final class VisibleIssueScope
             IssueVisibility::OWN => [],
         ];
 
-        foreach (Project::query()->orderBy('id')->get() as $candidate) {
+        $projects = Project::query()->orderBy('id');
+        if ($onlyIds !== null) {
+            $projects->whereIn('id', $onlyIds);
+        }
+
+        foreach ($projects->get() as $candidate) {
             if (! $this->permissions->allowed($user, 'view_issues', $candidate)) {
                 continue;
             }

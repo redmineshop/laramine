@@ -51,7 +51,7 @@ Creating a query requires `save_queries` on the project, or on any membership wh
 
 ## Running a query
 
-`IssueQueryRunner` limits rows with `IssueVisibility` for a project-scoped query. A global query (`project_id` null) keeps issues only in projects where the actor has `view_issues`, using that project's `all` / `default` / `own` rule. The query's own `project_id` is that project only. Subprojects are not included.
+`IssueQueryRunner` limits rows with `IssueVisibility` for a project-scoped query. A global query (`project_id` null) keeps issues only in projects where the actor has `view_issues`, using that project's `all` / `default` / `own` rule. Without `subproject_id`, the query project is that project only. `subproject_id` can add descendants, and each of those projects is still checked with `view_issues`.
 
 Custom field filters use `cf_{id}`. The field must be an `IssueCustomField` with `is_filter` and a format this engine implements. A field the actor cannot see is an error, not a silent skip. `!`, `!~`, and `!*` are `NOT EXISTS` on `custom_values`, so a missing value matches "not equal" and "none". List `=` matches if any stored value is in the list.
 
@@ -100,6 +100,22 @@ The value `me` is the current user id. It is accepted on `author_id`, `assigned_
 | `cf_{id}` | format's query filter type | shipped operators for that type, for string, text, int, float, date, list, bool, user, and version |
 | `cf_{id}.due_date` | date | version custom fields only. Compared to `versions.effective_date` |
 | `cf_{id}.status` | list | version custom fields only. `=` / `!` on `versions.status` |
+| `author.group` | list_optional | `=`, `!`, `!*`, `*`. Author is a user in `groups_users` for those groups |
+| `author.role` | list | `=`, `!`. Author has that role on the issue's project |
+| `member_of_group` | list_optional | Assignee is one of those groups, or a user in them |
+| `assigned_to_role` | list_optional | Assignee has that role on the issue's project. `!*` is no such role, including a blank assignee |
+| `fixed_version.due_date` | date | `versions.effective_date` for `issues.fixed_version_id`. `!*` is no version or a null date |
+| `fixed_version.status` | list | `=` / `!` on `versions.status`. `!` includes issues with no version |
+| `project.status` | list | `=` / `!` on `projects.status` (`1` active, `5` closed, `9` archived) |
+| `subproject_id` | list_subprojects | See below |
+| `notes` | text | Journal `notes`. Private notes are skipped unless the actor has `view_private_notes` on that project (admins see them) |
+| `attachment` | text | `attachments.filename` where `container_type` is `Issue` |
+| `attachment_description` | text | `attachments.description` for those rows |
+| `watcher_id` | list_optional | `watchers` for the issue. `me` is allowed |
+| `updated_by` | list_optional | Any journal `user_id`. `me` is allowed. `!*` is no journal |
+| `last_updated_by` | list | `user_id` of the latest journal (`id` descending). No journal matches `!`. `me` is allowed |
+| `spent_time` | float | `SUM(time_entries.hours)` for the issue. `!*` is no time entry. A missing sum is not zero |
+| `any_searchable` | search | `~`, `*~`, `!~` across subject, description, and visible searchable issue custom fields |
 
 `child_id` `=` keeps issues whose child id is in the list. `!*` keeps issues that have no children. `*` keeps issues that have a child. `~` matches a child subject (every token). `parent_id` `*` is a non-null parent. `parent_id` `~` matches the parent subject.
 
@@ -107,7 +123,11 @@ History reads `journal_details` with `property = attr` and `prop_key` equal to t
 
 Relations are stored once. The canonical `relation_type` is `relates`, `blocks`, `duplicates`, `precedes`, or `copied_to` on `issue_from_id`. The reverse filter name (`blocked`, `duplicated`, `follows`, `copied_from`) matches that same row from `issue_to_id`. A filter also accepts the reverse type if a row was stored that way. `=` / `!` compare the other issue id. `=p` / `=!p` / `!p` compare the other issue's project. `*o` / `!o` use `issue_statuses.is_closed`. Related issues are not re-checked against issue visibility.
 
-`cf_N.due_date` and `cf_N.status` require an `IssueCustomField` of format `version` with `is_filter`, visible to the actor. The custom value is the version id. `!*` on `cf_N.due_date` matches a missing value and a version whose `effective_date` is null. Other `cf_N.*` suffixes are rejected.
+`cf_N.due_date` and `cf_N.status` require an `IssueCustomField` of format `version` with `is_filter`, visible to the actor. The custom value is the version id. `!*` on `cf_N.due_date` matches a missing value and a version whose `effective_date` is null. The same date and status comparisons apply to `fixed_version.due_date` and `fixed_version.status` through `issues.fixed_version_id`. Shipped formats do not define any other `cf_N.*` chain, so those suffixes are rejected.
+
+`subproject_id` changes which projects a scoped query reads. With no filter, only the query project is included. `*` adds every descendant. `!*` is the query project only. `=` adds listed descendants and ignores ids that are not descendants. `!` adds every descendant except the listed ones. The query project itself stays in the set. Issues in a descendant are still dropped when the actor lacks `view_issues` there. On a global query, `*` adds no extra constraint, `!*` keeps projects with a null `parent_id`, and `=` / `!` compare `issues.project_id`.
+
+`any_searchable` is a SQL `LIKE` over `issues.subject`, `issues.description`, and `custom_values` for issue custom fields that are `searchable`, implemented, and visible to the actor. It does not search notes, attachments, or a separate index. `~` requires every token to appear in at least one of those places. `*~` requires any token. `!~` is the negation of `~`. A hidden custom field is not searched.
 
 Sort keys (`priority`, `status`, `tracker`, `assigned_to`, …) order by the issue column (`priority_id`, and so on), then `id` when no sort is stored. `group_by` adds a leading `ORDER BY` and does not collapse rows.
 
@@ -121,16 +141,7 @@ These names are rejected. They are not treated as "match everything".
 
 | Field | Why it stays deferred |
 | --- | --- |
-| `author.group`, `author.role`, `member_of_group`, `assigned_to_role` | Group and role membership. `me` does not expand to the actor's groups. |
-| `fixed_version.due_date`, `fixed_version.status` | The core target-version chain. Version custom fields use `cf_N.due_date` and `cf_N.status` instead. |
-| `project.status` | Project status is outside the issue row this engine filters. |
-| `subproject_id` | A project-scoped query stays on that project. Descendants are not included. |
-| `notes` | Journal note text. History operators read `journal_details`, not note bodies. |
-| `attachment`, `attachment_description` | Attachment rows are not joined. |
-| `watcher_id`, `updated_by`, `last_updated_by` | Watchers and journal authors are not filters. |
-| `spent_time` | Time-entry aggregate. `TimeEntryQuery` is still a stub. |
-| `any_searchable` | No issue search index. |
-| `cf_N` other than `.due_date` and `.status` | Only those two version chains are defined. |
+| `cf_N.*` other than `.due_date` and `.status` | Version custom fields define only those two chains. String, text, list, user, and the other shipped formats do not define a chain. |
 | Custom formats `link`, `enumeration`, `attachment`, `progressbar` | The format itself is not implemented, so it cannot be filtered. |
 
 An unknown operator or an unknown field is rejected.
@@ -143,7 +154,9 @@ An unknown operator or an unknown field is rejected.
 - Relation rows are matched from either end using the canonical type on `issue_from_id`. Related issues are not passed through `IssueVisibility`.
 - `ev` / `cf` compare decimal id strings on `journal_details.old_value` and `value` for `property = attr` only.
 - Weeks are Monday–Sunday. There is no `start_of_week` setting.
-- A saved query scoped to a project does not include subprojects.
+- A project-scoped query does not include subprojects until `subproject_id` says so. There is no `display_subprojects_issues` setting.
+- `any_searchable` does not search journal notes or attachment filenames. Those have their own filters.
+- `me` does not expand to the actor's groups. Group filters take group ids.
 - Sort uses the issue column (for example `priority_id`), not enumeration position or user name.
 - `issues_visibility = all` includes other people's private issues. `default` hides them unless the user is the author or assignee.
 - Active admins can read private saved queries.

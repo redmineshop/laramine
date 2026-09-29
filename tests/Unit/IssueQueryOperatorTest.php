@@ -480,12 +480,8 @@ class IssueQueryOperatorTest extends TestCase
         $this->expectRejection(['cf_'.$hidden->id => $this->clause('=', ['A'])]);
         $this->expectRejection(['cf_'.$stored->id => $this->clause('~', ['x'])]);
         $this->expectRejection(['cf_'.$link->id => $this->clause('~', ['x'])]);
-        $this->expectRejection(['notes' => $this->clause('~', ['x'])]);
-        $this->expectRejection(['subproject_id' => $this->clause('*', [])]);
-        $this->expectRejection(['watcher_id' => $this->clause('=', ['1'])]);
-        $this->expectRejection(['attachment' => $this->clause('*', [])]);
-        $this->expectRejection(['any_searchable' => $this->clause('~', ['x'])]);
-        $this->expectRejection(['fixed_version.due_date' => $this->clause('t', [])]);
+        $this->expectRejection(['cf_'.$hidden->id.'.sharing' => $this->clause('=', ['none'])]);
+        $this->expectRejection(['author.group' => $this->clause('=', ['me'])]);
         $this->expectRejection(['done_ratio' => $this->clause('!', ['1'])]);
         $this->expectRejection(['estimated_hours' => $this->clause('!', ['1'])]);
         $hiddenVersion = $this->field('version', ['visible' => false]);

@@ -75,10 +75,11 @@ final class IssueQueryRunner
             $this->sort->column($group);
         }
 
-        $builder = $this->scope->apply(Issue::query(), $actor, $project);
+        $filters = QueryFilter::listFromMap($map);
+        $builder = $this->scope->apply(Issue::query(), $actor, $project, $filters);
         $this->compiler->apply(
             $builder,
-            QueryFilter::listFromMap($map),
+            $filters,
             $actor,
             $project,
             DateWindow::forUser($actor),

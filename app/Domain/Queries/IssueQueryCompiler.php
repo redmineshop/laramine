@@ -20,6 +20,8 @@ final class IssueQueryCompiler
         private readonly CustomFieldFilterSql $customFields,
         private readonly HistoryFilterSql $history,
         private readonly RelationFilterSql $relations,
+        private readonly AssociationFilterSql $associations,
+        private readonly SubprojectScope $subprojects,
     ) {}
 
     /**
@@ -73,6 +75,8 @@ final class IssueQueryCompiler
             IssueFilterKind::Parent => $this->parent($query, $field, $filter),
             IssueFilterKind::Child => $this->child($query, $filter),
             IssueFilterKind::Relation => $this->relations->apply($query, $field, $filter),
+            IssueFilterKind::Association => $this->associations->apply($query, $field, $filter, $actor, $project, $dates),
+            IssueFilterKind::Subproject => $this->subprojects->assert($filter),
         };
     }
 

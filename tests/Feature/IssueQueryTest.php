@@ -16,6 +16,7 @@ use App\Models\CustomValue;
 use App\Models\Enumeration;
 use App\Models\Issue;
 use App\Models\IssueQuery;
+use App\Models\Journal;
 use App\Models\Project;
 use App\Models\ProjectQuery;
 use App\Models\Role;
@@ -300,6 +301,53 @@ class IssueQueryTest extends TestCase
             [$private->id],
             $this->ids($runner->preview($world->user->fresh(), $world->project->fresh(), $filters)),
         );
+    }
+
+    public function test_saved_query_runs_notes_and_subprojects(): void
+    {
+        $world = $this->member();
+        $noted = $this->issue($world, ['subject' => 'Noted']);
+        $quiet = $this->issue($world, ['subject' => 'Quiet']);
+        Journal::query()->create([
+            'journalized_id' => $noted->id,
+            'journalized_type' => 'Issue',
+            'user_id' => $world->user->id,
+            'notes' => 'please ship',
+            'private_notes' => false,
+        ]);
+        $saved = app(SavedQueryService::class);
+        $notes = $saved->create($world->user, [
+            'name' => 'Notes',
+            'project_id' => $world->project->id,
+            'filters' => ['notes' => ['operator' => '~', 'values' => ['ship']]],
+        ]);
+        $this->assertSame([$noted->id], $this->ids(app(IssueQueryRunner::class)->execute($world->user, $notes)));
+        $this->assertNotContains($quiet->id, $this->ids(app(IssueQueryRunner::class)->execute($world->user, $notes)));
+
+        $child = app(ProjectService::class)->create([
+            'name' => 'Child',
+            'identifier' => 'query-feature-child',
+            'is_public' => true,
+        ], $world->project);
+        app(ProjectService::class)->enableModule($child, 'issue_tracking');
+        app(MembershipService::class)->assignRole($child, $world->user, $world->role);
+        $nested = $this->issue($world, ['project_id' => $child->id, 'subject' => 'Nested']);
+        $wide = $saved->create($world->user, [
+            'name' => 'Tree',
+            'project_id' => $world->project->id,
+            'filters' => ['subproject_id' => ['operator' => '*', 'values' => []]],
+        ]);
+        $narrow = $saved->create($world->user, [
+            'name' => 'Here',
+            'project_id' => $world->project->id,
+            'filters' => ['subproject_id' => ['operator' => '!*', 'values' => []]],
+        ]);
+        $wideIds = $this->ids(app(IssueQueryRunner::class)->execute($world->user, $wide));
+        $narrowIds = $this->ids(app(IssueQueryRunner::class)->execute($world->user, $narrow));
+        $this->assertContains($nested->id, $wideIds);
+        $this->assertContains($noted->id, $wideIds);
+        $this->assertNotContains($nested->id, $narrowIds);
+        $this->assertContains($noted->id, $narrowIds);
     }
 
     public function test_sort_and_stub_types(): void

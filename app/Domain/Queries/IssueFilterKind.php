@@ -19,4 +19,6 @@ enum IssueFilterKind: string
     case Parent = 'parent';
     case Child = 'child';
     case Relation = 'relation';
+    case Association = 'association';
+    case Subproject = 'subproject';
 }
