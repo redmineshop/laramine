@@ -2,12 +2,16 @@
 
 namespace Tests\Unit;
 
+use App\Domain\Projects\ProjectService;
 use App\Domain\Queries\IssueQueryRunner;
 use App\Domain\Queries\QueryValidationException;
 use App\Models\CustomField;
 use App\Models\CustomValue;
 use App\Models\Issue;
 use App\Models\IssueCategory;
+use App\Models\IssueRelation;
+use App\Models\Journal;
+use App\Models\JournalDetail;
 use App\Models\Tracker;
 use App\Models\User;
 use App\Models\UserPreference;
@@ -158,6 +162,50 @@ class IssueQueryOperatorTest extends TestCase
         $this->assertFalse(in_array($blank->id, $this->ids(['due_date' => $this->clause('*', [])]), true));
     }
 
+    public function test_future_and_past_day_offsets(): void
+    {
+        $today = $this->issue(['due_date' => '2026-09-29', 'subject' => 'Today']);
+        $tomorrow = $this->issue(['due_date' => '2026-09-30', 'subject' => 'Tomorrow']);
+        $plusTwo = $this->issue(['due_date' => '2026-10-02', 'subject' => 'Plus two']);
+        $nextWeek = $this->issue(['due_date' => '2026-10-06', 'subject' => 'Next week']);
+        $nextMonth = $this->issue(['due_date' => '2026-10-15', 'subject' => 'Next month']);
+        $withinPast = $this->issue(['due_date' => '2026-09-26', 'subject' => 'Within past']);
+        $older = $this->issue(['due_date' => '2026-09-25', 'subject' => 'Older']);
+        $twoWeeks = $this->issue(['due_date' => '2026-09-20', 'subject' => 'Two weeks']);
+
+        $this->assertIds(['due_date' => $this->clause('nd', [])], [$tomorrow->id]);
+        $this->assertIds(['due_date' => $this->clause('nw', [])], [$nextWeek->id]);
+        $this->assertIds(['due_date' => $this->clause('nm', [])], [$plusTwo->id, $nextWeek->id, $nextMonth->id]);
+        $this->assertIds(['due_date' => $this->clause('l2w', [])], [$withinPast->id, $older->id, $twoWeeks->id]);
+        $this->assertIds(['due_date' => $this->clause('t+', ['3'])], [$plusTwo->id]);
+        $this->assertIds(['due_date' => $this->clause('t-', ['3'])], [$withinPast->id]);
+        $this->assertIds(['due_date' => $this->clause('<t+', ['2'])], [$today->id, $tomorrow->id, $withinPast->id, $older->id, $twoWeeks->id]);
+        $this->assertIds(['due_date' => $this->clause('>t+', ['1'])], [$plusTwo->id, $nextWeek->id, $nextMonth->id]);
+        $this->assertIds(['due_date' => $this->clause('><t+', ['3'])], [$tomorrow->id, $plusTwo->id]);
+        $this->assertIds(['due_date' => $this->clause('>t-', ['3'])], [$today->id, $withinPast->id]);
+        $this->assertIds(['due_date' => $this->clause('<t-', ['3'])], [$older->id, $twoWeeks->id]);
+        $this->assertIds(['due_date' => $this->clause('><t-', ['3'])], [$withinPast->id]);
+        $this->assertSame([], $this->ids(['due_date' => $this->clause('><t+', ['0'])]));
+        $this->assertNotContains($today->id, $this->ids(['due_date' => $this->clause('nd', [])]));
+        $this->assertNotContains($tomorrow->id, $this->ids(['due_date' => $this->clause('>t+', ['1'])]));
+    }
+
+    public function test_past_datetime_offsets_and_rejected_future_operators(): void
+    {
+        $recent = $this->issue(['subject' => 'Recent']);
+        $recent->created_on = '2026-09-29 08:00:00';
+        $recent->save();
+        $old = $this->issue(['subject' => 'Old']);
+        $old->created_on = '2026-09-20 08:00:00';
+        $old->save();
+
+        $this->assertIds(['created_on' => $this->clause('>t-', ['1'])], [$recent->id]);
+        $this->assertIds(['created_on' => $this->clause('<t-', ['5'])], [$old->id]);
+        $this->assertIds(['created_on' => $this->clause('l2w', [])], [$old->id]);
+        $this->expectRejection(['created_on' => $this->clause('nd', [])]);
+        $this->expectRejection(['created_on' => $this->clause('t+', ['1'])]);
+    }
+
     public function test_datetime_today_uses_the_calendar_day(): void
     {
         $inside = $this->issue(['subject' => 'Inside']);
@@ -198,6 +246,11 @@ class IssueQueryOperatorTest extends TestCase
         $this->assertIds(['subject' => $this->clause('!~', ['Fix'])], [$docs->id, $percent->id]);
         $this->assertIds(['subject' => $this->clause('=', ['Fix login'])], [$login->id]);
         $this->assertIds(['subject' => $this->clause('~', ['100%'])], [$percent->id]);
+        $this->assertIds(['subject' => $this->clause('*~', ['login API'])], [$login->id, $api->id]);
+        $this->assertIds(['subject' => $this->clause('^', ['Fix'])], [$login->id, $api->id]);
+        $this->assertIds(['subject' => $this->clause('^', ['Fix login'])], [$login->id]);
+        $this->assertIds(['subject' => $this->clause('$', ['API'])], [$api->id]);
+        $this->assertSame([], $this->ids(['subject' => $this->clause('^', ['login'])]));
         $this->assertIds(['description' => $this->clause('!*', [])], [$login->id, $api->id, $docs->id, $percent->id]);
     }
 
@@ -211,8 +264,13 @@ class IssueQueryOperatorTest extends TestCase
         $this->assertIds(['is_private' => $this->clause('!', ['true'])], [$child->id, $alone->id]);
         $this->assertIds(['parent_id' => $this->clause('=', [(string) $parent->id])], [$child->id]);
         $this->assertIds(['parent_id' => $this->clause('!*', [])], [$parent->id, $alone->id]);
+        $this->assertIds(['parent_id' => $this->clause('*', [])], [$child->id]);
+        $this->assertIds(['parent_id' => $this->clause('~', ['Parent'])], [$child->id]);
         $this->assertIds(['child_id' => $this->clause('=', [(string) $child->id])], [$parent->id]);
         $this->assertIds(['child_id' => $this->clause('!*', [])], [$child->id, $alone->id]);
+        $this->assertIds(['child_id' => $this->clause('*', [])], [$parent->id]);
+        $this->assertIds(['child_id' => $this->clause('~', ['Child'])], [$parent->id]);
+        $this->assertSame([], $this->ids(['parent_id' => $this->clause('~', ['missing'])]));
     }
 
     public function test_filters_combine_with_and(): void
@@ -273,7 +331,141 @@ class IssueQueryOperatorTest extends TestCase
         $this->assertIds(['cf_'.$date->id => $this->clause('t', [])], [$mysql->id]);
         $this->assertIds(['cf_'.$bool->id => $this->clause('=', ['1'])], [$mysql->id]);
         $this->assertIds(['cf_'.$user->id => $this->clause('=', [(string) $this->world->user->id])], [$mysql->id]);
+        $this->assertIds(['cf_'.$user->id => $this->clause('=', ['me'])], [$mysql->id]);
         $this->assertIds(['cf_'.$version->id => $this->clause('=', [(string) $versionRow->id])], [$mysql->id]);
+        $this->assertIds(['cf_'.$string->id => $this->clause('*~', ['widget missing'])], [$mysql->id]);
+        $this->assertIds(['cf_'.$string->id => $this->clause('^', ['acme'])], [$mysql->id]);
+        $this->assertIds(['cf_'.$string->id => $this->clause('$', ['widget'])], [$mysql->id]);
+        $this->assertSame([], $this->ids(['cf_'.$string->id => $this->clause('^', ['widget'])]));
+    }
+
+    public function test_me_matches_the_current_user_only(): void
+    {
+        $other = User::factory()->create();
+        $mine = $this->issue(['author_id' => $this->world->user->id, 'assigned_to_id' => $this->world->user->id, 'subject' => 'Mine']);
+        $theirs = $this->issue(['author_id' => $other->id, 'assigned_to_id' => $other->id, 'subject' => 'Theirs']);
+        $this->journal($theirs, 'assigned_to_id', (string) $this->world->user->id, (string) $other->id);
+
+        $this->assertIds(['author_id' => $this->clause('=', ['me'])], [$mine->id]);
+        $this->assertIds(['assigned_to_id' => $this->clause('=', ['me'])], [$mine->id]);
+        $this->assertIds(['assigned_to_id' => $this->clause('ev', ['me'])], [$mine->id, $theirs->id]);
+        $this->assertIds(['assigned_to_id' => $this->clause('!ev', ['me'])], []);
+        $this->expectRejection(['tracker_id' => $this->clause('=', ['me'])]);
+        $this->expectRejectionFor(null, ['author_id' => $this->clause('=', ['me'])]);
+
+        $inactive = User::factory()->create(['status' => 0]);
+        $this->expectRejectionFor($inactive, ['author_id' => $this->clause('=', ['me'])]);
+        $anonymous = User::factory()->create(['type' => User::TYPE_ANONYMOUS]);
+        $this->expectRejectionFor($anonymous, ['author_id' => $this->clause('=', ['me'])]);
+        $group = User::factory()->create(['type' => User::TYPE_GROUP]);
+        $this->expectRejectionFor($group, ['author_id' => $this->clause('=', ['me'])]);
+    }
+
+    public function test_history_operators_use_current_value_or_journal_details(): void
+    {
+        $wasClosed = $this->issue(['subject' => 'Was closed']);
+        $this->journal($wasClosed, 'status_id', (string) $this->world->closed->id, (string) $this->world->newStatus->id);
+        $stillClosed = $this->issue(['status_id' => $this->world->closed->id, 'subject' => 'Still closed']);
+        $untouched = $this->issue(['subject' => 'Untouched']);
+        $otherTracker = Tracker::query()->create([
+            'name' => 'Feature',
+            'default_status_id' => $this->world->newStatus->id,
+            'position' => 3,
+        ]);
+        $changedTracker = $this->issue(['subject' => 'Changed tracker']);
+        $this->journal($changedTracker, 'tracker_id', (string) $otherTracker->id, (string) $this->world->tracker->id);
+
+        $closed = (string) $this->world->closed->id;
+        $this->assertIds(['status_id' => $this->clause('ev', [$closed])], [$wasClosed->id, $stillClosed->id]);
+        $this->assertIds(['status_id' => $this->clause('!ev', [$closed])], [$untouched->id, $changedTracker->id]);
+        $this->assertIds(['status_id' => $this->clause('cf', [$closed])], [$wasClosed->id]);
+        $this->assertIds(['tracker_id' => $this->clause('ev', [(string) $otherTracker->id])], [$changedTracker->id]);
+        $this->assertNotContains($untouched->id, $this->ids(['tracker_id' => $this->clause('cf', [(string) $otherTracker->id])]));
+    }
+
+    public function test_relation_operators_follow_the_canonical_direction(): void
+    {
+        $blocker = $this->issue(['subject' => 'Blocker']);
+        $blocked = $this->issue(['subject' => 'Blocked']);
+        $closedBlocker = $this->issue(['status_id' => $this->world->closed->id, 'subject' => 'Closed blocker']);
+        $closedVictim = $this->issue(['status_id' => $this->world->closed->id, 'subject' => 'Closed victim']);
+        $lonely = $this->issue(['subject' => 'Lonely']);
+        $otherProject = app(ProjectService::class)->create([
+            'name' => 'Other',
+            'identifier' => 'query-ops-other',
+            'is_public' => true,
+        ]);
+        $foreign = $this->issue([
+            'project_id' => $otherProject->id,
+            'subject' => 'Foreign',
+        ]);
+
+        IssueRelation::query()->create([
+            'issue_from_id' => $blocker->id,
+            'issue_to_id' => $blocked->id,
+            'relation_type' => 'blocks',
+        ]);
+        IssueRelation::query()->create([
+            'issue_from_id' => $closedBlocker->id,
+            'issue_to_id' => $closedVictim->id,
+            'relation_type' => 'blocks',
+        ]);
+        IssueRelation::query()->create([
+            'issue_from_id' => $blocker->id,
+            'issue_to_id' => $foreign->id,
+            'relation_type' => 'relates',
+        ]);
+
+        $same = (string) $this->world->project->id;
+        $other = (string) $otherProject->id;
+        $local = [$blocked->id, $closedBlocker->id, $closedVictim->id, $lonely->id];
+        $notBlockers = [$blocked->id, $closedVictim->id, $lonely->id];
+        $this->assertIds(['blocks' => $this->clause('*', [])], [$blocker->id, $closedBlocker->id]);
+        $this->assertIds(['blocked' => $this->clause('*', [])], [$blocked->id, $closedVictim->id]);
+        $this->assertIds(['blocks' => $this->clause('!*', [])], $notBlockers);
+        $this->assertIds(['blocks' => $this->clause('=', [(string) $blocked->id])], [$blocker->id]);
+        $this->assertIds(['blocks' => $this->clause('!', [(string) $blocked->id])], $local);
+        $this->assertIds(['relates' => $this->clause('=p', [$other])], [$blocker->id]);
+        $this->assertIds(['relates' => $this->clause('=!p', [$same])], [$blocker->id]);
+        $this->assertIds(['relates' => $this->clause('!p', [$other])], $local);
+        $this->assertIds(['blocks' => $this->clause('*o', [])], [$blocker->id]);
+        $this->assertIds(['blocks' => $this->clause('!o', [])], [$closedBlocker->id, $blocked->id, $closedVictim->id, $lonely->id]);
+        $this->assertNotContains($blocked->id, $this->ids(['blocked' => $this->clause('!o', [])]));
+        $this->assertContains($closedVictim->id, $this->ids(['blocked' => $this->clause('!o', [])]));
+    }
+
+    public function test_version_custom_field_chained_due_date_and_status(): void
+    {
+        $version = $this->field('version');
+        $open = Version::query()->create([
+            'name' => 'Next',
+            'project_id' => $this->world->project->id,
+            'status' => 'open',
+            'effective_date' => '2026-10-06',
+        ]);
+        $locked = Version::query()->create([
+            'name' => 'Held',
+            'project_id' => $this->world->project->id,
+            'status' => 'locked',
+            'effective_date' => null,
+        ]);
+        $scheduled = $this->issue(['subject' => 'Scheduled']);
+        $this->value($scheduled, $version, (string) $open->id);
+        $held = $this->issue(['subject' => 'Held']);
+        $this->value($held, $version, (string) $locked->id);
+        $blank = $this->issue(['subject' => 'Blank']);
+        $string = $this->field('string');
+
+        $due = 'cf_'.$version->id.'.due_date';
+        $status = 'cf_'.$version->id.'.status';
+        $this->assertIds([$due => $this->clause('nw', [])], [$scheduled->id]);
+        $this->assertIds([$due => $this->clause('!*', [])], [$held->id, $blank->id]);
+        $this->assertIds([$due => $this->clause('*', [])], [$scheduled->id]);
+        $this->assertIds([$status => $this->clause('=', ['open'])], [$scheduled->id]);
+        $this->assertIds([$status => $this->clause('!', ['open'])], [$held->id, $blank->id]);
+        $this->expectRejection([$due => $this->clause('o', [])]);
+        $this->expectRejection(['cf_'.$string->id.'.due_date' => $this->clause('t', [])]);
+        $this->expectRejection(['cf_'.$version->id.'.name' => $this->clause('=', ['Next'])]);
     }
 
     public function test_hidden_unfiltered_and_deferred_filters_are_rejected(): void
@@ -288,12 +480,16 @@ class IssueQueryOperatorTest extends TestCase
         $this->expectRejection(['cf_'.$hidden->id => $this->clause('=', ['A'])]);
         $this->expectRejection(['cf_'.$stored->id => $this->clause('~', ['x'])]);
         $this->expectRejection(['cf_'.$link->id => $this->clause('~', ['x'])]);
-        $this->expectRejection(['status_id' => $this->clause('ev', ['1'])]);
-        $this->expectRejection(['due_date' => $this->clause('nd', [])]);
-        $this->expectRejection(['subject' => $this->clause('^', ['Fix'])]);
         $this->expectRejection(['notes' => $this->clause('~', ['x'])]);
-        $this->expectRejection(['assigned_to_id' => $this->clause('=', ['me'])]);
-        $this->expectRejection(['cf_'.$hidden->id.'.due_date' => $this->clause('t', [])]);
+        $this->expectRejection(['subproject_id' => $this->clause('*', [])]);
+        $this->expectRejection(['watcher_id' => $this->clause('=', ['1'])]);
+        $this->expectRejection(['attachment' => $this->clause('*', [])]);
+        $this->expectRejection(['any_searchable' => $this->clause('~', ['x'])]);
+        $this->expectRejection(['fixed_version.due_date' => $this->clause('t', [])]);
+        $this->expectRejection(['done_ratio' => $this->clause('!', ['1'])]);
+        $this->expectRejection(['estimated_hours' => $this->clause('!', ['1'])]);
+        $hiddenVersion = $this->field('version', ['visible' => false]);
+        $this->expectRejection(['cf_'.$hiddenVersion->id.'.status' => $this->clause('=', ['open'])]);
     }
 
     /**
@@ -329,8 +525,16 @@ class IssueQueryOperatorTest extends TestCase
      */
     private function expectRejection(array $filters): void
     {
+        $this->expectRejectionFor($this->world->user, $filters);
+    }
+
+    /**
+     * @param  array<string, array{operator: string, values: list<string>}>  $filters
+     */
+    private function expectRejectionFor(?User $actor, array $filters): void
+    {
         try {
-            $this->ids($filters);
+            app(IssueQueryRunner::class)->preview($actor, $this->world->project, $filters)->pluck('id');
             $this->fail('Filter should have been rejected.');
         } catch (QueryValidationException) {
             $this->addToAssertionCount(1);
@@ -390,6 +594,23 @@ class IssueQueryOperatorTest extends TestCase
             'customized_type' => 'Issue',
             'customized_id' => $issue->id,
             'value' => $value,
+        ]);
+    }
+
+    private function journal(Issue $issue, string $column, string $old, string $new): void
+    {
+        $journal = Journal::query()->create([
+            'journalized_id' => $issue->id,
+            'journalized_type' => 'Issue',
+            'user_id' => $this->world->user->id,
+            'notes' => '',
+        ]);
+        JournalDetail::query()->create([
+            'journal_id' => $journal->id,
+            'property' => 'attr',
+            'prop_key' => $column,
+            'old_value' => $old,
+            'value' => $new,
         ]);
     }
 }

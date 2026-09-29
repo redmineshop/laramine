@@ -18,4 +18,5 @@ enum IssueFilterKind: string
     case Bool = 'bool';
     case Parent = 'parent';
     case Child = 'child';
+    case Relation = 'relation';
 }

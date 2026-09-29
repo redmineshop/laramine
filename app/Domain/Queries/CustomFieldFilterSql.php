@@ -10,6 +10,7 @@ use App\Models\Project;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Compiles `cf_N` filters as EXISTS / NOT EXISTS on `custom_values`.
@@ -29,23 +30,8 @@ final class CustomFieldFilterSql
      */
     public function apply(Builder $query, QueryFilter $filter, ?User $actor, ?Project $project, DateWindow $dates): void
     {
-        $fieldId = $this->fieldId($filter->field);
-        $customField = CustomField::query()->with('roles')->find($fieldId);
-        if (! $customField instanceof CustomField || $customField->type !== 'IssueCustomField') {
-            throw new QueryValidationException('Custom field filter is unknown: '.$filter->field.'.');
-        }
-        if (! $customField->is_filter) {
-            throw new QueryValidationException('Custom field is not a filter: '.$filter->field.'.');
-        }
-
+        $customField = $this->issueField($this->fieldId($filter->field), $filter->field, $actor, $project);
         $format = $this->formats->get((string) $customField->field_format);
-        if (! $format->isImplemented()) {
-            throw new QueryValidationException('Custom field format cannot be filtered yet: '.$customField->field_format.'.');
-        }
-        if (! $this->visibility->canSee($actor, $customField, $project)) {
-            throw new QueryValidationException('Custom field is not visible: '.$filter->field.'.');
-        }
-
         $filterType = $format->queryFilterType();
         OperatorMatrix::assert($filterType, $filter->operator, $filter->field);
         FilterValues::assertCount($filter);
@@ -57,13 +43,14 @@ final class CustomFieldFilterSql
             '!*' => '*',
             default => $filter->operator,
         };
-        $callback = function (QueryBuilder $sub) use ($customField, $filter, $filterType, $positive, $dates): void {
+        $formatKey = $format->key();
+        $callback = function (QueryBuilder $sub) use ($customField, $filter, $filterType, $positive, $dates, $actor, $formatKey): void {
             $sub->selectRaw('1')
                 ->from('custom_values')
                 ->where('custom_values.customized_type', 'Issue')
                 ->whereColumn('custom_values.customized_id', 'issues.id')
                 ->where('custom_values.custom_field_id', $customField->id);
-            $this->predicate($sub, $filter, $filterType, $positive, $dates);
+            $this->predicate($sub, $filter, $filterType, $positive, $dates, $actor, $formatKey);
         };
 
         if ($negative) {
@@ -84,7 +71,131 @@ final class CustomFieldFilterSql
         return (int) $matches[1];
     }
 
-    private function predicate(QueryBuilder $sub, QueryFilter $filter, string $filterType, string $operator, DateWindow $dates): void
+    /**
+     * @param  Builder<Issue>  $query
+     */
+    public function applyChained(Builder $query, QueryFilter $filter, ?User $actor, ?Project $project, DateWindow $dates): void
+    {
+        if (preg_match('/^cf_(\d+)\.(due_date|status)$/', $filter->field, $matches) !== 1) {
+            throw new QueryValidationException('Chained custom field filter is not supported: '.$filter->field.'.');
+        }
+
+        $customField = $this->issueField((int) $matches[1], $filter->field, $actor, $project);
+        if ($customField->field_format !== 'version') {
+            throw new QueryValidationException('Chained custom field filters require a version field: '.$filter->field.'.');
+        }
+
+        $suffix = $matches[2];
+        if ($suffix === 'status') {
+            $this->versionStatus($query, $customField->id, $filter);
+
+            return;
+        }
+
+        $this->versionDueDate($query, $customField->id, $filter, $dates);
+    }
+
+    private function issueField(int $fieldId, string $label, ?User $actor, ?Project $project): CustomField
+    {
+        $customField = CustomField::query()->with('roles')->find($fieldId);
+        if (! $customField instanceof CustomField || $customField->type !== 'IssueCustomField') {
+            throw new QueryValidationException('Custom field filter is unknown: '.$label.'.');
+        }
+        if (! $customField->is_filter) {
+            throw new QueryValidationException('Custom field is not a filter: '.$label.'.');
+        }
+
+        $format = $this->formats->get((string) $customField->field_format);
+        if (! $format->isImplemented()) {
+            throw new QueryValidationException('Custom field format cannot be filtered yet: '.$customField->field_format.'.');
+        }
+        if (! $this->visibility->canSee($actor, $customField, $project)) {
+            throw new QueryValidationException('Custom field is not visible: '.$label.'.');
+        }
+
+        return $customField;
+    }
+
+    /**
+     * @param  Builder<Issue>  $query
+     */
+    private function versionStatus(Builder $query, int $fieldId, QueryFilter $filter): void
+    {
+        OperatorMatrix::assert('list', $filter->operator, $filter->field);
+        FilterValues::assertCount($filter);
+        $values = FilterValues::present($filter);
+        if (in_array('me', $values, true)) {
+            throw new QueryValidationException('Filter value me is not valid for '.$filter->field.'.');
+        }
+
+        $callback = function (QueryBuilder $sub) use ($fieldId, $values): void {
+            $this->versionBase($sub, $fieldId);
+            $sub->whereIn('versions.status', $values);
+        };
+
+        if ($filter->operator === '!') {
+            $query->whereNotExists($callback);
+
+            return;
+        }
+
+        if ($filter->operator !== '=') {
+            throw new QueryValidationException('Operator '.$filter->operator.' is not valid for '.$filter->field.'.');
+        }
+
+        $query->whereExists($callback);
+    }
+
+    /**
+     * @param  Builder<Issue>  $query
+     */
+    private function versionDueDate(Builder $query, int $fieldId, QueryFilter $filter, DateWindow $dates): void
+    {
+        OperatorMatrix::assert('date', $filter->operator, $filter->field);
+        FilterValues::assertCount($filter);
+        $operator = $filter->operator;
+
+        if ($operator === '*') {
+            $query->whereExists(function (QueryBuilder $sub) use ($fieldId): void {
+                $this->versionBase($sub, $fieldId);
+                $sub->whereNotNull('versions.effective_date');
+            });
+
+            return;
+        }
+
+        if ($operator === '!*') {
+            $query->whereNotExists(function (QueryBuilder $sub) use ($fieldId): void {
+                $this->versionBase($sub, $fieldId);
+                $sub->whereNotNull('versions.effective_date');
+            });
+
+            return;
+        }
+
+        $query->whereExists(function (QueryBuilder $sub) use ($fieldId, $filter, $operator, $dates): void {
+            $this->versionBase($sub, $fieldId);
+            $this->calendarColumn($sub, 'versions.effective_date', $filter, $operator, $dates);
+        });
+    }
+
+    private function versionBase(QueryBuilder $sub, int $fieldId): void
+    {
+        $sub->selectRaw('1')
+            ->from('custom_values')
+            ->join(
+                'versions',
+                'versions.id',
+                '=',
+                DB::raw('CAST(custom_values.value AS UNSIGNED)'),
+            )
+            ->where('custom_values.customized_type', 'Issue')
+            ->whereColumn('custom_values.customized_id', 'issues.id')
+            ->where('custom_values.custom_field_id', $fieldId)
+            ->whereRaw("custom_values.value REGEXP '^[0-9]+$'");
+    }
+
+    private function predicate(QueryBuilder $sub, QueryFilter $filter, string $filterType, string $operator, DateWindow $dates, ?User $actor, string $formatKey): void
     {
         if ($operator === '*') {
             $this->nonBlank($sub);
@@ -93,7 +204,7 @@ final class CustomFieldFilterSql
         }
 
         if (in_array($filterType, ['list', 'list_optional', 'list_with_history', 'list_optional_with_history', 'list_status'], true)) {
-            $this->listEquals($sub, $filter);
+            $this->listEquals($sub, $filter, $formatKey, $actor);
 
             return;
         }
@@ -125,9 +236,24 @@ final class CustomFieldFilterSql
             ->where('custom_values.value', '!=', '');
     }
 
-    private function listEquals(QueryBuilder $sub, QueryFilter $filter): void
+    private function listEquals(QueryBuilder $sub, QueryFilter $filter, string $formatKey, ?User $actor): void
     {
-        $sub->whereIn('custom_values.value', FilterValues::present($filter));
+        if ($formatKey === 'user') {
+            $values = [];
+            foreach (FilterValues::ids($filter, $actor, true) as $id) {
+                $values[] = (string) $id;
+            }
+            $sub->whereIn('custom_values.value', $values);
+
+            return;
+        }
+
+        $values = FilterValues::present($filter);
+        if (in_array('me', $values, true)) {
+            throw new QueryValidationException('Filter value me is not valid for '.$filter->field.'.');
+        }
+
+        $sub->whereIn('custom_values.value', $values);
     }
 
     private function text(QueryBuilder $sub, QueryFilter $filter, string $operator): void
@@ -138,13 +264,48 @@ final class CustomFieldFilterSql
             return;
         }
 
-        if ($operator !== '~') {
+        if ($operator === '^' || $operator === '$') {
+            $values = FilterValues::present($filter);
+            $sub->where(function (QueryBuilder $inner) use ($values, $operator): void {
+                foreach ($values as $index => $value) {
+                    $pattern = $operator === '^' ? FilterValues::likePrefix($value) : FilterValues::likeSuffix($value);
+                    $sql = 'LOWER(custom_values.value) LIKE ? ESCAPE ?';
+                    $bindings = [$pattern, '\\'];
+                    if ($index === 0) {
+                        $inner->whereRaw($sql, $bindings);
+                    } else {
+                        $inner->orWhereRaw($sql, $bindings);
+                    }
+                }
+            });
+
+            return;
+        }
+
+        $tokens = FilterValues::tokens($filter);
+        if ($operator === '~') {
+            foreach ($tokens as $token) {
+                $sub->whereRaw('LOWER(custom_values.value) LIKE ? ESCAPE ?', [FilterValues::like($token), '\\']);
+            }
+
+            return;
+        }
+
+        if ($operator !== '*~') {
             throw new QueryValidationException('Operator '.$operator.' is not valid for '.$filter->field.'.');
         }
 
-        foreach (FilterValues::tokens($filter) as $token) {
-            $sub->whereRaw('LOWER(custom_values.value) LIKE ? ESCAPE ?', [FilterValues::like($token), '\\']);
-        }
+        $sub->where(function (QueryBuilder $inner) use ($tokens): void {
+            foreach ($tokens as $index => $token) {
+                $sql = 'LOWER(custom_values.value) LIKE ? ESCAPE ?';
+                $bindings = [FilterValues::like($token), '\\'];
+                if ($index === 0) {
+                    $inner->whereRaw($sql, $bindings);
+                } else {
+                    $inner->orWhereRaw($sql, $bindings);
+                }
+            }
+        });
     }
 
     private function number(QueryBuilder $sub, QueryFilter $filter, string $operator, bool $integer): void
@@ -188,35 +349,39 @@ final class CustomFieldFilterSql
     private function date(QueryBuilder $sub, QueryFilter $filter, string $operator, DateWindow $dates): void
     {
         $sub->whereRaw("custom_values.value REGEXP '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'");
+        $this->calendarColumn($sub, 'custom_values.value', $filter, $operator, $dates);
+    }
 
-        if (in_array($operator, ['t', 'ld', 'w', 'lw', 'm', 'lm', 'y'], true)) {
-            [$from, $to] = $dates->dates($operator);
-            $sub->whereBetween('custom_values.value', [$from, $to]);
+    private function calendarColumn(QueryBuilder $sub, string $column, QueryFilter $filter, string $operator, DateWindow $dates): void
+    {
+        if (in_array($operator, DateWindow::CLOSED_RELATIVE, true) || in_array($operator, DateWindow::OFFSET_OPERATORS, true)) {
+            $days = in_array($operator, DateWindow::OFFSET_OPERATORS, true) ? FilterValues::dayOffset($filter) : 0;
+            $dates->calendarBound($operator, $days)->apply($sub, $column);
 
             return;
         }
 
         $values = FilterValues::dates($filter);
         if ($operator === '=') {
-            $sub->whereIn('custom_values.value', $values);
+            $sub->whereIn($column, $values);
 
             return;
         }
 
         if ($operator === '>=') {
-            $sub->where('custom_values.value', '>=', $values[0]);
+            $sub->where($column, '>=', $values[0]);
 
             return;
         }
 
         if ($operator === '<=') {
-            $sub->where('custom_values.value', '<=', $values[0]);
+            $sub->where($column, '<=', $values[0]);
 
             return;
         }
 
         if ($operator === '><') {
-            $sub->whereBetween('custom_values.value', [$values[0], $values[1]]);
+            $sub->whereBetween($column, [$values[0], $values[1]]);
 
             return;
         }

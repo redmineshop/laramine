@@ -2,6 +2,7 @@
 
 namespace App\Domain\Queries;
 
+use App\Models\User;
 use DateTimeImmutable;
 
 /**
@@ -47,12 +48,14 @@ final class FilterValues
     /**
      * @return list<int>
      */
-    public static function ids(QueryFilter $filter): array
+    public static function ids(QueryFilter $filter, ?User $actor = null, bool $allowMe = false): array
     {
         $ids = [];
         foreach (self::present($filter) as $value) {
             if ($value === 'me') {
-                throw new QueryValidationException('Filter value me is deferred.');
+                $ids[] = self::currentUserId($filter, $actor, $allowMe);
+
+                continue;
             }
             if (preg_match('/^[+]?\d+$/', $value) !== 1) {
                 throw new QueryValidationException('Filter '.$filter->field.' needs an id.');
@@ -61,6 +64,20 @@ final class FilterValues
         }
 
         return $ids;
+    }
+
+    /**
+     * Non-negative day count for `t+` / `t-` operators.
+     */
+    public static function dayOffset(QueryFilter $filter): int
+    {
+        $values = self::present($filter);
+        $value = $values[0] ?? '';
+        if (preg_match('/^\d+$/', $value) !== 1) {
+            throw new QueryValidationException('Filter '.$filter->field.' needs a non-negative day count.');
+        }
+
+        return (int) $value;
     }
 
     /**
@@ -142,10 +159,37 @@ final class FilterValues
 
     public static function like(string $token): string
     {
-        $lower = mb_strtolower($token, 'UTF-8');
-        $escaped = str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $lower);
+        return '%'.self::escaped($token).'%';
+    }
 
-        return '%'.$escaped.'%';
+    public static function likePrefix(string $token): string
+    {
+        return self::escaped($token).'%';
+    }
+
+    public static function likeSuffix(string $token): string
+    {
+        return '%'.self::escaped($token);
+    }
+
+    private static function currentUserId(QueryFilter $filter, ?User $actor, bool $allowMe): int
+    {
+        if (! $allowMe) {
+            throw new QueryValidationException('Filter value me is not valid for '.$filter->field.'.');
+        }
+
+        if ($actor === null || $actor->type !== User::TYPE_USER || ! $actor->isActive()) {
+            throw new QueryValidationException('Filter value me needs an active user.');
+        }
+
+        return (int) $actor->id;
+    }
+
+    private static function escaped(string $token): string
+    {
+        $lower = mb_strtolower($token, 'UTF-8');
+
+        return str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $lower);
     }
 
     /**

@@ -74,5 +74,5 @@ For an issue field with `visible = false`, workflow merge treats roles that are 
 - Text formatting and full-width layout keys are stored and not rendered.
 - Custom field workflow errors are `CustomFieldValidationException`, not `WorkflowDeniedException`.
 - `CustomValueService` does not authorize the host record. `IssueService` still requires `add_issues` or `edit_issues` / `edit_own_issues` before it writes issue values.
-- Search does not query issues. `is_filter` does, for the formats listed above. Enumeration options in `custom_field_enumerations` are not used as a format yet. Chained `cf_N.due_date` and `cf_N.status` filters are deferred.
+- Search does not query issues. `is_filter` does, for the formats listed above. Enumeration options in `custom_field_enumerations` are not used as a format yet. A version field also accepts `cf_N.due_date` and `cf_N.status`. Other chained suffixes are rejected. See [queries.md](queries.md).
 - Document, issue-priority, time-entry activity, and document-category custom field types are not writable targets.

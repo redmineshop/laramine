@@ -18,6 +18,20 @@ use Exception;
  */
 final class DateWindow
 {
+    /**
+     * Relative operators that take no value.
+     *
+     * @var list<string>
+     */
+    public const CLOSED_RELATIVE = ['t', 'ld', 'w', 'lw', 'm', 'lm', 'y', 'nd', 'nw', 'nm', 'l2w'];
+
+    /**
+     * Operators whose single value is a non-negative day count.
+     *
+     * @var list<string>
+     */
+    public const OFFSET_OPERATORS = ['<t+', '>t+', '><t+', 't+', '>t-', '<t-', '><t-', 't-'];
+
     public function __construct(private readonly CarbonImmutable $today) {}
 
     public static function forUser(?User $user, ?CarbonImmutable $now = null): self
@@ -65,6 +79,72 @@ final class DateWindow
     }
 
     /**
+     * Calendar window for a relative operator. `$days` is used by the offset operators.
+     * An inverted window (`><t+` 0, `><t-` 0) is empty and matches nothing.
+     *
+     * Readings, with T = the anchor date: `nd` is T+1; `nw` is the next Monday–Sunday;
+     * `nm` is the next calendar month; `l2w` is the two calendar weeks before this week;
+     * `t+` / `t-` are exactly T±N; `<t+` is on or before T+N−1; `>t+` is on or after T+N+1;
+     * `><t+` is T+1 through T+N; `>t-` is T−N through T; `<t-` is on or before T−N−1;
+     * `><t-` is T−N through T−1.
+     */
+    public function calendarBound(string $operator, int $days = 0): DateBound
+    {
+        $today = $this->today;
+
+        return match ($operator) {
+            't', 'ld', 'w', 'lw', 'm', 'lm', 'y' => self::closed(...$this->dates($operator)),
+            'nd' => self::closedDay($today->addDay()),
+            'nw' => self::closed(
+                ...self::span(
+                    $today->startOfWeek(CarbonImmutable::MONDAY)->addWeek(),
+                    $today->startOfWeek(CarbonImmutable::MONDAY)->addWeek()->endOfWeek(CarbonImmutable::SUNDAY),
+                ),
+            ),
+            'nm' => self::closed(...self::nextMonth($today)),
+            'l2w' => self::closed(
+                ...self::span(
+                    $today->startOfWeek(CarbonImmutable::MONDAY)->subWeeks(2),
+                    $today->startOfWeek(CarbonImmutable::MONDAY)->subDay(),
+                ),
+            ),
+            't+' => self::closedDay($today->addDays($days)),
+            't-' => self::closedDay($today->subDays($days)),
+            '<t+' => new DateBound(null, $today->addDays($days)->subDay()->toDateString()),
+            '>t+' => new DateBound($today->addDays($days)->addDay()->toDateString(), null),
+            '><t+' => self::between($today->addDay(), $today->addDays($days)),
+            '>t-' => self::between($today->subDays($days), $today),
+            '<t-' => new DateBound(null, $today->subDays($days)->subDay()->toDateString()),
+            '><t-' => self::between($today->subDays($days), $today->subDay()),
+            default => throw new QueryValidationException('Operator '.$operator.' is not a relative date.'),
+        };
+    }
+
+    /**
+     * Same window as {@see calendarBound()} converted into the application timezone.
+     * An open side stays open. Datetime columns use the start of `from` and the end of `to`.
+     */
+    public function dateTimeBound(string $operator, int $days = 0): DateBound
+    {
+        $calendar = $this->calendarBound($operator, $days);
+        if ($calendar->empty) {
+            return $calendar;
+        }
+
+        $from = null;
+        $to = null;
+        if ($calendar->from !== null && $calendar->to !== null) {
+            [$from, $to] = $this->explicitDatetimes($calendar->from, $calendar->to);
+        } elseif ($calendar->from !== null) {
+            [$from] = $this->explicitDatetimes($calendar->from, $calendar->from);
+        } elseif ($calendar->to !== null) {
+            [, $to] = $this->explicitDatetimes($calendar->to, $calendar->to);
+        }
+
+        return new DateBound($from, $to, $from === null && $to === null);
+    }
+
+    /**
      * @return array{0: string, 1: string}
      */
     public function explicitDatetimes(string $fromDate, string $toDate): array
@@ -98,6 +178,37 @@ final class DateWindow
         $anchor = $today->subMonthNoOverflow();
 
         return self::span($anchor->startOfMonth(), $anchor->endOfMonth());
+    }
+
+    /**
+     * @return array{0: string, 1: string}
+     */
+    private static function nextMonth(CarbonImmutable $today): array
+    {
+        $anchor = $today->addMonthNoOverflow();
+
+        return self::span($anchor->startOfMonth(), $anchor->endOfMonth());
+    }
+
+    private static function closedDay(CarbonImmutable $day): DateBound
+    {
+        $date = $day->toDateString();
+
+        return new DateBound($date, $date);
+    }
+
+    private static function closed(string $from, string $to): DateBound
+    {
+        return new DateBound($from, $to);
+    }
+
+    private static function between(CarbonImmutable $from, CarbonImmutable $to): DateBound
+    {
+        if ($from->greaterThan($to)) {
+            return new DateBound(null, null, true);
+        }
+
+        return new DateBound($from->toDateString(), $to->toDateString());
     }
 
     /**

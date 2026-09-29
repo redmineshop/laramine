@@ -5,8 +5,8 @@ namespace App\Domain\Queries;
 /**
  * Issue filter operators from the Redmine 7.0.1 catalog (names and semantics only).
  *
- * Eighteen operators are shipped. Twenty-three stay deferred until journals,
- * relation filters, or the remaining relative dates exist.
+ * Every operator in that catalog is compiled. Integer, float, and hour filters
+ * do not include `!`; the catalog uses `!*` for a blank number.
  */
 final class OperatorMatrix
 {
@@ -16,18 +16,19 @@ final class OperatorMatrix
     public const SHIPPED = [
         '=', '!', 'o', 'c', '!*', '*', '>=', '<=', '><',
         't', 'ld', 'w', 'lw', 'm', 'lm', 'y', '~', '!~',
-    ];
-
-    /**
-     * @var list<string>
-     */
-    public const DEFERRED = [
         '<t+', '>t+', '><t+', 't+', 'nd', 'nw', 'nm',
         '>t-', '<t-', '><t-', 't-', 'l2w',
         '*~', '^', '$',
         '=p', '=!p', '!p', '*o', '!o',
         'ev', '!ev', 'cf',
     ];
+
+    /**
+     * No catalog operator is left uncompiled. Field-level gaps live in DeferredIssueFilters.
+     *
+     * @var list<string>
+     */
+    public const DEFERRED = [];
 
     /**
      * Full operator list for each filter type.
@@ -69,24 +70,10 @@ final class OperatorMatrix
         'text' => ['='],
     ];
 
-    /**
-     * Tree `*` is in the global shipped set but the parent/child MVP is only `=` and `!*`.
-     *
-     * @var array<string, list<string>>
-     */
-    private const HELD_BACK = [
-        'tree' => ['*', '~'],
-    ];
-
     public static function assert(string $filterType, string $operator, string $field): void
     {
-        $status = self::acceptance($filterType, $operator);
-        if ($status === 'shipped') {
+        if (self::acceptance($filterType, $operator) === 'shipped') {
             return;
-        }
-
-        if ($status === 'deferred') {
-            throw new QueryValidationException('Operator '.$operator.' is deferred for '.$field.'.');
         }
 
         throw new QueryValidationException('Operator '.$operator.' is not valid for '.$field.'.');
@@ -100,28 +87,11 @@ final class OperatorMatrix
         }
 
         $extras = self::EXTRA_SHIPPED[$filterType] ?? [];
-        if (! in_array($operator, $full, true) && ! in_array($operator, $extras, true)) {
-            return 'invalid';
-        }
-
-        if (self::isShipped($filterType, $operator)) {
+        if (in_array($operator, $full, true) || in_array($operator, $extras, true)) {
             return 'shipped';
         }
 
-        return 'deferred';
-    }
-
-    private static function isShipped(string $filterType, string $operator): bool
-    {
-        if (in_array($operator, self::HELD_BACK[$filterType] ?? [], true)) {
-            return false;
-        }
-
-        if (in_array($operator, self::EXTRA_SHIPPED[$filterType] ?? [], true)) {
-            return true;
-        }
-
-        return in_array($operator, self::SHIPPED, true);
+        return 'invalid';
     }
 
     /**
@@ -143,9 +113,11 @@ final class OperatorMatrix
     public static function valueMode(string $operator): string
     {
         return match ($operator) {
-            'o', 'c', '*', '!*', 't', 'ld', 'w', 'lw', 'm', 'lm', 'y' => 'none',
+            'o', 'c', '*', '!*', 't', 'ld', 'w', 'lw', 'm', 'lm', 'y', 'nd', 'nw', 'nm', 'l2w', '*o', '!o' => 'none',
             '><' => 'two',
-            '=', '!', '>=', '<=', '~', '!~' => 'one',
+            '=', '!', '>=', '<=', '~', '!~', '*~', '^', '$',
+            '<t+', '>t+', '><t+', 't+', '>t-', '<t-', '><t-', 't-',
+            '=p', '=!p', '!p', 'ev', '!ev', 'cf' => 'one',
             default => 'unknown',
         };
     }

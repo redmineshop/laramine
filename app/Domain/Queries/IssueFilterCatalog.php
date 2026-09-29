@@ -48,6 +48,15 @@ final class IssueFilterCatalog
             self::field('issue_id', 'integer', IssueFilterKind::Integer, 'id'),
             self::field('parent_id', 'tree', IssueFilterKind::Parent, 'parent_id'),
             self::field('child_id', 'tree', IssueFilterKind::Child, 'id'),
+            self::field('relates', 'relation', IssueFilterKind::Relation, 'relates'),
+            self::field('blocks', 'relation', IssueFilterKind::Relation, 'blocks'),
+            self::field('blocked', 'relation', IssueFilterKind::Relation, 'blocked'),
+            self::field('duplicates', 'relation', IssueFilterKind::Relation, 'duplicates'),
+            self::field('duplicated', 'relation', IssueFilterKind::Relation, 'duplicated'),
+            self::field('precedes', 'relation', IssueFilterKind::Relation, 'precedes'),
+            self::field('follows', 'relation', IssueFilterKind::Relation, 'follows'),
+            self::field('copied_to', 'relation', IssueFilterKind::Relation, 'copied_to'),
+            self::field('copied_from', 'relation', IssueFilterKind::Relation, 'copied_from'),
         ];
 
         $indexed = [];

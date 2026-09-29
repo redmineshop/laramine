@@ -27,15 +27,6 @@ final class DeferredIssueFilters
         'last_updated_by',
         'spent_time',
         'any_searchable',
-        'relates',
-        'blocks',
-        'blocked',
-        'duplicates',
-        'duplicated',
-        'precedes',
-        'follows',
-        'copied_to',
-        'copied_from',
     ];
 
     public static function assert(string $field): void
@@ -45,7 +36,7 @@ final class DeferredIssueFilters
         }
 
         if (preg_match('/^cf_\d+\./', $field) === 1) {
-            throw new QueryValidationException('Chained custom field filters are deferred: '.$field.'.');
+            throw new QueryValidationException('Chained custom field filter is not supported: '.$field.'.');
         }
     }
 }

@@ -69,16 +69,23 @@ YAML;
 
     public function test_operator_catalog_counts(): void
     {
-        $this->assertCount(18, OperatorMatrix::SHIPPED);
-        $this->assertCount(23, OperatorMatrix::DEFERRED);
-        $this->assertCount(41, array_unique([...OperatorMatrix::SHIPPED, ...OperatorMatrix::DEFERRED]));
+        $this->assertCount(41, OperatorMatrix::SHIPPED);
+        $this->assertSame([], OperatorMatrix::DEFERRED);
+        $this->assertCount(41, array_unique(OperatorMatrix::SHIPPED));
         $this->assertSame('shipped', OperatorMatrix::acceptance('list_status', 'o'));
-        $this->assertSame('deferred', OperatorMatrix::acceptance('list_status', 'ev'));
-        $this->assertSame('deferred', OperatorMatrix::acceptance('tree', '*'));
+        $this->assertSame('shipped', OperatorMatrix::acceptance('list_status', 'ev'));
+        $this->assertSame('shipped', OperatorMatrix::acceptance('tree', '*'));
         $this->assertSame('shipped', OperatorMatrix::acceptance('text', '='));
         $this->assertSame('invalid', OperatorMatrix::acceptance('text', 'o'));
+        $this->assertSame('invalid', OperatorMatrix::acceptance('integer', '!'));
+        $this->assertSame('invalid', OperatorMatrix::acceptance('float', '!'));
+        $this->assertSame('invalid', OperatorMatrix::acceptance('hour', '!'));
+        $this->assertSame('invalid', OperatorMatrix::acceptance('date_past', 'nd'));
+        $this->assertSame('one', OperatorMatrix::valueMode('><t+'));
+        $this->assertSame('none', OperatorMatrix::valueMode('*o'));
+        $this->assertSame('two', OperatorMatrix::valueMode('><'));
         $this->assertSame(
-            ['=', '>=', '<=', '><', 't', 'ld', 'w', 'lw', 'm', 'lm', 'y', '!*', '*'],
+            ['=', '>=', '<=', '><', '>t-', '<t-', '><t-', 't-', 't', 'ld', 'w', 'lw', 'l2w', 'm', 'lm', 'y', '!*', '*'],
             OperatorMatrix::shippedFor('date_past'),
         );
     }
