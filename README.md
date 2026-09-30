@@ -76,6 +76,14 @@ PHPStan is locked at level 8 with no baseline. The Parity suite is wired and cur
 
 GitHub Actions runs Pint, PHPStan, and the full PHPUnit suite on MySQL 8 for every pull request and on pushes to `main`. There is no Pest configuration.
 
+## Contributing
+
+[CONTRIBUTING.md](CONTRIBUTING.md) covers local checks, CI, and the clean-room rule. [SECURITY.md](SECURITY.md) is how to report a vulnerability. The quality bar is [QUALITY.md](QUALITY.md).
+
+Coding agents: start at [AGENTS.md](AGENTS.md). Cursor rules are in `.cursor/rules/`. The skill for issues, queries, and custom fields is `.cursor/skills/continue-domain-work/SKILL.md`. Copilot instructions are in `.github/copilot-instructions.md`.
+
+Parity for every P0 row in [docs/parity-checklist.md](docs/parity-checklist.md) is **NOT VERIFIED**. [QUALITY.md](QUALITY.md) still lists the v1 ship checklist as open. Community count definitions, separate from product status, are in [docs/community-metrics.md](docs/community-metrics.md).
+
 ## License
 
 [MIT](LICENSE). Copyright (c) 2026 Redmine Shop.
