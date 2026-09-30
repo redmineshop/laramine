@@ -1,0 +1,59 @@
+---
+description: Laramine architecture, quality bar, MySQL 8, clean-room rule, and test expectations
+alwaysApply: true
+---
+
+# Laramine
+
+Early MIT Laravel core. Domain goal is Redmine 7.0.1 semantics, reimplemented in original PHP. Read `AGENTS.md` before a large change. Every row in `docs/parity-checklist.md` is **NOT VERIFIED**. Do not describe the project as production-ready.
+
+## Architecture
+
+- `app/Domain/Issues` — `IssueService` create/update, nested set, workflow. Journals are not written.
+- `app/Domain/Acl` — `PermissionCatalog`, `PermissionService`, `MembershipService`. Permission names are catalog strings. `roles.permissions` is stored as a JSON array.
+- `app/Domain/Workflow` — transitions (`WorkflowTransition`) and field rules (`WorkflowPermission`).
+- `app/Domain/CustomFields` — formats and `CustomValueService`. See `docs/custom-fields.md`.
+- `app/Domain/Queries` — `IssueQuery` runs. Other query types can be stored and are not executed. See `docs/queries.md`.
+- `app/Domain/Projects` — project nested set and modules.
+- `app/Models` — Eloquent over Redmine 7.0.1 table and column names. Timestamp columns are `created_on` / `updated_on` where the schema says so. STI `type` values are Redmine class names.
+- `app/Policies` — project and issue view/update/delete only.
+- `routes/web.php` — placeholder. There is no HTTP API in this slice.
+- Schema pin: `docs/schema-inventory.md` and `docs/sources/redmine-7.0.1-schema.rb` (structure dump only).
+
+Intentional differences belong in the matching doc. Do not silently “correct” them toward an unverified reading of Redmine.
+
+## Quality bar
+
+Locked. Do not weaken CI (`.github/workflows/ci.yml`).
+
+- Pint: `composer lint` (`vendor/bin/pint --test`).
+- Larastan / PHPStan level 8: `composer stan`. No baseline file. Do not add one without an explicit debt note in `QUALITY.md`.
+- PHPUnit Unit + Feature + Parity on MySQL 8: `composer test`. Credentials are forced in `phpunit.xml` (`laramine_testing`, `root` / `password`, `127.0.0.1:3306`).
+- SQLite is a local migrate smoke only. Do not point PHPUnit or CI at it.
+- No Pest config. PHP is `^8.2`; CI is PHP 8.3.
+
+Green CI is required to merge.
+
+## Clean-room
+
+Redmine is GPLv2. Use behavior and schema semantics only. Never copy Ruby, ERB, JavaScript, upstream tests, or other GPLv2 source into the tree, commits, or generated files.
+
+## Naming and style
+
+- Domain services are `final` classes under `App\Domain\...`.
+- Domain failures extend `App\Domain\DomainException` (`PermissionDeniedException`, `WorkflowDeniedException`, `CustomFieldValidationException`, `QueryValidationException`).
+- Keep Redmine table, column, permission, and STI names. New JSON codecs go in existing text columns when the docs already say the column is JSON.
+- Imports at the top of the file. Code comments in English. Exhaustive `match` on backed enums.
+- Tests are `test_*` methods. Feature and most domain unit tests use `RefreshDatabase`. Reuse `Tests\Support\DomainFixture` when the scenario needs a project, tracker, statuses, and a member.
+
+## Tests and docs
+
+- Unit for formats, operators, and pure decisions. Feature for MySQL service behavior, including a deny path when permissions change. Parity only for a real Redmine 7.0.1 comparison.
+- Do not set a parity row to VERIFIED from a passing Unit or Feature test.
+- Behavior changes update `docs/domain.md`, `docs/custom-fields.md`, or `docs/queries.md` in the same change. Schema changes update `docs/schema-inventory.md`.
+- Skip new markdown when behavior, setup, and the quality bar are unchanged.
+- Continuing issues, queries, or custom fields: follow `.cursor/skills/continue-domain-work/SKILL.md`.
+
+## Pull requests
+
+State behavior changed, tests added or updated, and parity rows touched. Prefer a small diff. `CONTRIBUTING.md` is the human version of this rule.
