@@ -63,9 +63,9 @@ final class IssueQueryCompiler
         FilterValues::assertCount($filter);
 
         match ($field->kind) {
-            IssueFilterKind::Status => $this->status($query, $filter, $actor),
-            IssueFilterKind::List => $this->list($query, $field, $filter, false, $actor),
-            IssueFilterKind::Optional => $this->list($query, $field, $filter, true, $actor),
+            IssueFilterKind::Status => $this->status($query, $filter, $actor, $project),
+            IssueFilterKind::List => $this->list($query, $field, $filter, false, $actor, $project),
+            IssueFilterKind::Optional => $this->list($query, $field, $filter, true, $actor, $project),
             IssueFilterKind::Text => $this->text($query, $field, $filter),
             IssueFilterKind::Date => $this->calendarDate($query, $field, $filter, $dates),
             IssueFilterKind::DateTime => $this->dateTime($query, $field, $filter, $dates),
@@ -83,7 +83,7 @@ final class IssueQueryCompiler
     /**
      * @param  Builder<Issue>  $query
      */
-    private function status(Builder $query, QueryFilter $filter, ?User $actor): void
+    private function status(Builder $query, QueryFilter $filter, ?User $actor, ?Project $project): void
     {
         $operator = $filter->operator;
         if ($operator === 'o' || $operator === 'c') {
@@ -102,7 +102,7 @@ final class IssueQueryCompiler
         }
 
         if (in_array($operator, ['ev', '!ev', 'cf'], true)) {
-            $this->history->apply($query, 'status_id', $operator, $this->historyValues($filter, $actor, false));
+            $this->history->apply($query, 'status_id', $operator, $this->historyValues($filter, $actor, false), $actor, $project);
 
             return;
         }
@@ -127,7 +127,7 @@ final class IssueQueryCompiler
     /**
      * @param  Builder<Issue>  $query
      */
-    private function list(Builder $query, IssueField $field, QueryFilter $filter, bool $optional, ?User $actor): void
+    private function list(Builder $query, IssueField $field, QueryFilter $filter, bool $optional, ?User $actor, ?Project $project): void
     {
         $column = $field->sql();
         $operator = $filter->operator;
@@ -147,7 +147,7 @@ final class IssueQueryCompiler
         }
 
         if (in_array($operator, ['ev', '!ev', 'cf'], true)) {
-            $this->history->apply($query, $field->column, $operator, $this->historyValues($filter, $actor, $allowMe, $expandGroups));
+            $this->history->apply($query, $field->column, $operator, $this->historyValues($filter, $actor, $allowMe, $expandGroups), $actor, $project);
 
             return;
         }

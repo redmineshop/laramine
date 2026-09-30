@@ -42,7 +42,12 @@ final class VisibleIssueScope
         }
 
         if ($project !== null && $subprojects === []) {
-            return $this->visibility->apply($query, $user, $project);
+            $ids = $this->subprojects->ids($project, []);
+            if ($ids === [(int) $project->id]) {
+                return $this->visibility->apply($query, $user, $project);
+            }
+
+            return $this->among($query, $user, $ids);
         }
 
         if ($project !== null) {

@@ -178,7 +178,9 @@ final class FilterValues
     }
 
     /**
-     * Whitespace-separated tokens. Each stored value is split, then the tokens are AND-ed.
+     * Redmine search tokens. A double-quoted phrase stays one token.
+     * Tokens shorter than two characters are dropped unless they contain a Han character.
+     * At most five tokens are kept. An empty scan falls back to the whole value.
      *
      * @return list<string>
      */
@@ -186,13 +188,12 @@ final class FilterValues
     {
         $tokens = [];
         foreach (self::present($filter) as $value) {
-            $parts = preg_split('/\s+/u', trim($value));
-            if ($parts === false) {
-                continue;
-            }
-            foreach ($parts as $part) {
-                if ($part !== '') {
-                    $tokens[] = $part;
+            foreach (self::tokenize($value) as $token) {
+                if (! in_array($token, $tokens, true)) {
+                    $tokens[] = $token;
+                }
+                if (count($tokens) === 5) {
+                    return $tokens;
                 }
             }
         }
@@ -247,6 +248,37 @@ final class FilterValues
         }
 
         return $ids;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private static function tokenize(string $value): array
+    {
+        $matched = preg_match_all('/"[^"]+"|[^\p{Zs}]+/u', $value, $matches);
+        $raw = $matched === false ? [] : $matches[0];
+        $tokens = [];
+        foreach ($raw as $token) {
+            $cleaned = preg_replace('/\A"\p{Zs}*|\p{Zs}*"\z/u', '', $token);
+            if (! is_string($cleaned) || $cleaned === '') {
+                continue;
+            }
+            if (mb_strlen($cleaned, 'UTF-8') > 1 || preg_match('/\p{Han}/u', $cleaned) === 1) {
+                $tokens[] = $cleaned;
+            }
+        }
+
+        $unique = [];
+        foreach ($tokens as $token) {
+            if (! in_array($token, $unique, true)) {
+                $unique[] = $token;
+            }
+        }
+        if ($unique === []) {
+            return $value !== '' ? [$value] : [];
+        }
+
+        return array_slice($unique, 0, 5);
     }
 
     private static function escaped(string $token): string

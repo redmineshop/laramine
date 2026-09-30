@@ -6,12 +6,14 @@ use App\Domain\Acl\MembershipService;
 use App\Domain\Projects\ProjectService;
 use App\Domain\Queries\IssueQueryRunner;
 use App\Domain\Queries\QueryValidationException;
+use App\Domain\Settings\SettingValue;
 use App\Models\Attachment;
 use App\Models\CustomField;
 use App\Models\CustomValue;
 use App\Models\Enumeration;
 use App\Models\Issue;
 use App\Models\Journal;
+use App\Models\Setting;
 use App\Models\TimeEntry;
 use App\Models\User;
 use App\Models\Version;
@@ -344,13 +346,31 @@ class IssueQueryFieldTest extends TestCase
         $this->assertContains($hiddenIssue->id, $this->ids(['any_searchable' => $this->clause('!~', ['classified'])]));
     }
 
-    /**
-     * @group pending
-     */
     public function test_display_subprojects_issues_includes_descendants_without_a_filter(): void
     {
-        // Redmine Setting.display_subprojects_issues includes descendants when subproject_id is absent.
-        $this->markTestSkipped('Laramine keeps the query project only until subproject_id is set. There is no display_subprojects_issues setting.');
+        $projects = app(ProjectService::class);
+        $child = $projects->create([
+            'name' => 'Child',
+            'identifier' => 'query-fields-display-child',
+            'is_public' => true,
+        ], $this->world->project);
+        $projects->enableModule($child, 'issue_tracking');
+        app(MembershipService::class)->assignRole($child, $this->world->user, $this->world->role);
+        $parent = $this->issue(['subject' => 'Parent']);
+        $nested = $this->issue(['project_id' => $child->id, 'subject' => 'Nested']);
+
+        // Redmine display_subprojects_issues defaults to 1. 0 keeps the query project. subproject_id !* still wins.
+        $this->assertIds([], [$parent->id, $nested->id]);
+
+        Setting::query()->create([
+            'name' => SettingValue::DISPLAY_SUBPROJECTS_ISSUES,
+            'value' => '0',
+        ]);
+        $this->assertIds([], [$parent->id]);
+
+        Setting::query()->where('name', SettingValue::DISPLAY_SUBPROJECTS_ISSUES)->update(['value' => '1']);
+        $this->assertIds([], [$parent->id, $nested->id]);
+        $this->assertIds(['subproject_id' => $this->clause('!*', [])], [$parent->id]);
     }
 
     /**

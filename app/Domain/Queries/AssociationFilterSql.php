@@ -25,6 +25,7 @@ final class AssociationFilterSql
         private readonly PermissionService $permissions,
         private readonly FieldFormatRegistry $formats,
         private readonly CustomFieldVisibility $visibility,
+        private readonly JournalVisibility $journals,
     ) {}
 
     /**
@@ -755,62 +756,15 @@ final class AssociationFilterSql
     {
         $sub->where('journals.journalized_type', 'Issue')
             ->whereColumn('journals.journalized_id', 'issues.id');
-
-        if ($actor !== null && $actor->admin && $actor->isActive()) {
-            return;
-        }
-
-        if ($project !== null) {
-            if (! $this->permissions->allowed($actor, 'view_private_notes', $project)) {
-                $sub->where('journals.private_notes', false);
-            }
-
-            return;
-        }
-
-        $allowed = [];
-        foreach (Project::query()->orderBy('id')->get() as $candidate) {
-            if ($this->permissions->allowed($actor, 'view_private_notes', $candidate)) {
-                $allowed[] = (int) $candidate->id;
-            }
-        }
-
-        if ($allowed === []) {
-            $sub->where('journals.private_notes', false);
-
-            return;
-        }
-
-        $sub->where(function (QueryBuilder $visible) use ($allowed): void {
-            $visible->where('journals.private_notes', false)
-                ->orWhereIn('issues.project_id', $allowed);
-        });
+        $this->journals->constrain($sub, $actor, $project);
     }
 
     /**
      * SQL fragment for the same private-note rule as {@see visibleJournal()}.
-     * Project ids are integers from this database.
      */
     private function visibleJournalSql(?User $actor, ?Project $project): string
     {
-        if ($actor !== null && $actor->admin && $actor->isActive()) {
-            return '1 = 1';
-        }
-
-        if ($project !== null) {
-            if ($this->permissions->allowed($actor, 'view_private_notes', $project)) {
-                return '1 = 1';
-            }
-
-            return 'journals.private_notes = 0';
-        }
-
-        $allowed = $this->projectsAllowing($actor, 'view_private_notes');
-        if ($allowed === []) {
-            return 'journals.private_notes = 0';
-        }
-
-        return '(journals.private_notes = 0 OR issues.project_id IN ('.implode(',', $allowed).'))';
+        return $this->journals->sql($actor, $project);
     }
 
     /**

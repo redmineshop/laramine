@@ -2,6 +2,7 @@
 
 namespace App\Domain\Queries;
 
+use App\Domain\Settings\SettingValue;
 use App\Models\Issue;
 use App\Models\Project;
 use Illuminate\Database\Eloquent\Builder;
@@ -10,16 +11,19 @@ use Illuminate\Database\Query\Builder as QueryBuilder;
 /**
  * `subproject_id` chooses which projects a project-scoped query may read.
  *
- * With no filter, the query project stays alone. `*` adds every descendant.
- * `!*` is that project only. `=` adds listed descendants. `!` adds every
- * descendant except the listed ones. The query project itself is always kept.
- * Ids that are not descendants are ignored.
+ * With no filter, Redmine `display_subprojects_issues` (default on) adds every
+ * descendant. When that setting is off, the query project stays alone.
+ * `*` adds every descendant. `!*` is that project only. `=` adds listed
+ * descendants. `!` adds every descendant except the listed ones. The query
+ * project itself is always kept. Ids that are not descendants are ignored.
  *
  * A global query has no anchor project. `*` adds no constraint, `!*` keeps
  * projects whose `parent_id` is null, and `=` / `!` compare `project_id`.
  */
 final class SubprojectScope
 {
+    public function __construct(private readonly SettingValue $settings) {}
+
     public function assert(QueryFilter $filter): void
     {
         OperatorMatrix::assert('list_subprojects', $filter->operator, $filter->field);
@@ -32,6 +36,10 @@ final class SubprojectScope
      */
     public function ids(Project $project, array $filters): array
     {
+        if ($filters === []) {
+            return $this->defaultIds($project);
+        }
+
         $current = null;
         foreach ($filters as $filter) {
             $this->assert($filter);
@@ -39,7 +47,20 @@ final class SubprojectScope
             $current = $current === null ? $next : array_values(array_intersect($current, $next));
         }
 
-        return $current ?? [(int) $project->id];
+        return $current;
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function defaultIds(Project $project): array
+    {
+        $root = (int) $project->id;
+        if (! $this->settings->displaySubprojectsIssues()) {
+            return [$root];
+        }
+
+        return array_values(array_unique([$root, ...$this->descendantIds($project)]));
     }
 
     /**

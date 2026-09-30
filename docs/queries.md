@@ -51,7 +51,7 @@ Creating a query requires `save_queries` on the project, or on any membership wh
 
 ## Running a query
 
-`IssueQueryRunner` limits rows with `IssueVisibility` for a project-scoped query. A global query (`project_id` null) keeps issues only in projects where the actor has `view_issues`, using that project's `all` / `default` / `own` rule. Without `subproject_id`, the query project is that project only. `subproject_id` can add descendants, and each of those projects is still checked with `view_issues`.
+`IssueQueryRunner` limits rows with `IssueVisibility` for a project-scoped query. A global query (`project_id` null) keeps issues only in projects where the actor has `view_issues`, using that project's `all` / `default` / `own` rule. With no `subproject_id` filter, `display_subprojects_issues` (default on, stored in `settings`) includes every descendant. Set that value to `0` to keep the query project alone. An explicit `subproject_id` filter overrides the setting, and each project is still checked with `view_issues`.
 
 Custom field filters use `cf_{id}`. The field must be an `IssueCustomField` with `is_filter` and a format this engine implements. A field the actor cannot see is an error, not a silent skip. `!`, `!~`, and `!*` are `NOT EXISTS` on `custom_values`, so a missing value matches "not equal" and "none". List `=` matches if any stored value is in the list.
 
@@ -119,13 +119,13 @@ The value `me` is the current user id. It is accepted on `author_id`, `assigned_
 
 `parent_id` and `child_id` read the issue nested set (`root_id`, `lft`, `rgt`). `=` and `~` scan decimal ids out of the value; a value with no digits matches nothing. `parent_id` `=` is `parent_id` in those ids. `parent_id` `~` is a strict descendant of any of those issues. `parent_id` `*` / `!*` is a non-null parent, or none. `child_id` `=` keeps the direct parent of those child ids. `child_id` `~` keeps ancestors of the first id. `child_id` `*` is `rgt - lft > 1`. `child_id` `!*` is a leaf (`rgt - lft = 1`).
 
-History reads `journal_details` with `property = attr` and `prop_key` equal to the issue column (`status_id`, `tracker_id`, `priority_id`, `assigned_to_id`, `fixed_version_id`, `category_id`). Values are decimal id strings. Custom-field history is not queried. The list, bool, user, and version custom field types do not offer `ev` / `!ev` / `cf`.
+History reads `journal_details` with `property = attr` and `prop_key` equal to the issue column (`status_id`, `tracker_id`, `priority_id`, `assigned_to_id`, `fixed_version_id`, `category_id`). Values are decimal id strings. A private journal is skipped unless the actor has `view_private_notes` on that project (admins see them), the same rule as `updated_by`. Custom-field history is not queried. The list, bool, user, and version custom field types do not offer `ev` / `!ev` / `cf`.
 
 Relations are stored once. The canonical `relation_type` is `relates`, `blocks`, `duplicates`, `precedes`, or `copied_to` on `issue_from_id`. The reverse filter name (`blocked`, `duplicated`, `follows`, `copied_from`) matches that same row from `issue_to_id`. A filter also accepts the reverse type if a row was stored that way. `=` / `!` compare the other issue id. `=p` / `=!p` / `!p` compare the other issue's project. `*o` / `!o` use `issue_statuses.is_closed`. Related issues are not re-checked against issue visibility.
 
 `cf_N.due_date` and `cf_N.status` require an `IssueCustomField` of format `version` with `is_filter`, visible to the actor. The custom value is the version id. `!*` on `cf_N.due_date` matches a missing value and a version whose `effective_date` is null. The same date and status comparisons apply to `fixed_version.due_date` and `fixed_version.status` through `issues.fixed_version_id`. Shipped formats do not define any other `cf_N.*` chain, so those suffixes are rejected.
 
-`subproject_id` changes which projects a scoped query reads. With no filter, only the query project is included. `*` adds every descendant. `!*` is the query project only. `=` adds listed descendants and ignores ids that are not descendants. `!` adds every descendant except the listed ones. The query project itself stays in the set. Issues in a descendant are still dropped when the actor lacks `view_issues` there. On a global query, `*` adds no extra constraint, `!*` keeps projects with a null `parent_id`, and `=` / `!` compare `issues.project_id`.
+`subproject_id` changes which projects a scoped query reads. With no filter, descendants are included when `display_subprojects_issues` is on (the Redmine default) and omitted when it is `0`. `*` adds every descendant. `!*` is the query project only. `=` adds listed descendants and ignores ids that are not descendants. `!` adds every descendant except the listed ones. The query project itself stays in the set. Issues in a descendant are still dropped when the actor lacks `view_issues` there. On a global query, `*` adds no extra constraint, `!*` keeps projects with a null `parent_id`, and `=` / `!` compare `issues.project_id`.
 
 `any_searchable` is a SQL `LIKE` over `issues.subject`, `issues.description`, visible journal notes, and `custom_values` for issue custom fields that are `searchable`, implemented, and visible to the actor. Private notes follow the same rule as the `notes` filter. It does not search attachment filenames. `~` requires every token to appear in at least one of those places. `*~` requires any token. `!~` is the negation of `~`. A hidden custom field is not searched.
 
@@ -149,12 +149,11 @@ An unknown operator or an unknown field is rejected.
 ## Intentional differences from Redmine 7.0.1
 
 - Filter, column, sort, and option payloads are JSON. YAML is read-only compatibility.
-- Text `~` splits on whitespace and AND-s those tokens as `LOWER(column) LIKE`. It does not implement quoted phrases. `*~` ORs the same tokens. `^` and `$` do not split on spaces. `=` on subject and description is exact equality under the database collation (MySQL's default collation is case-insensitive).
+- Text `~` tokenizes like Redmine search: a double-quoted phrase is one token, other whitespace splits tokens, tokens are AND-ed as `LOWER(column) LIKE`. A token shorter than two characters is dropped unless it contains a Han character, and at most five tokens are used. `*~` ORs those tokens. `^` and `$` do not split on spaces. `=` on subject and description is exact equality under the database collation (MySQL's default collation is case-insensitive).
 - Day-offset windows follow Redmine `relative_date_clause` (inclusive T±N, `>t-` open into the future). Weeks stay Monday–Sunday because there is no `start_of_week` setting.
 - Relation rows are matched from either end using the canonical type on `issue_from_id`. Related issues are not passed through `IssueVisibility`.
-- `ev` / `cf` compare decimal id strings on `journal_details.old_value` and `value` for `property = attr` only.
-- A project-scoped query does not include subprojects until `subproject_id` says so. There is no `display_subprojects_issues` setting.
-- `any_searchable` does not search attachment filenames. Those have their own filter. It also does not call Redmine's search tokenizer, so a quoted phrase is still split on spaces.
+- `ev` / `cf` compare decimal id strings on `journal_details.old_value` and `value` for `property = attr` only. A private journal is hidden without `view_private_notes`, including from its author. Redmine also lets that author read their own private note.
+- `any_searchable` does not search attachment filenames. Those have their own filter. It uses the same quoted-phrase tokens as text `~`.
 - `me` expands to the actor's groups only on `assigned_to_id` and `watcher_id`. Group filters still take group ids.
 - Sort uses the issue column (for example `priority_id`), not enumeration position or user name.
 - `issues_visibility = all` includes other people's private issues. `default` hides them unless the user is the author or assignee.

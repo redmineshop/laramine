@@ -529,22 +529,52 @@ class IssueQueryOperatorTest extends TestCase
         $this->assertIds(['subject' => $this->clause('~', ['Fix'])], [$mine->id]);
     }
 
-    /**
-     * @group pending
-     */
     public function test_history_skips_private_journals(): void
     {
-        // Redmine ev/cf only reads journals that pass Journal.visible_notes_condition.
-        $this->markTestSkipped('History still reads every attr journal detail, including private notes the actor cannot see.');
+        $closed = (string) $this->world->closed->id;
+        $open = (string) $this->world->newStatus->id;
+        $other = User::factory()->create();
+        $hidden = $this->issue(['subject' => 'Hidden history']);
+        $public = $this->issue(['subject' => 'Public history']);
+        $this->journal($public, 'status_id', $closed, $open);
+        $journal = Journal::query()->create([
+            'journalized_id' => $hidden->id,
+            'journalized_type' => 'Issue',
+            'user_id' => $other->id,
+            'notes' => 'secret',
+            'private_notes' => true,
+        ]);
+        JournalDetail::query()->create([
+            'journal_id' => $journal->id,
+            'property' => 'attr',
+            'prop_key' => 'status_id',
+            'old_value' => $closed,
+            'value' => $open,
+        ]);
+
+        // Redmine ev/cf skip private journals unless the actor has view_private_notes. Same rule as updated_by.
+        $this->assertIds(['status_id' => $this->clause('ev', [$closed])], [$public->id]);
+        $this->assertIds(['status_id' => $this->clause('cf', [$closed])], [$public->id]);
+        $this->assertContains($hidden->id, $this->ids(['status_id' => $this->clause('!ev', [$closed])]));
+
+        $permissions = $this->world->role->permissions;
+        $permissions[] = 'view_private_notes';
+        $this->world->role->permissions = $permissions;
+        $this->world->role->save();
+
+        $this->assertIds(['status_id' => $this->clause('ev', [$closed])], [$public->id, $hidden->id]);
+        $this->assertIds(['status_id' => $this->clause('cf', [$closed])], [$public->id, $hidden->id]);
     }
 
-    /**
-     * @group pending
-     */
     public function test_quoted_text_stays_one_token(): void
     {
-        // Redmine Tokenizer keeps a quoted phrase as one token. Laramine still splits on every space.
-        $this->markTestSkipped('Quoted phrases are not implemented. Redmine search tokens treat "fix login" as one phrase.');
+        $phrase = $this->issue(['subject' => 'Fix login now']);
+        $split = $this->issue(['subject' => 'Fix the login']);
+
+        // Redmine Tokenizer: "fix login" is one token. Unquoted "fix login" is two tokens that are AND-ed.
+        $this->assertIds(['subject' => $this->clause('~', ['"fix login"'])], [$phrase->id]);
+        $this->assertIds(['subject' => $this->clause('~', ['fix login'])], [$phrase->id, $split->id]);
+        $this->assertIds(['subject' => $this->clause('~', ['"fix login" now'])], [$phrase->id]);
     }
 
     /**
