@@ -1,6 +1,6 @@
 # Custom fields
 
-Laramine stores custom fields in the Redmine 7.0.1 tables (`custom_fields`, `custom_values`, `custom_fields_trackers`, `custom_fields_projects`, `custom_fields_roles`, `custom_field_enumerations`). This is not a Redmine parity claim. Query operators, journal diffs, and the HTTP API are not part of this slice.
+Laramine stores custom fields in the Redmine 7.0.1 tables (`custom_fields`, `custom_values`, `custom_fields_trackers`, `custom_fields_projects`, `custom_fields_roles`, `custom_field_enumerations`). This is not a Redmine parity claim. Journal diffs and the HTTP API are not part of this slice. Issue query filters for `is_filter` fields are described in [queries.md](queries.md).
 
 ## Storage
 
@@ -33,7 +33,7 @@ Multiple values are one `custom_values` row per entry. A blank value deletes the
 | `version` | Version id on the same project | `format_store.version_status` may list `open`, `locked`, `closed`. Sharing across projects is not applied. |
 | `link`, `enumeration`, `attachment`, `progressbar` | Not supported | The key can be saved on a definition. A non-blank value is rejected. Attachment files, enumeration rows, link URLs, and progress steps are deferred. |
 
-`multiple` is rejected on formats that do not support it. `searchable` is rejected the same way. `is_filter` is stored only. Issue query operators are not implemented, so a filter flag does not change search.
+`multiple` is rejected on formats that do not support it. `searchable` is rejected the same way. `is_filter` marks an issue custom field as usable in an IssueQuery. Implemented formats (string, text, int, float, date, list, bool, user, version) compile `cf_{id}` filters. See [queries.md](queries.md). Link, enumeration, attachment, and progressbar stay unfiltered.
 
 `CustomFieldService::save` writes the definition and the tracker, project, and role links. Issue fields need at least one tracker, and either `is_for_all` or one project. `is_for_all` is rejected on other types. Names are unique per STI type and at most 30 characters.
 
@@ -74,5 +74,5 @@ For an issue field with `visible = false`, workflow merge treats roles that are 
 - Text formatting and full-width layout keys are stored and not rendered.
 - Custom field workflow errors are `CustomFieldValidationException`, not `WorkflowDeniedException`.
 - `CustomValueService` does not authorize the host record. `IssueService` still requires `add_issues` or `edit_issues` / `edit_own_issues` before it writes issue values.
-- Search and `is_filter` do not query issues. Enumeration options in `custom_field_enumerations` are not used as a format yet.
+- The issue search controller is not implemented. `any_searchable` does a SQL `LIKE` over subject, description, visible journal notes, and visible `searchable` custom values. `is_filter` compiles `cf_{id}` for the formats listed above. Enumeration options in `custom_field_enumerations` are not used as a format yet. A version field also accepts `cf_N.due_date` and `cf_N.status`. Other chained suffixes are rejected. See [queries.md](queries.md).
 - Document, issue-priority, time-entry activity, and document-category custom field types are not writable targets.

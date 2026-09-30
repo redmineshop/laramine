@@ -69,7 +69,7 @@ Generated via `rake db:migrate db:schema:dump` on image `redmine:7.0.1` (SQLite 
 
 | Area | Short note | Later phase |
 | --- | --- | --- |
-| Query operators | `queries.filters` stores serialized filter hash; operators (`=`, `!`, `><`, `~`, `*o`, `o`, `c`, `!*`, …) live in IssueQuery Ruby | **P0b** `query-operators.md` |
+| Query operators | `queries.filters` is text. Laramine stores a JSON filter map and reads legacy YAML. Shipped operators are documented in `docs/queries.md`. This inventory is not a parity claim. | **P0b** `docs/queries.md` |
 | Custom field formats | `field_format` + `format_store` + `possible_values`; validation/casting in CF format classes | **P0b** `custom-fields-spec.md` |
 | Workflow field permissions | Same `workflows` table; STI `type` distinguishes transitions vs field rules (`field_name`, `rule`) | **P0c** `acl-workflow.md` |
 | Role permissions | `roles.permissions` is a **serialized list of permission name symbols**, not a join table | **P0c** |
