@@ -42,7 +42,7 @@ SQLite is a local migrate smoke only. PHPUnit is forced to MySQL in `phpunit.xml
 
 - Redmine parity is **NOT VERIFIED** for every P0 area. `tests/Parity` is a boot smoke test. Passing unit or feature tests does not flip a checklist row.
 - The HTTP API is not implemented (`routes/web.php` is a placeholder).
-- Journal rows are not written. Query code may read journals that already exist.
+- Journal rows are written on issue update (tracked attribute diffs, notes, private notes) and on relation add. Editing or deleting a journal is not implemented. Query code reads journals. The gate is [docs/journals-parity-gate.md](docs/journals-parity-gate.md). Parity for that gate is **NOT VERIFIED**.
 - Wiki, SCM, forums, news, settings behavior, and webhooks are outside the migrated P0 slice.
 - Do not describe the tree as production-ready.
 

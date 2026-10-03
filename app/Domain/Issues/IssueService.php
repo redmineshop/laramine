@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Creates and updates issues inside a project, including subtask placement,
- * workflow checks, and custom values. Journals are out of scope.
+ * workflow checks, custom values, and journal rows for the update.
  */
 final class IssueService
 {
@@ -28,6 +28,7 @@ final class IssueService
         private readonly WorkflowService $workflows,
         private readonly IssueTree $trees,
         private readonly CustomValueService $customValues,
+        private readonly IssueJournalWriter $journals,
     ) {}
 
     /**
@@ -100,8 +101,30 @@ final class IssueService
             throw new DomainException('Issue has no project.');
         }
 
-        if (! $this->canEdit($actor, $issue, $project)) {
+        $notes = $this->optionalNote($attributes);
+        $privateNotes = $this->privateNotesRequested($attributes);
+        if ($notes !== null && ! $this->permissions->allowed($actor, 'add_issue_notes', $project)) {
+            throw new PermissionDeniedException('add_issue_notes');
+        }
+        if ($privateNotes && ! $this->permissions->allowed($actor, 'set_notes_private', $project)) {
+            throw new PermissionDeniedException('set_notes_private');
+        }
+
+        $editing = $this->requestsAttributeEdit($attributes);
+        $noteOnly = ! $editing && $notes !== null;
+        if (! $noteOnly && ! $this->canEdit($actor, $issue, $project)) {
             throw new PermissionDeniedException('edit_issues');
+        }
+
+        $before = $this->journals->snapshot($issue);
+        if (! $editing) {
+            return DB::transaction(function () use ($actor, $issue, $before, $notes, $privateNotes): Issue {
+                if ($notes !== null) {
+                    $issue->touch();
+                }
+
+                return $this->persistJournal($actor, $issue, $before, $notes, $privateNotes);
+            });
         }
 
         $current = [
@@ -183,7 +206,7 @@ final class IssueService
         $this->enforceFieldRules($actor, $issue, $incoming, $current);
         $customInputs = $this->customFieldInputs($attributes);
 
-        return DB::transaction(function () use ($actor, $issue, $parent, $parentChanged, $nextStatus, $customInputs): Issue {
+        return DB::transaction(function () use ($actor, $issue, $parent, $parentChanged, $nextStatus, $customInputs, $before, $notes, $privateNotes): Issue {
             // Field rules use the status already stored on the issue.
             $this->customValues->sync($actor, $issue, $customInputs, false);
             if ($nextStatus !== null) {
@@ -191,12 +214,90 @@ final class IssueService
                 $issue->closed_on = $nextStatus->is_closed ? ($issue->closed_on ?? now()) : null;
             }
             $issue->save();
-            if ($parentChanged) {
-                return $this->trees->move($issue, $parent);
-            }
+            $saved = $parentChanged ? $this->trees->move($issue, $parent) : $issue;
 
-            return $issue->refresh();
+            return $this->persistJournal($actor, $saved, $before, $notes, $privateNotes);
         });
+    }
+
+    /**
+     * @param  array<string, string|null>  $before
+     */
+    private function persistJournal(User $actor, Issue $issue, array $before, ?string $notes, bool $privateNotes): Issue
+    {
+        $fresh = $issue->refresh();
+        $this->journals->recordIssueUpdate(
+            $actor,
+            $fresh,
+            $before,
+            $this->journals->snapshot($fresh),
+            $notes,
+            $privateNotes,
+        );
+
+        return $fresh;
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    private function optionalNote(array $attributes): ?string
+    {
+        if (! array_key_exists('notes', $attributes) || $attributes['notes'] === null) {
+            return null;
+        }
+        if (! is_string($attributes['notes'])) {
+            throw new DomainException('Notes must be a string.');
+        }
+        $notes = trim($attributes['notes']);
+
+        return $notes === '' ? null : $notes;
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    private function privateNotesRequested(array $attributes): bool
+    {
+        if (! array_key_exists('private_notes', $attributes) || $attributes['private_notes'] === null) {
+            return false;
+        }
+        $value = $attributes['private_notes'];
+        if ($value === false || $value === 0 || $value === '0') {
+            return false;
+        }
+        if ($value === true || $value === 1 || $value === '1') {
+            return true;
+        }
+
+        throw new DomainException('private_notes must be a boolean.');
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    private function requestsAttributeEdit(array $attributes): bool
+    {
+        foreach ([
+            'subject',
+            'description',
+            'start_date',
+            'due_date',
+            'estimated_hours',
+            'done_ratio',
+            'priority_id',
+            'assigned_to_id',
+            'is_private',
+            'status_id',
+            'parent_id',
+            'custom_fields',
+        ] as $key) {
+            if (array_key_exists($key, $attributes)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
