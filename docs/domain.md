@@ -49,7 +49,9 @@ Several roles use the most open value. This follows the usual Redmine `Issue.vis
 
 Status changes read `workflows` rows with `type = WorkflowTransition` for the user's roles and the tracker. A new issue uses `old_status_id = 0`. Rows with `author = 0` and `assignee = 0` always apply. `author = 1` also applies to the issue author. `assignee = 1` also applies to the assignee or to a member of an assignee group. The assignee considered for that flag is the assignee already stored on the issue, not a new assignee sent in the same update. If no initial row matches, the tracker's default status is allowed. Admins skip the matrix. Saving without a status change does not need a self-transition row.
 
-Field rules (`type = WorkflowPermission`, `rule = readonly|required`) are enforced for the disablable core fields on create and update. On create they are read for the initial status id. Custom field ids are enforced by `CustomValueService` when values are written; see [custom-fields.md](custom-fields.md).
+Field rules (`type = WorkflowPermission`, `rule = readonly|required`) are enforced for the disablable core fields on create and update. On create they are read for the initial status id. Across every applicable role, a missing row leaves the field unconstrained. If every role has a row and one of them is `required`, the field is required. Custom field ids are enforced by `CustomValueService` when values are written; see [custom-fields.md](custom-fields.md).
+
+The MVP smoke for projects, membership, workflow, and issues is [acl-workflow-parity-gate.md](acl-workflow-parity-gate.md). A green smoke is Laramine behavior. Parity is **NOT VERIFIED**. This slice is not a 0.1 tag.
 
 ## Journals
 
@@ -96,7 +98,8 @@ No workflow matrix is seeded, because statuses and trackers are not created by t
 - Same-status saves do not require a workflow row that points at the current status.
 - Closing and reopening blockers (relations, open subtasks, a closed parent) are not applied.
 - `roles.settings` tracker masks are stored when they are JSON and are not applied.
-- `roles_managed_roles` is not checked when a role is assigned.
+- `roles.time_entries_visibility` and `roles.users_visibility` are stored and are not applied. There is no time-entry write service, and user administration is outside this slice.
+- `roles_managed_roles` is stored and is not checked when a role is assigned.
 - `MembershipService::assignRole` does not itself require `manage_members`.
 - Subtask parents must belong to the same project.
 - `inherit_members` walks descendants by chaining each new inherited row, not only the direct child.
