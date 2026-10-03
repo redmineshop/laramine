@@ -51,6 +51,30 @@ Status changes read `workflows` rows with `type = WorkflowTransition` for the us
 
 Field rules (`type = WorkflowPermission`, `rule = readonly|required`) are enforced for the disablable core fields on create and update. On create they are read for the initial status id. Custom field ids are enforced by `CustomValueService` when values are written; see [custom-fields.md](custom-fields.md).
 
+## Journals
+
+`IssueService::update` writes one `journals` row when a tracked attribute changes or the caller sends a non-blank `notes` string. `journalized_type` is `Issue`. `user_id` is the actor. Blank notes are stored as null and do not create a journal by themselves. Create does not write a journal.
+
+A non-blank note requires `add_issue_notes`. `private_notes` true requires `set_notes_private` and is stored on that journal, including when the journal also has property details. Attribute changes still require `edit_issues` or `edit_own_issues`. A notes-only update does not require edit permission. Active admins bypass these checks.
+
+Tracked details use `journal_details.property = attr` and `prop_key` set to the issue column, in this order: `status_id`, `done_ratio`, `subject`, `description`, `priority_id`, `assigned_to_id`, `start_date`, `due_date`, `estimated_hours`, `is_private`, `parent_id`. Compared values are strings. `status_id` and `priority_id` are decimal id strings. `done_ratio` is an integer string. Custom-field diffs are not written.
+
+`IssueRelationService::add` inserts `issue_relations` (`relates`, `blocks`, `duplicates`, `precedes`, or `copied_to`) and one journal on the source issue. That detail uses `property = relation`, `prop_key` the relation type, and `value` the other issue id. It requires `manage_issue_relations`.
+
+`IssueHistoryPresenter` is the issue-show view model. It is not an HTTP response.
+
+- Zero visible journals: no History block and no tab labels.
+- Otherwise the labels are History, Notes, and Property changes. History lists every visible journal. The Notes and Property changes tabs are labels only. Their filters are not implemented.
+- Anchors are `#1`, `#2`, … in visible order. They are not `journals.id`. No fragment href is assigned.
+- An attribute with both values reads `{label} changed from {old} to {new}`. The HTML line wraps those two values in `em`. Status uses the status name. Done ratio uses the integer string. A missing old value reads `set to`. A missing new value reads `deleted`.
+- A `relates` detail reads `Related to {tracker} #{id}: {subject} added`. That line is not italicized.
+- Note text is escaped. A textile `*emphasis*` span becomes `em`. Other textile marks stay plain text.
+- A journal with note text exposes reaction (`thumbs-up`), quote, edit (pencil), and more (`⋯`). A journal without note text exposes reaction and more only. Those controls do not change rows and are not filtered by `edit_issue_notes`.
+- After `IssueService::update` returns, the caller passes `justUpdated: true`. The show model then carries the flash `✓ Successful update.` with tone `green`.
+- The notes fieldset is present when the actor can add a note or edit the issue. The Private notes checkbox is present only with `set_notes_private`, and the form leaves it unchecked.
+
+A private journal is omitted for an actor without `view_private_notes`, including the author. An active admin sees it. Query filters use the same rule; see [queries.md](queries.md). The security/parity gate for this slice is [journals-parity-gate.md](journals-parity-gate.md). Parity is **NOT VERIFIED**.
+
 ## Seed
 
 `php artisan db:seed` runs `DefaultAccessSeeder` before the sample user:
@@ -79,7 +103,11 @@ No workflow matrix is seeded, because statuses and trackers are not created by t
 - Turning `inherit_members` off removes roles this project inherited from another project. Group expansion on the same project is kept.
 - A user with `status` other than `1` is treated as logged out for ACL, including admins.
 - Archived and closed project statuses are not special-cased.
-- Journals are not written.
+- Relation-add journals are written on the source issue only. The other issue does not get a row.
+- A private journal stays hidden from its author when that user lacks `view_private_notes`.
+- Notes and Property changes tabs are labels only. Their filters are not implemented.
+- Quote, edit, and the journal more control are presence markers. They are not permission-filtered and they do not change rows.
+- Anchor labels are display order. No fragment href is stored.
 - Custom field workflow failures use `CustomFieldValidationException`. Core field workflow failures still use `WorkflowDeniedException`.
 
 ## Queries

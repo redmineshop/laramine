@@ -34,6 +34,7 @@ First public / v1 ship must meet **all** gates below. Same spirit as Redmine cor
 - Shared fixtures aligned with Redmine Migrate Analyst P0 inventory
 - Living `docs/parity-checklist.md`: VERIFIED / NOT VERIFIED / INCONCLUSIVE + evidence paths
 - **No release claim** while any P0 row is failed or inconclusive
+- Journal history has a gate in [docs/journals-parity-gate.md](docs/journals-parity-gate.md). The Block A and Block B smoke is Laramine behavior. It does not verify parity. Block C stays open.
 
 ## CI (every PR + default branch)
 

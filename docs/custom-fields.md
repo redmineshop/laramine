@@ -1,6 +1,6 @@
 # Custom fields
 
-Laramine stores custom fields in the Redmine 7.0.1 tables (`custom_fields`, `custom_values`, `custom_fields_trackers`, `custom_fields_projects`, `custom_fields_roles`, `custom_field_enumerations`). This is not a Redmine parity claim. Journal diffs and the HTTP API are not part of this slice. Issue query filters for `is_filter` fields are described in [queries.md](queries.md).
+Laramine stores custom fields in the Redmine 7.0.1 tables (`custom_fields`, `custom_values`, `custom_fields_trackers`, `custom_fields_projects`, `custom_fields_roles`, `custom_field_enumerations`). This is not a Redmine parity claim. Custom-field journal diffs and the HTTP API are not part of this slice. Core issue journals are described in [domain.md](domain.md). Issue query filters for `is_filter` fields are described in [queries.md](queries.md).
 
 ## Storage
 

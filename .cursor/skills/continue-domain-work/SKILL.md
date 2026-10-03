@@ -21,14 +21,14 @@ Use this when extending issues, issue queries, or custom fields. The source of t
 
 | Area | Code | Tests | Doc status |
 | --- | --- | --- | --- |
-| Issue create/update, nested set, workflow | `app/Domain/Issues/IssueService.php`, `app/Domain/Workflow/WorkflowService.php` | `tests/Feature/IssueWorkflowTest.php` | Journals are not written. Blocker rules on close/reopen are not applied. |
+| Issue create/update, nested set, workflow, journals | `app/Domain/Issues/IssueService.php`, `app/Domain/Issues/IssueJournalWriter.php`, `app/Domain/Issues/IssueRelationService.php`, `app/Domain/Issues/History/IssueHistoryPresenter.php`, `app/Domain/Workflow/WorkflowService.php` | `tests/Feature/IssueWorkflowTest.php`, `tests/Feature/IssueJournalSmokeTest.php` | Journal edit and delete are not implemented. Blocker rules on close/reopen are not applied. Parity for journals is NOT VERIFIED (`docs/journals-parity-gate.md`). |
 | Custom field formats and values | `app/Domain/CustomFields/` | `tests/Unit/CustomFieldFormatTest.php`, `tests/Unit/CustomFieldRecordFormatTest.php`, `tests/Feature/CustomFieldValueTest.php` | `link`, `enumeration`, `attachment`, `progressbar` can be defined and reject non-blank values. |
 | Issue query compile and run | `app/Domain/Queries/` (`IssueQueryRunner`, `IssueQueryCompiler`, `IssueFilterCatalog`, `OperatorMatrix`) | `tests/Unit/IssueQueryOperatorTest.php`, `tests/Unit/IssueQueryFieldTest.php`, `tests/Feature/IssueQueryTest.php` | Catalog operators are compiled. Unknown fields and operators are rejected, not treated as match-all. |
 | Saved query visibility | `app/Domain/Queries/SavedQueryService.php` | `tests/Feature/IssueQueryTest.php` | `ProjectQuery`, `TimeEntryQuery`, `UserQuery`, `ProjectAdminQuery` store empty filters and do not run. |
 
 `IssueService` is the issue write path, including custom values. `CustomValueService` does not authorize the host record. Callers other than `IssueService` must already have checked the host permission.
 
-Query history reads existing `journal_details`. It does not create journals.
+Issue update writes `journal_details` for tracked attributes. Query history reads those rows. It does not write them.
 
 The HTTP API is not part of these slices. Do not add routes unless the task explicitly asks for HTTP.
 
@@ -81,7 +81,7 @@ PR text should list behavior changed, tests added or updated, and parity rows to
 
 - Copying upstream source into the repository
 - HTTP controllers, auth screens, or a public JSON API
-- Writing journals, mail, or full-text search
+- Editing or deleting journals, mail, or full-text search
 - Wiki, SCM, forums, news, webhooks
 - Switching CI to SQLite or lowering PHPStan
 - Editing `docs/community-metrics.md` (KPI definitions, not domain behavior)

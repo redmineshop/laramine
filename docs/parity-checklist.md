@@ -12,4 +12,5 @@ No row below is VERIFIED. A row becomes VERIFIED only when a fixture-backed test
 | Workflows | NOT VERIFIED | `tests/Feature/IssueWorkflowTest.php` checks transition allow/deny, including `old_status_id = 0`. No Redmine dump diff. |
 | Custom fields | NOT VERIFIED | `tests/Unit/CustomFieldFormatTest.php`, `tests/Unit/CustomFieldRecordFormatTest.php`, and `tests/Feature/CustomFieldValueTest.php` exercise format validation and value writes on MySQL. They do not compare rows with a Redmine 7.0.1 database. |
 | Queries | NOT VERIFIED | `tests/Unit/IssueQueryOperatorTest.php` and `tests/Feature/IssueQueryTest.php` exercise Laramine operators, saved-query visibility, and custom field filters on MySQL. They do not compare rows with a Redmine 7.0.1 database. |
+| Journals and private notes | NOT VERIFIED | `tests/Feature/IssueJournalSmokeTest.php` and `tests/Unit/JournalPresentationTest.php` exercise Laramine journal writes, history presentation, and private-note visibility. They do not compare rows with a Redmine 7.0.1 database. Block C in [journals-parity-gate.md](journals-parity-gate.md) stays open. |
 | Time entries and attachments | NOT VERIFIED | Tables only. |
