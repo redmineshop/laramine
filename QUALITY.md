@@ -35,6 +35,7 @@ First public / v1 ship must meet **all** gates below. Same spirit as Redmine cor
 - Living `docs/parity-checklist.md`: VERIFIED / NOT VERIFIED / INCONCLUSIVE + evidence paths
 - **No release claim** while any P0 row is failed or inconclusive
 - Journal history has a gate in [docs/journals-parity-gate.md](docs/journals-parity-gate.md). The Block A and Block B smoke is Laramine behavior. It does not verify parity. Block C stays open.
+- Projects, membership, workflow, and issues have a gate in [docs/acl-workflow-parity-gate.md](docs/acl-workflow-parity-gate.md). The MVP smoke is Laramine behavior. It does not verify parity and it is not a 0.1 tag. The open list in that file stays open.
 
 ## CI (every PR + default branch)
 
