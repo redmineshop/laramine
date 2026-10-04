@@ -193,6 +193,11 @@ class CustomFieldRecordFormatTest extends TestCase
         );
         $single->default_value = (string) $only->id;
         $this->assertSame([], $format->validateDefinition($single));
+        $unsaved = new CustomField([
+            'field_format' => 'enumeration',
+            'default_value' => '4',
+        ]);
+        $this->assertSame([], $format->validateDefinition($unsaved));
         $single->default_value = 'nope';
         $this->assertSame(['Default value must be an enumeration id.'], $format->validateDefinition($single));
         $this->assertTrue($format->supportsMultiple());

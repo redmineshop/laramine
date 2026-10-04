@@ -44,7 +44,8 @@ final class EnumerationFormat extends AbstractFormat
             return ['Default value must be an enumeration id.'];
         }
 
-        if ($field->id === null) {
+        // Option rows reference this field, so a new definition can only check the id shape.
+        if (! $field->exists) {
             return [];
         }
 
