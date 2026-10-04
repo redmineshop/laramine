@@ -7,7 +7,8 @@ use App\Models\CustomField;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Recognized format whose value rules are not implemented yet.
+ * Rejects a non-blank value for a format key that is recognized but not implemented.
+ * The registry does not construct this while every `FieldFormatKey` stores values.
  */
 final class UnsupportedFormat extends AbstractFormat
 {

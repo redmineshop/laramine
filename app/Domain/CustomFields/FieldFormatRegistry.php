@@ -3,14 +3,17 @@
 namespace App\Domain\CustomFields;
 
 use App\Domain\Acl\MembershipService;
+use App\Domain\CustomFields\Formats\AttachmentFormat;
 use App\Domain\CustomFields\Formats\BoolFormat;
 use App\Domain\CustomFields\Formats\DateFormat;
+use App\Domain\CustomFields\Formats\EnumerationFormat;
 use App\Domain\CustomFields\Formats\FloatFormat;
 use App\Domain\CustomFields\Formats\IntFormat;
+use App\Domain\CustomFields\Formats\LinkFormat;
 use App\Domain\CustomFields\Formats\ListFormat;
+use App\Domain\CustomFields\Formats\ProgressbarFormat;
 use App\Domain\CustomFields\Formats\StringFormat;
 use App\Domain\CustomFields\Formats\TextFormat;
-use App\Domain\CustomFields\Formats\UnsupportedFormat;
 use App\Domain\CustomFields\Formats\UserFormat;
 use App\Domain\CustomFields\Formats\VersionFormat;
 use App\Domain\DomainException;
@@ -35,17 +38,17 @@ final class FieldFormatRegistry
         return match ($key) {
             FieldFormatKey::String => new StringFormat,
             FieldFormatKey::Text => new TextFormat,
+            FieldFormatKey::Link => new LinkFormat,
             FieldFormatKey::Int => new IntFormat,
             FieldFormatKey::Float => new FloatFormat,
             FieldFormatKey::Date => new DateFormat,
             FieldFormatKey::List => new ListFormat,
             FieldFormatKey::Bool => new BoolFormat,
+            FieldFormatKey::Enumeration => new EnumerationFormat,
             FieldFormatKey::User => new UserFormat($this->memberships, $this->context),
             FieldFormatKey::Version => new VersionFormat($this->context),
-            FieldFormatKey::Link => new UnsupportedFormat('link', 'string', false, false),
-            FieldFormatKey::Enumeration => new UnsupportedFormat('enumeration', 'list_optional', true, false),
-            FieldFormatKey::Attachment => new UnsupportedFormat('attachment', 'string', false, false),
-            FieldFormatKey::Progressbar => new UnsupportedFormat('progressbar', 'integer', false, false),
+            FieldFormatKey::Attachment => new AttachmentFormat($this->context),
+            FieldFormatKey::Progressbar => new ProgressbarFormat,
         };
     }
 

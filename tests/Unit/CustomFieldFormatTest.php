@@ -8,7 +8,9 @@ use App\Domain\CustomFields\Formats\BoolFormat;
 use App\Domain\CustomFields\Formats\DateFormat;
 use App\Domain\CustomFields\Formats\FloatFormat;
 use App\Domain\CustomFields\Formats\IntFormat;
+use App\Domain\CustomFields\Formats\LinkFormat;
 use App\Domain\CustomFields\Formats\ListFormat;
+use App\Domain\CustomFields\Formats\ProgressbarFormat;
 use App\Domain\CustomFields\Formats\StringFormat;
 use App\Domain\CustomFields\Formats\TextFormat;
 use App\Models\CustomField;
@@ -22,34 +24,95 @@ class CustomFieldFormatTest extends TestCase
         $formats = $registry->all();
         $this->assertCount(13, $formats);
 
-        $implemented = [];
-        $deferred = [];
+        $keys = [];
         foreach ($formats as $format) {
-            if ($format->isImplemented()) {
-                $implemented[] = $format->key();
-            } else {
-                $deferred[] = $format->key();
-            }
+            $keys[] = $format->key();
+            $this->assertTrue($format->isImplemented());
         }
 
         $this->assertSame(
-            ['string', 'text', 'int', 'float', 'date', 'list', 'bool', 'user', 'version'],
-            $implemented,
+            ['string', 'text', 'link', 'int', 'float', 'date', 'list', 'bool', 'enumeration', 'user', 'version', 'attachment', 'progressbar'],
+            $keys,
         );
-        $this->assertSame(['link', 'enumeration', 'attachment', 'progressbar'], $deferred);
 
         foreach (FieldFormatKey::cases() as $case) {
             $format = $registry->get($case->value);
-            $this->assertSame($case->implemented(), $format->isImplemented());
-            if (! $format->isImplemented()) {
-                $field = new CustomField(['field_format' => $case->value]);
-                $this->assertSame(
-                    ['The '.$case->value.' format is not supported.'],
-                    $format->validate($field, 'x', null),
-                );
-                $this->assertSame([], $format->validate($field, null, null));
-            }
+            $this->assertTrue($case->implemented());
+            $this->assertTrue($format->isImplemented());
         }
+    }
+
+    public function test_link_uses_string_rules_and_stores_a_url_pattern(): void
+    {
+        $format = new LinkFormat;
+        $field = new CustomField([
+            'field_format' => 'link',
+            'regexp' => '^https://',
+            'min_length' => 12,
+            'max_length' => 40,
+            'format_store' => ['url_pattern' => 'https://links.test/%id%/%value%'],
+        ]);
+
+        $this->assertSame([], $format->validate($field, 'https://example.test/a', null));
+        $this->assertSame(['https://example.test/a'], $format->serialize($field, 'https://example.test/a'));
+        $this->assertSame('https://example.test/a', $format->cast($field, 'https://example.test/a'));
+        $this->assertSame(
+            'https://links.test/9/https://example.test/a',
+            $format->formattedUrl($field, 'https://example.test/a', 9),
+        );
+        $this->assertNull($format->formattedUrl(new CustomField, 'https://example.test/a', 9));
+        $this->assertSame(['Value does not match the pattern.'], $format->validate($field, 'http://example.test', null));
+        $this->assertSame(['Value is shorter than the minimum length.'], $format->validate($field, 'https://x', null));
+        $this->assertSame(['Value must be a string.'], $format->validate($field, 12, null));
+        $this->assertSame(
+            ['Multiple values are not supported for this format.'],
+            $format->validate($field, ['https://a.example', 'https://b.example'], null),
+        );
+        $this->assertSame([], $format->validate($field, null, null));
+        $this->assertFalse($format->supportsMultiple());
+        $this->assertFalse($format->supportsSearchable());
+        $this->assertFalse($format->supportsTotal());
+        $this->assertSame('string', $format->queryFilterType());
+        $this->assertSame(['url_pattern must be a string.'], $format->validateDefinition(new CustomField([
+            'format_store' => ['url_pattern' => 12],
+        ])));
+    }
+
+    public function test_progressbar_is_an_integer_percent_on_a_step(): void
+    {
+        $format = new ProgressbarFormat;
+        $field = new CustomField([
+            'field_format' => 'progressbar',
+            'format_store' => ['ratio_interval' => 10],
+        ]);
+
+        $this->assertSame([], $format->validate($field, '50', null));
+        $this->assertSame(['50'], $format->serialize($field, '+050'));
+        $this->assertSame(50, $format->cast($field, '50'));
+        $this->assertSame(['0'], $format->serialize($field, 0));
+        $this->assertSame(['100'], $format->serialize($field, '100'));
+        $this->assertSame(['Value must be an integer from 0 to 100.'], $format->validate($field, '101', null));
+        $this->assertSame(['Value must be an integer from 0 to 100.'], $format->validate($field, '-1', null));
+        $this->assertSame(['Value must be an integer from 0 to 100.'], $format->validate($field, '1.5', null));
+        $this->assertSame(['Value must be an integer from 0 to 100.'], $format->validate($field, true, null));
+        $this->assertSame(['Value is not a multiple of the ratio interval.'], $format->validate($field, '15', null));
+        $this->assertSame([], $format->validate(new CustomField(['field_format' => 'progressbar']), '15', null));
+        $this->assertSame(
+            ['Multiple values are not supported for this format.'],
+            $format->validate($field, ['10', '20'], null),
+        );
+        $this->assertSame([], $format->validate($field, '', null));
+        $this->assertFalse($format->supportsMultiple());
+        $this->assertFalse($format->supportsSearchable());
+        $this->assertFalse($format->supportsTotal());
+        $this->assertSame('integer', $format->queryFilterType());
+        $this->assertSame(
+            ['ratio_interval must be a positive integer that divides 100.'],
+            $format->validateDefinition(new CustomField([
+                'format_store' => ['ratio_interval' => 7],
+            ])),
+        );
+        $this->assertSame([], $format->validateDefinition($field));
     }
 
     public function test_string_and_text_round_trip_and_reject_bad_values(): void
@@ -108,6 +171,7 @@ class CustomFieldFormatTest extends TestCase
         $this->assertSame([], $format->serialize($field, ''));
         $this->assertFalse($format->supportsMultiple());
         $this->assertFalse($format->supportsSearchable());
+        $this->assertTrue($format->supportsTotal());
         $this->assertSame('integer', $format->queryFilterType());
     }
 
@@ -126,6 +190,7 @@ class CustomFieldFormatTest extends TestCase
         $this->assertSame(['Value is not a valid float.'], $format->validate($field, true, null));
         $this->assertSame('float', $format->queryFilterType());
         $this->assertFalse($format->supportsSearchable());
+        $this->assertTrue($format->supportsTotal());
     }
 
     public function test_date_round_trip_and_offset_default(): void

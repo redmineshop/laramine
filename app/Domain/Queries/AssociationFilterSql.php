@@ -898,7 +898,7 @@ final class AssociationFilterSql
             ->get();
         foreach ($fields as $field) {
             $format = $this->formats->get((string) $field->field_format);
-            if (! $format->isImplemented()) {
+            if (! $format->isImplemented() || ! $format->supportsSearchable()) {
                 continue;
             }
             if (! $this->visibility->canSee($actor, $field, $project)) {

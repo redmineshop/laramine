@@ -17,7 +17,7 @@ Laramine stores custom fields in the Redmine 7.0.1 tables (`custom_fields`, `cus
 
 `possible_values` and `format_store` are JSON text in the existing columns. A non-JSON legacy value decodes as null. No migration was added for that codec.
 
-Multiple values are one `custom_values` row per entry. A blank value deletes the rows for that field. Bool values are the strings `1` and `0`. User and version values are id strings. Dates are `YYYY-MM-DD`.
+Multiple values are one `custom_values` row per entry. A blank value deletes the rows for that field. Bool values are the strings `1` and `0`. User, version, enumeration, and attachment values are id strings. Progress bar values are integer strings from `0` to `100`. Dates are `YYYY-MM-DD`. Link values are strings.
 
 ## Formats
 
@@ -27,13 +27,18 @@ Multiple values are one `custom_values` row per entry. A blank value deletes the
 | `int` | `/^[+-]?\d+$/`, stored without a leading `+` | Must fit in a PHP integer. |
 | `float` | Decimal text, no exponent | The trimmed text is stored. |
 | `date` | `YYYY-MM-DD` | `format_store.default_value_mode` is `fixed_date` or `date_offset` (days from today). |
-| `list` | One or many entries from `possible_values` | The only single-line format that allows `multiple`, together with `user` and `version`. |
+| `link` | One string | Same regexp, min length, and max length as `string`. `format_store.url_pattern` is optional. `%value%` and `%id%` are substituted literally by `LinkFormat::formattedUrl`. The URL is not requested. Not searchable and not multiple. |
+| `list` | One or many entries from `possible_values` | `multiple` is allowed, together with `user`, `version`, and `enumeration`. |
 | `bool` | `1` or `0` | `true` / `false` / `1` / `0` are accepted. `yes` and `true` text are rejected. |
+| `enumeration` | One or many active ids from `custom_field_enumerations` | The id belongs to this field and `active` is true. `possible_values` is not the option list. Not searchable. |
 | `user` | Active user id | On a project record (issue, time entry, version, project) the user must be a member. `format_store.user_role` limits roles. |
 | `version` | Version id on the same project | `format_store.version_status` may list `open`, `locked`, `closed`. Sharing across projects is not applied. |
-| `link`, `enumeration`, `attachment`, `progressbar` | Not supported | The key can be saved on a definition. A non-blank value is rejected. Attachment files, enumeration rows, link URLs, and progress steps are deferred. |
+| `attachment` | One `attachments.id` | `format_store.extensions_allowed` is a comma-separated string or a list of extensions such as `pdf` or `.PNG`. The last filename segment is compared, case-insensitive. A row with an empty container is accepted. A row that already names a container must name this record. Not searchable and not multiple. |
+| `progressbar` | Integer `0`–`100` | `format_store.ratio_interval`, when set, is a positive integer that divides 100. The value must be a multiple of that step. Not searchable, not multiple, and not totalable. |
 
-`multiple` is rejected on formats that do not support it. `searchable` is rejected the same way. `is_filter` marks an issue custom field as usable in an IssueQuery. Implemented formats (string, text, int, float, date, list, bool, user, version) compile `cf_{id}` filters. See [queries.md](queries.md). Link, enumeration, attachment, and progressbar stay unfiltered.
+`multiple` is rejected on formats that do not support it. `searchable` is rejected the same way. `is_filter` marks an issue custom field as usable in an IssueQuery. Every registered format compiles `cf_{id}` filters. See [queries.md](queries.md). Int and float report `supportsTotal`. The other formats, including progress bar, do not. IssueQuery does not sum custom fields.
+
+Enumeration option rows are not created by `CustomFieldService`. The caller inserts `custom_field_enumerations`. Attachment bytes, digests, and disk paths are not written. A stored id is enough for this slice. What those two paths still leave open is listed in [custom-fields-deferred-parity-gate.md](custom-fields-deferred-parity-gate.md).
 
 `CustomFieldService::save` writes the definition and the tracker, project, and role links. Issue fields need at least one tracker, and either `is_for_all` or one project. `is_for_all` is rejected on other types. Names are unique per STI type and at most 30 characters.
 
@@ -68,11 +73,15 @@ For an issue field with `visible = false`, workflow merge treats roles that are 
 ## Intentional differences from Redmine 7.0.1
 
 - `possible_values` and `format_store` are JSON, not a YAML or PHP serialization dump.
-- Deferred formats can be defined and cannot store a non-blank value.
+- Link filters compare the stored string. `formattedUrl` substitutes `%value%` and `%id%` and does not encode or fetch the URL.
+- Enumeration filters compare ids, not option names. Inactive ids are rejected on write. An omitted field keeps a previously stored inactive id.
+- `ratio_interval` must divide 100 so `0` and `100` stay on the scale.
+- Attachment custom fields store an id. They do not copy bytes onto disk, fill `digest`, or assign a container. An attachment row with an empty container is a valid value. Filename search stays on the core `attachment` filter, which reads `attachments.filename`, not this custom value.
+- Int and float expose a totalable flag. Query totals are not computed. Progress bar is not totalable.
 - Version fields ignore version sharing.
 - User fields do not offer groups as selectable values.
 - Text formatting and full-width layout keys are stored and not rendered.
 - Custom field workflow errors are `CustomFieldValidationException`, not `WorkflowDeniedException`.
 - `CustomValueService` does not authorize the host record. `IssueService` still requires `add_issues` or `edit_issues` / `edit_own_issues` before it writes issue values.
-- The issue search controller is not implemented. `any_searchable` does a SQL `LIKE` over subject, description, visible journal notes, and visible `searchable` custom values. `is_filter` compiles `cf_{id}` for the formats listed above. Enumeration options in `custom_field_enumerations` are not used as a format yet. A version field also accepts `cf_N.due_date` and `cf_N.status`. Other chained suffixes are rejected. See [queries.md](queries.md).
+- The issue search controller is not implemented. `any_searchable` does a SQL `LIKE` over subject, description, visible journal notes, and visible custom values whose format supports `searchable`. Link, enumeration, attachment, and progress bar do not. A `searchable` flag written outside `CustomFieldService::save` is still skipped for those formats. `is_filter` compiles `cf_{id}` for every registered format. A version field also accepts `cf_N.due_date` and `cf_N.status`. Other chained suffixes are rejected. See [queries.md](queries.md).
 - Document, issue-priority, time-entry activity, and document-category custom field types are not writable targets.

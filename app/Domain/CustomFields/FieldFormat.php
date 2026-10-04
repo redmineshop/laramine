@@ -16,6 +16,11 @@ interface FieldFormat
 
     public function supportsSearchable(): bool;
 
+    /**
+     * Whether a query total may include this format. IssueQuery does not sum custom fields.
+     */
+    public function supportsTotal(): bool;
+
     public function queryFilterType(): string;
 
     public function isImplemented(): bool;

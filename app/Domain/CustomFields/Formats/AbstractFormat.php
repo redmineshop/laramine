@@ -13,6 +13,11 @@ abstract class AbstractFormat implements FieldFormat
         return true;
     }
 
+    public function supportsTotal(): bool
+    {
+        return false;
+    }
+
     public function defaultRaw(CustomField $field): mixed
     {
         return FieldValues::defaultString($field);

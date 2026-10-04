@@ -483,18 +483,46 @@ class IssueQueryOperatorTest extends TestCase
         $this->expectRejection(['cf_'.$version->id.'.name' => $this->clause('=', ['Next'])]);
     }
 
-    public function test_hidden_unfiltered_and_deferred_filters_are_rejected(): void
+    public function test_link_enumeration_attachment_and_progressbar_filters(): void
+    {
+        $link = $this->field('link');
+        $enumeration = $this->field('enumeration', ['multiple' => true]);
+        $attachment = $this->field('attachment');
+        $progress = $this->field('progressbar');
+
+        $match = $this->issue(['subject' => 'Match']);
+        $this->value($match, $link, 'https://example.test/a');
+        $this->value($match, $enumeration, '4');
+        $this->value($match, $enumeration, '5');
+        $this->value($match, $attachment, '9');
+        $this->value($match, $progress, '40');
+
+        $other = $this->issue(['subject' => 'Other']);
+        $this->value($other, $enumeration, '5');
+        $this->value($other, $progress, '10');
+        $blank = $this->issue(['subject' => 'Blank']);
+
+        $this->assertIds(['cf_'.$link->id => $this->clause('~', ['example.test'])], [$match->id]);
+        $this->assertIds(['cf_'.$link->id => $this->clause('=', ['https://example.test/a'])], [$match->id]);
+        $this->assertIds(['cf_'.$enumeration->id => $this->clause('=', ['4'])], [$match->id]);
+        $this->assertIds(['cf_'.$enumeration->id => $this->clause('!', ['4'])], [$other->id, $blank->id]);
+        $this->assertIds(['cf_'.$progress->id => $this->clause('>=', ['40'])], [$match->id]);
+        $this->assertIds(['cf_'.$progress->id => $this->clause('<=', ['10'])], [$other->id]);
+        $this->assertIds(['cf_'.$progress->id => $this->clause('!*', [])], [$blank->id]);
+        $this->assertIds(['cf_'.$attachment->id => $this->clause('=', ['9'])], [$match->id]);
+        $this->assertIds(['cf_'.$attachment->id => $this->clause('!*', [])], [$other->id, $blank->id]);
+    }
+
+    public function test_hidden_and_unfiltered_filters_are_rejected(): void
     {
         $hidden = $this->field('list', [
             'possible_values' => ['A'],
             'visible' => false,
         ]);
         $stored = $this->field('string', ['is_filter' => false]);
-        $link = $this->field('link');
 
         $this->expectRejection(['cf_'.$hidden->id => $this->clause('=', ['A'])]);
         $this->expectRejection(['cf_'.$stored->id => $this->clause('~', ['x'])]);
-        $this->expectRejection(['cf_'.$link->id => $this->clause('~', ['x'])]);
         $this->expectRejection(['cf_'.$hidden->id.'.sharing' => $this->clause('=', ['none'])]);
         $this->expectRejection(['author.group' => $this->clause('=', ['me'])]);
         $this->expectRejection(['done_ratio' => $this->clause('!', ['1'])]);

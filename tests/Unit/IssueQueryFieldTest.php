@@ -344,6 +344,26 @@ class IssueQueryFieldTest extends TestCase
         $this->assertIds(['any_searchable' => $this->clause('*~', ['login widget'])], [$subject->id, $custom->id]);
         $this->assertSame([], $this->ids(['any_searchable' => $this->clause('~', ['classified'])]));
         $this->assertContains($hiddenIssue->id, $this->ids(['any_searchable' => $this->clause('!~', ['classified'])]));
+
+        $link = CustomField::query()->create([
+            'name' => 'Homepage',
+            'field_format' => 'link',
+            'type' => 'IssueCustomField',
+            'searchable' => true,
+            'is_filter' => true,
+            'is_for_all' => true,
+            'visible' => true,
+            'editable' => true,
+            'position' => 3,
+        ]);
+        $linked = $this->issue(['subject' => 'Linked', 'description' => '']);
+        CustomValue::query()->create([
+            'custom_field_id' => $link->id,
+            'customized_type' => 'Issue',
+            'customized_id' => $linked->id,
+            'value' => 'linktoken',
+        ]);
+        $this->assertSame([], $this->ids(['any_searchable' => $this->clause('~', ['linktoken'])]));
     }
 
     public function test_display_subprojects_issues_includes_descendants_without_a_filter(): void

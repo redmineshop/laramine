@@ -23,6 +23,11 @@ final class IntFormat extends AbstractFormat
         return false;
     }
 
+    public function supportsTotal(): bool
+    {
+        return true;
+    }
+
     public function queryFilterType(): string
     {
         return 'integer';

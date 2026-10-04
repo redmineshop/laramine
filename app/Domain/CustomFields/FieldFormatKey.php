@@ -5,8 +5,8 @@ namespace App\Domain\CustomFields;
 /**
  * Registered custom field format keys.
  *
- * Implemented keys validate and store values. Deferred keys are recognized
- * so a definition can be saved, but value writes are rejected.
+ * Every key validates and stores a value. `link`, `enumeration`, `attachment`,
+ * and `progressbar` follow the same registry path as the earlier formats.
  */
 enum FieldFormatKey: string
 {
@@ -27,8 +27,7 @@ enum FieldFormatKey: string
     public function implemented(): bool
     {
         return match ($this) {
-            self::String, self::Text, self::Int, self::Float, self::Date, self::List, self::Bool, self::User, self::Version => true,
-            self::Link, self::Enumeration, self::Attachment, self::Progressbar => false,
+            self::String, self::Text, self::Link, self::Int, self::Float, self::Date, self::List, self::Bool, self::Enumeration, self::User, self::Version, self::Attachment, self::Progressbar => true,
         };
     }
 }
