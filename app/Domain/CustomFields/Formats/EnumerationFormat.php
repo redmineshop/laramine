@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * Stores `custom_field_enumerations.id` strings. Only active rows of this field count.
- * Multiple values are one row each. Option rows are not created here.
+ * Multiple values are one row each. Option rows are written by CustomFieldEnumerationService.
  */
 final class EnumerationFormat extends AbstractFormat
 {

@@ -3,6 +3,7 @@
 namespace App\Domain\CustomFields;
 
 use App\Domain\Acl\PermissionService;
+use App\Domain\Attachments\AttachmentService;
 use App\Domain\DomainException;
 use App\Domain\Workflow\WorkflowService;
 use App\Models\CustomField;
@@ -30,6 +31,7 @@ final class CustomValueService
         private readonly CustomizedContext $context,
         private readonly PermissionService $permissions,
         private readonly WorkflowService $workflows,
+        private readonly AttachmentService $attachments,
     ) {}
 
     /**
@@ -82,7 +84,7 @@ final class CustomValueService
             }
 
             foreach ($writes as $write) {
-                $this->replace($type, $recordId, $write['field'], $write['rows']);
+                $this->replace($record, $type, $recordId, $write['field'], $write['rows']);
             }
 
             return $this->present($actor, $record, $type, $recordId);
@@ -280,7 +282,7 @@ final class CustomValueService
     /**
      * @param  list<string>  $rows
      */
-    private function replace(string $type, int $recordId, CustomField $field, array $rows): void
+    private function replace(Model $record, string $type, int $recordId, CustomField $field, array $rows): void
     {
         CustomValue::query()
             ->where('customized_type', $type)
@@ -294,6 +296,10 @@ final class CustomValueService
                 'customized_id' => $recordId,
                 'value' => $value,
             ]);
+        }
+
+        if ((string) $field->field_format === 'attachment') {
+            $this->attachments->bindStoredIds($record, $rows);
         }
     }
 

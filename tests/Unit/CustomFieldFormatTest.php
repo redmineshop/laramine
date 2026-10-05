@@ -78,6 +78,61 @@ class CustomFieldFormatTest extends TestCase
         ])));
     }
 
+    public function test_link_formatted_url_encodes_tokens_and_keeps_the_pattern(): void
+    {
+        $format = new LinkFormat;
+        $field = new CustomField([
+            'field_format' => 'link',
+            'regexp' => '^(\d+)-(.+)$',
+            'format_store' => [
+                'url_pattern' => 'https://ex.test/%project_identifier%/%m1%/%m2%?id=%id%&p=%project_id%#keep',
+            ],
+        ]);
+
+        $this->assertSame(
+            'https://ex.test/demo/12/a%20b?id=7&p=3#keep',
+            $format->formattedUrl($field, '12-a b', 7, 3, 'demo'),
+        );
+        $this->assertSame(
+            'https://ex.test/foo%20:bar',
+            $format->formattedUrl(new CustomField([
+                'format_store' => ['url_pattern' => 'https://ex.test/%value%'],
+            ]), 'foo :bar', null),
+        );
+        $this->assertSame(
+            'http://foo/bar#anchor',
+            $format->formattedUrl(new CustomField([
+                'format_store' => ['url_pattern' => 'http://foo/bar#anchor'],
+            ]), '1', null),
+        );
+        $plain = new CustomField([
+            'format_store' => ['url_pattern' => 'https://ex.test/%value%'],
+        ]);
+        $this->assertSame('https://ex.test/a+b', $format->formattedUrl($plain, 'a+b', 1));
+        $this->assertSame('https://ex.test/100%25', $format->formattedUrl($plain, '100%', 1));
+        $this->assertSame('https://ex.test/caf%C3%A9', $format->formattedUrl($plain, 'café', 1));
+        $this->assertSame(
+            'https://ex.test///',
+            $format->formattedUrl(new CustomField([
+                'format_store' => ['url_pattern' => 'https://ex.test/%project_id%/%project_identifier%/%id%'],
+            ]), 'x', null),
+        );
+        $this->assertSame(
+            'https://ex.test/',
+            $format->formattedUrl(new CustomField([
+                'regexp' => '[',
+                'format_store' => ['url_pattern' => 'https://ex.test/%m1%'],
+            ]), '12', 4),
+        );
+        $this->assertSame(
+            'https://ex.test/42/42',
+            $format->formattedUrl(new CustomField([
+                'regexp' => '^(\d+)$',
+                'format_store' => ['url_pattern' => 'https://ex.test/%m0%/%m1%'],
+            ]), '42', 1),
+        );
+    }
+
     public function test_progressbar_is_an_integer_percent_on_a_step(): void
     {
         $format = new ProgressbarFormat;
