@@ -3,10 +3,14 @@
 namespace Tests\Unit;
 
 use App\Domain\Acl\MembershipService;
+use App\Domain\CustomFields\Formats\AttachmentFormat;
+use App\Domain\CustomFields\Formats\EnumerationFormat;
 use App\Domain\CustomFields\Formats\UserFormat;
 use App\Domain\CustomFields\Formats\VersionFormat;
 use App\Domain\Projects\ProjectService;
+use App\Models\Attachment;
 use App\Models\CustomField;
+use App\Models\CustomFieldEnumeration;
 use App\Models\Issue;
 use App\Models\Role;
 use App\Models\User;
@@ -117,5 +121,149 @@ class CustomFieldRecordFormatTest extends TestCase
         ])));
         $this->assertTrue($format->supportsMultiple());
         $this->assertSame('list_optional', $format->queryFilterType());
+    }
+
+    public function test_enumeration_format_stores_active_ids_for_this_field(): void
+    {
+        $format = new EnumerationFormat;
+        $field = CustomField::query()->create([
+            'name' => 'Kind',
+            'field_format' => 'enumeration',
+            'type' => 'IssueCustomField',
+            'multiple' => true,
+            'position' => 1,
+        ]);
+        $other = CustomField::query()->create([
+            'name' => 'Other',
+            'field_format' => 'enumeration',
+            'type' => 'IssueCustomField',
+            'multiple' => false,
+            'position' => 2,
+        ]);
+        $alpha = CustomFieldEnumeration::query()->create([
+            'custom_field_id' => $field->id,
+            'name' => 'Alpha',
+            'active' => true,
+            'position' => 1,
+        ]);
+        $beta = CustomFieldEnumeration::query()->create([
+            'custom_field_id' => $field->id,
+            'name' => 'Beta',
+            'active' => true,
+            'position' => 2,
+        ]);
+        $retired = CustomFieldEnumeration::query()->create([
+            'custom_field_id' => $field->id,
+            'name' => 'Retired',
+            'active' => false,
+            'position' => 3,
+        ]);
+        $foreign = CustomFieldEnumeration::query()->create([
+            'custom_field_id' => $other->id,
+            'name' => 'Foreign',
+            'active' => true,
+            'position' => 1,
+        ]);
+
+        $this->assertSame([], $format->validate($field, [(string) $beta->id, (string) $alpha->id], null));
+        $this->assertSame([(string) $beta->id, (string) $alpha->id], $format->serialize($field, [$beta->id, $alpha->id]));
+        $this->assertSame($alpha->id, $format->cast($field, (string) $alpha->id));
+        $this->assertSame(['Enumeration is not active.'], $format->validate($field, $retired->id, null));
+        $this->assertSame(['Enumeration does not exist.'], $format->validate($field, $foreign->id, null));
+        $this->assertSame(['Enumeration does not exist.'], $format->validate($field, 999999, null));
+        $this->assertSame(['Value must be an enumeration id.'], $format->validate($field, 'abc', null));
+        $this->assertSame(['Value is repeated.'], $format->validate($field, [$alpha->id, $alpha->id], null));
+
+        $single = CustomField::query()->create([
+            'name' => 'One',
+            'field_format' => 'enumeration',
+            'type' => 'IssueCustomField',
+            'multiple' => false,
+            'position' => 3,
+        ]);
+        $only = CustomFieldEnumeration::query()->create([
+            'custom_field_id' => $single->id,
+            'name' => 'Only',
+            'active' => true,
+            'position' => 1,
+        ]);
+        $this->assertSame(
+            ['Multiple values are not supported for this format.'],
+            $format->validate($single, [(string) $only->id, (string) $alpha->id], null),
+        );
+        $single->default_value = (string) $only->id;
+        $this->assertSame([], $format->validateDefinition($single));
+        $unsaved = new CustomField([
+            'field_format' => 'enumeration',
+            'default_value' => '4',
+        ]);
+        $this->assertSame([], $format->validateDefinition($unsaved));
+        $single->default_value = 'nope';
+        $this->assertSame(['Default value must be an enumeration id.'], $format->validateDefinition($single));
+        $this->assertTrue($format->supportsMultiple());
+        $this->assertFalse($format->supportsSearchable());
+        $this->assertFalse($format->supportsTotal());
+        $this->assertSame('list_optional', $format->queryFilterType());
+    }
+
+    public function test_attachment_format_stores_an_id_and_checks_extension(): void
+    {
+        $world = DomainFixture::boot('attachment-cf');
+        $format = app(AttachmentFormat::class);
+        $field = new CustomField([
+            'field_format' => 'attachment',
+            'format_store' => ['extensions_allowed' => 'pdf, png'],
+        ]);
+        $bound = Attachment::query()->create([
+            'container_type' => 'Issue',
+            'container_id' => 40,
+            'filename' => 'spec.PDF',
+            'disk_filename' => 'spec.PDF',
+            'filesize' => 12,
+            'author_id' => $world->user->id,
+        ]);
+        $unbound = Attachment::query()->create([
+            'container_type' => null,
+            'container_id' => null,
+            'filename' => 'notes.png',
+            'disk_filename' => 'notes.png',
+            'filesize' => 4,
+            'author_id' => $world->user->id,
+        ]);
+        $text = Attachment::query()->create([
+            'container_type' => 'Issue',
+            'container_id' => 40,
+            'filename' => 'notes.txt',
+            'disk_filename' => 'notes.txt',
+            'filesize' => 4,
+            'author_id' => $world->user->id,
+        ]);
+        $issue = new Issue;
+        $issue->id = 40;
+
+        $this->assertSame([], $format->validate($field, (string) $bound->id, $issue));
+        $this->assertSame([(string) $bound->id], $format->serialize($field, $bound->id));
+        $this->assertSame($bound->id, $format->cast($field, (string) $bound->id));
+        $this->assertSame([], $format->validate($field, (string) $unbound->id, $issue));
+        $this->assertSame(['Attachment extension is not allowed.'], $format->validate($field, $text->id, $issue));
+        $this->assertSame(['Attachment does not exist.'], $format->validate($field, 999999, $issue));
+        $this->assertSame(['Value must be an attachment id.'], $format->validate($field, 'file.pdf', $issue));
+        $other = new Issue;
+        $other->id = 41;
+        $this->assertSame(
+            ['Attachment is not attached to this record.'],
+            $format->validate($field, $bound->id, $other),
+        );
+        $this->assertSame(
+            ['Multiple values are not supported for this format.'],
+            $format->validate($field, [(string) $bound->id, (string) $unbound->id], $issue),
+        );
+        $this->assertSame(['extensions_allowed must be a list of extensions.'], $format->validateDefinition(new CustomField([
+            'format_store' => ['extensions_allowed' => ['pdf', 1]],
+        ])));
+        $this->assertFalse($format->supportsMultiple());
+        $this->assertFalse($format->supportsSearchable());
+        $this->assertFalse($format->supportsTotal());
+        $this->assertSame('string', $format->queryFilterType());
     }
 }

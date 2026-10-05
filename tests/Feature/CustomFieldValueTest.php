@@ -11,7 +11,9 @@ use App\Domain\DomainException;
 use App\Domain\Issues\IssueService;
 use App\Domain\Projects\ProjectService;
 use App\Domain\Workflow\WorkflowService;
+use App\Models\Attachment;
 use App\Models\CustomField;
+use App\Models\CustomFieldEnumeration;
 use App\Models\CustomValue;
 use App\Models\Enumeration;
 use App\Models\Role;
@@ -499,6 +501,219 @@ class CustomFieldValueTest extends TestCase
             $this->assertStringContainsString('read-only', $exception->getMessage());
         }
         $this->assertSame('1', CustomValue::query()->where('custom_field_id', $field->id)->value('value'));
+    }
+
+    public function test_link_enumeration_progressbar_and_attachment_round_trip(): void
+    {
+        $world = DomainFixture::boot('cf-deferred');
+        $world->join();
+        $fields = app(CustomFieldService::class);
+        $issues = app(IssueService::class);
+        $tracker = [$world->tracker->id];
+
+        try {
+            $fields->save([
+                'type' => 'IssueCustomField',
+                'name' => 'Searchable link',
+                'field_format' => 'link',
+                'searchable' => true,
+                'is_for_all' => true,
+                'tracker_ids' => $tracker,
+            ]);
+            $this->fail('Link fields cannot be searchable.');
+        } catch (DomainException $exception) {
+            $this->assertStringContainsString('searchable', $exception->getMessage());
+        }
+
+        try {
+            $fields->save([
+                'type' => 'IssueCustomField',
+                'name' => 'Multi progress',
+                'field_format' => 'progressbar',
+                'multiple' => true,
+                'is_for_all' => true,
+                'tracker_ids' => $tracker,
+            ]);
+            $this->fail('Progress bar fields cannot be multiple.');
+        } catch (DomainException $exception) {
+            $this->assertStringContainsString('multiple', $exception->getMessage());
+        }
+
+        $link = $fields->save([
+            'type' => 'IssueCustomField',
+            'name' => 'Homepage',
+            'field_format' => 'link',
+            'regexp' => '^https://',
+            'min_length' => 12,
+            'max_length' => 80,
+            'is_for_all' => true,
+            'is_filter' => true,
+            'tracker_ids' => $tracker,
+            'format_store' => ['url_pattern' => 'https://links.test/%value%'],
+        ]);
+        $savedLink = $link->fresh();
+        $this->assertNotNull($savedLink);
+        $this->assertSame(['url_pattern' => 'https://links.test/%value%'], $savedLink->format_store);
+
+        $enumeration = $fields->save([
+            'type' => 'IssueCustomField',
+            'name' => 'Kind',
+            'field_format' => 'enumeration',
+            'multiple' => true,
+            'is_for_all' => true,
+            'is_filter' => true,
+            'tracker_ids' => $tracker,
+        ]);
+        $alpha = CustomFieldEnumeration::query()->create([
+            'custom_field_id' => $enumeration->id,
+            'name' => 'Alpha',
+            'active' => true,
+            'position' => 1,
+        ]);
+        $beta = CustomFieldEnumeration::query()->create([
+            'custom_field_id' => $enumeration->id,
+            'name' => 'Beta',
+            'active' => true,
+            'position' => 2,
+        ]);
+        $retired = CustomFieldEnumeration::query()->create([
+            'custom_field_id' => $enumeration->id,
+            'name' => 'Retired',
+            'active' => false,
+            'position' => 3,
+        ]);
+        $fields->save([
+            'id' => $enumeration->id,
+            'default_value' => (string) $alpha->id,
+        ]);
+
+        $progress = $fields->save([
+            'type' => 'IssueCustomField',
+            'name' => 'Done',
+            'field_format' => 'progressbar',
+            'is_for_all' => true,
+            'is_filter' => true,
+            'tracker_ids' => $tracker,
+            'format_store' => ['ratio_interval' => 10],
+        ]);
+        $attachmentField = $fields->save([
+            'type' => 'IssueCustomField',
+            'name' => 'Spec',
+            'field_format' => 'attachment',
+            'is_for_all' => true,
+            'is_filter' => true,
+            'tracker_ids' => $tracker,
+            'format_store' => ['extensions_allowed' => ['pdf', 'png']],
+        ]);
+
+        $issue = $issues->create($world->user, $world->project, [
+            'tracker_id' => $world->tracker->id,
+            'subject' => 'Deferred formats',
+            'custom_fields' => [
+                ['id' => $link->id, 'value' => 'https://example.test/a'],
+                ['id' => $enumeration->id, 'value' => [(string) $beta->id, (string) $alpha->id]],
+                ['id' => $progress->id, 'value' => '50'],
+            ],
+        ]);
+        $file = Attachment::query()->create([
+            'container_type' => 'Issue',
+            'container_id' => $issue->id,
+            'filename' => 'spec.pdf',
+            'disk_filename' => 'spec.pdf',
+            'filesize' => 20,
+            'author_id' => $world->user->id,
+        ]);
+        $issues->update($world->user, $issue->fresh(), [
+            'custom_fields' => [
+                ['id' => $attachmentField->id, 'value' => (string) $file->id],
+            ],
+        ]);
+
+        $byName = [];
+        foreach (app(CustomValueService::class)->read($world->user, $issue->fresh()) as $value) {
+            $byName[$value->name] = $value->toArray();
+        }
+        $this->assertSame('https://example.test/a', $byName['Homepage']['value']);
+        $this->assertSame(['https://example.test/a'], $byName['Homepage']['raw']);
+        $this->assertSame('link', $byName['Homepage']['field_format']);
+        $this->assertSame([$beta->id, $alpha->id], $byName['Kind']['value']);
+        $this->assertSame([(string) $beta->id, (string) $alpha->id], $byName['Kind']['raw']);
+        $this->assertSame(50, $byName['Done']['value']);
+        $this->assertSame(['50'], $byName['Done']['raw']);
+        $this->assertSame($file->id, $byName['Spec']['value']);
+        $this->assertSame([(string) $file->id], $byName['Spec']['raw']);
+
+        $withDefault = $issues->create($world->user, $world->project, [
+            'tracker_id' => $world->tracker->id,
+            'subject' => 'Default kind',
+        ]);
+        $this->assertSame(
+            (string) $alpha->id,
+            CustomValue::query()->where('custom_field_id', $enumeration->id)->where('customized_id', $withDefault->id)->value('value'),
+        );
+
+        try {
+            $issues->update($world->user, $issue->fresh(), [
+                'custom_fields' => [
+                    ['id' => $link->id, 'value' => 'http://example.test'],
+                ],
+            ]);
+            $this->fail('Link values must match the pattern.');
+        } catch (CustomFieldValidationException $exception) {
+            $this->assertStringContainsString('pattern', $exception->getMessage());
+        }
+
+        try {
+            $issues->update($world->user, $issue->fresh(), [
+                'custom_fields' => [
+                    ['id' => $enumeration->id, 'value' => [(string) $retired->id]],
+                ],
+            ]);
+            $this->fail('Inactive enumerations must be rejected.');
+        } catch (CustomFieldValidationException $exception) {
+            $this->assertStringContainsString('not active', $exception->getMessage());
+        }
+
+        try {
+            $issues->update($world->user, $issue->fresh(), [
+                'custom_fields' => [
+                    ['id' => $progress->id, 'value' => '15'],
+                ],
+            ]);
+            $this->fail('Progress must follow the ratio interval.');
+        } catch (CustomFieldValidationException $exception) {
+            $this->assertStringContainsString('ratio interval', $exception->getMessage());
+        }
+
+        $text = Attachment::query()->create([
+            'container_type' => 'Issue',
+            'container_id' => $issue->id,
+            'filename' => 'notes.txt',
+            'disk_filename' => 'notes.txt',
+            'filesize' => 4,
+            'author_id' => $world->user->id,
+        ]);
+        try {
+            $issues->update($world->user, $issue->fresh(), [
+                'custom_fields' => [
+                    ['id' => $attachmentField->id, 'value' => (string) $text->id],
+                ],
+            ]);
+            $this->fail('Attachment extensions must be enforced.');
+        } catch (CustomFieldValidationException $exception) {
+            $this->assertStringContainsString('extension', $exception->getMessage());
+        }
+
+        $issues->update($world->user, $issue->fresh(), [
+            'custom_fields' => [
+                ['id' => $attachmentField->id, 'value' => ''],
+            ],
+        ]);
+        $this->assertSame(
+            0,
+            CustomValue::query()->where('custom_field_id', $attachmentField->id)->where('customized_id', $issue->id)->count(),
+        );
+        $this->assertSame('50', CustomValue::query()->where('custom_field_id', $progress->id)->where('customized_id', $issue->id)->value('value'));
     }
 
     public function test_legacy_possible_values_text_decodes_as_null(): void

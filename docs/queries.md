@@ -53,7 +53,7 @@ Creating a query requires `save_queries` on the project, or on any membership wh
 
 `IssueQueryRunner` limits rows with `IssueVisibility` for a project-scoped query. A global query (`project_id` null) keeps issues only in projects where the actor has `view_issues`, using that project's `all` / `default` / `own` rule. With no `subproject_id` filter, `display_subprojects_issues` (default on, stored in `settings`) includes every descendant. Set that value to `0` to keep the query project alone. An explicit `subproject_id` filter overrides the setting, and each project is still checked with `view_issues`.
 
-Custom field filters use `cf_{id}`. The field must be an `IssueCustomField` with `is_filter` and a format this engine implements. A field the actor cannot see is an error, not a silent skip. `!`, `!~`, and `!*` are `NOT EXISTS` on `custom_values`, so a missing value matches "not equal" and "none". List `=` matches if any stored value is in the list.
+Custom field filters use `cf_{id}`. The field must be an `IssueCustomField` with `is_filter` and a format this engine implements. A field the actor cannot see is an error, not a silent skip. `!`, `!~`, and `!*` are `NOT EXISTS` on `custom_values`, so a missing value matches "not equal" and "none". List `=` matches if any stored value is in the list. Link and attachment use the string operators on the stored text (an attachment value is the id). Enumeration uses the list operators on enumeration ids. Progress bar uses the integer operators.
 
 Relative dates use `user_preferences.time_zone` when it is a valid zone, otherwise the application timezone. Weeks run Monday through Sunday. Datetime columns (`created_on`, `updated_on`, `closed_on`) compare that calendar range after it is converted into the application timezone. An open-ended operator keeps one side unbounded (`>=` the start of the day, or `<=` the end of the day).
 
@@ -97,7 +97,7 @@ The value `me` is the current user id. It is accepted on `author_id`, `assigned_
 | `is_private` | list | `=`, `!` (`0`/`1`/`true`/`false`) |
 | `parent_id`, `child_id` | tree | `=`, `~`, `!*`, `*` |
 | `relates`, `blocks`, `blocked`, `duplicates`, `duplicated`, `precedes`, `follows`, `copied_to`, `copied_from` | relation | `=`, `!`, `=p`, `=!p`, `!p`, `*o`, `!o`, `!*`, `*` |
-| `cf_{id}` | format's query filter type | shipped operators for that type, for string, text, int, float, date, list, bool, user, and version |
+| `cf_{id}` | format's query filter type | shipped operators for that type. `link` and `attachment` use `string` (the stored text, which for attachment is the id). `enumeration` uses `list_optional` on enumeration ids. `progressbar` uses `integer`. The same path covers string, text, int, float, date, list, bool, user, and version |
 | `cf_{id}.due_date` | date | version custom fields only. Compared to `versions.effective_date` |
 | `cf_{id}.status` | list | version custom fields only. `=` / `!` on `versions.status` |
 | `author.group` | list | `=`, `!`. Author is a member of those groups, or the group id itself |
@@ -127,7 +127,7 @@ Relations are stored once. The canonical `relation_type` is `relates`, `blocks`,
 
 `subproject_id` changes which projects a scoped query reads. With no filter, descendants are included when `display_subprojects_issues` is on (the Redmine default) and omitted when it is `0`. `*` adds every descendant. `!*` is the query project only. `=` adds listed descendants and ignores ids that are not descendants. `!` adds every descendant except the listed ones. The query project itself stays in the set. Issues in a descendant are still dropped when the actor lacks `view_issues` there. On a global query, `*` adds no extra constraint, `!*` keeps projects with a null `parent_id`, and `=` / `!` compare `issues.project_id`.
 
-`any_searchable` is a SQL `LIKE` over `issues.subject`, `issues.description`, visible journal notes, and `custom_values` for issue custom fields that are `searchable`, implemented, and visible to the actor. Private notes follow the same rule as the `notes` filter. It does not search attachment filenames. `~` requires every token to appear in at least one of those places. `*~` requires any token. `!~` is the negation of `~`. A hidden custom field is not searched.
+`any_searchable` is a SQL `LIKE` over `issues.subject`, `issues.description`, visible journal notes, and `custom_values` for issue custom fields that are `searchable`, implemented, visible to the actor, and whose format supports search. Link, enumeration, attachment, and progress bar do not support search, so a `searchable` column on those rows is ignored. Private notes follow the same rule as the `notes` filter. It does not search attachment filenames. `~` requires every token to appear in at least one of those places. `*~` requires any token. `!~` is the negation of `~`. A hidden custom field is not searched.
 
 Sort keys (`priority`, `status`, `tracker`, `assigned_to`, …) order by the issue column (`priority_id`, and so on), then `id` when no sort is stored. `group_by` adds a leading `ORDER BY` and does not collapse rows.
 
@@ -141,8 +141,7 @@ These names are rejected. They are not treated as "match everything".
 
 | Field | Why it stays deferred |
 | --- | --- |
-| `cf_N.*` other than `.due_date` and `.status` | Version custom fields define only those two chains. String, text, list, user, and the other shipped formats do not define a chain. |
-| Custom formats `link`, `enumeration`, `attachment`, `progressbar` | The format itself is not implemented, so it cannot be filtered. |
+| `cf_N.*` other than `.due_date` and `.status` | Version custom fields define only those two chains. Link, enumeration, attachment, progress bar, and the other shipped formats do not define a chain. |
 
 An unknown operator or an unknown field is rejected.
 
