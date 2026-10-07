@@ -3,10 +3,11 @@
 namespace App\Models;
 
 use App\Domain\Queries\QueryType;
+use App\Domain\TimeEntries\TimeEntryQueryRunner;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * Stub STI row. Time entry query filters are not executed.
+ * Saved time-entry query. {@see TimeEntryQueryRunner} executes it.
  */
 class TimeEntryQuery extends Query
 {

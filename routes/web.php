@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\Auth\FeedController;
 use App\Http\Controllers\Auth\MyAccountController;
 use App\Http\Controllers\Auth\OauthController;
@@ -61,6 +62,18 @@ Route::put('/projects/{project}/documents/{document}/custom-fields', [CustomFiel
 Route::post('/projects/{project}/documents/{document}/custom-fields', [CustomFieldHostController::class, 'storeDocument'])
     ->whereNumber('document')
     ->name('documents.custom-fields.store');
+
+Route::post('/attachments/upload', [AttachmentController::class, 'upload'])->name('attachments.upload');
+Route::post('/attachments/claim', [AttachmentController::class, 'claim'])->name('attachments.claim');
+Route::get('/attachments/{attachment}/thumbnail', [AttachmentController::class, 'thumbnail'])
+    ->whereNumber('attachment')
+    ->name('attachments.thumbnail');
+Route::get('/attachments/{attachment}', [AttachmentController::class, 'download'])
+    ->whereNumber('attachment')
+    ->name('attachments.download');
+Route::delete('/attachments/{attachment}', [AttachmentController::class, 'destroy'])
+    ->whereNumber('attachment')
+    ->name('attachments.destroy');
 
 Route::get('/users/current.json', RestUserController::class)->name('rest.current-user');
 Route::get('/my.atom', FeedController::class)->name('feed.account');

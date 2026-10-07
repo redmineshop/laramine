@@ -104,9 +104,9 @@ These rows used to be open after Block C and the note writes. A green test here 
 
 | Item | Status |
 | --- | --- |
-| HTTP download, thumbnail bytes, and the issue page | **Open.** The zip and the copy-link string exist. Nothing serves them over HTTP, and thumbnail images are not rendered. |
-| Time-entry writes | **Open for a Redmine comparison.** `TimeEntryService` creates, updates, and deletes rows (`tests/Feature/TimeEntryWriteTest.php`). There is no dump diff. |
-| Attachment and relation-removal journal writes | **Open.** Stored attachment and relation-removal details are rendered. This slice does not write those rows from an upload or a relation delete. |
+| HTTP download, thumbnail bytes, and the issue page | **Compared on the time entries row.** `tests/Parity/AttachmentParityTest.php` compares container download and PNG thumbnail bytes to `tests/Parity/fixtures/redmine-7.0.1/expectations/attachments/http.json`. The download-all zip still has no HTTP route. The issue page is not a Redmine screen. |
+| Time-entry writes | **Compared on the time entries row.** `tests/Parity/TimeEntryParityTest.php` compares writes, rollup, and TimeEntryQuery results to `tests/Parity/fixtures/redmine-7.0.1/expectations/time-entries/`. |
+| Attachment and relation-removal journal writes | **Compared on the time entries row.** Upload, delete, and relation delete write the details compared in `tests/Parity/AttachmentParityTest.php` against `tests/Parity/fixtures/redmine-7.0.1/expectations/attachments/journals.json`. Relation add stays on the source issue. |
 | Changeset sync and repository browse | **Open.** The tab reads `repositories`, `changesets`, and `changesets_issues`. `changes` and `changeset_parents` are not migrated. Commits are not fetched. SCM stays out of the journals comparison. |
 | Tag 0.1 | **Open.** Not claimed. |
 

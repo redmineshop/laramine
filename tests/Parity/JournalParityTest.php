@@ -118,7 +118,9 @@ class JournalParityTest extends TestCase
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/journals/history.json', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/journals/notes.json', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/', $checklist);
-        $this->assertMatchesRegularExpression('/^\| Time entries and attachments \| NOT VERIFIED \|/m', $checklist);
+        $this->assertMatchesRegularExpression('/^\| Time entries and attachments \| VERIFIED \|/m', $checklist);
+        $this->assertStringContainsString('tests/Parity/TimeEntryParityTest.php', $checklist);
+        $this->assertStringContainsString('tests/Parity/AttachmentParityTest.php', $checklist);
     }
 
     /**

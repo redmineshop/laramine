@@ -26,6 +26,7 @@ final class AttachmentService
     public function __construct(
         private readonly FilesystemFactory $filesystems,
         private readonly CustomizedContext $context,
+        private readonly AttachmentRules $rules,
     ) {}
 
     /**
@@ -45,6 +46,7 @@ final class AttachmentService
         }
 
         $original = $this->originalFilename($filename);
+        $this->rules->assertAccepted($original, strlen($contents));
         $storedDescription = $this->description($description);
         $storedType = $this->contentType($contentType, $original);
         $containerType = null;
@@ -82,6 +84,26 @@ final class AttachmentService
      * Issue, Project, Version, TimeEntry, and User use the custom-field type
      * name. A journal uses `Journal`. That row is not a custom value.
      */
+    /**
+     * Replace the display name or description of a stored row.
+     *
+     * A new filename is checked against the size and extension settings.
+     * The bytes on disk stay under the original disk name.
+     */
+    public function retitle(Attachment $attachment, ?string $filename, ?string $description): void
+    {
+        if ($filename !== null && $filename !== '') {
+            $original = $this->originalFilename($filename);
+            $this->rules->assertAccepted($original, (int) $attachment->filesize);
+            $attachment->filename = $original;
+            $attachment->content_type = $this->contentType(null, $original);
+        }
+        if ($description !== null) {
+            $attachment->description = $this->description($description);
+        }
+        $attachment->save();
+    }
+
     public function bind(Attachment $attachment, Model $record): void
     {
         [$type, $id] = $this->containerOf($record);
@@ -135,6 +157,15 @@ final class AttachmentService
         if (! unlink($path)) {
             throw new DomainException('Attachment file could not be removed.');
         }
+    }
+
+    public function diskPath(string $relative): string
+    {
+        if ($relative === '' || str_contains($relative, '..') || str_starts_with($relative, '/')) {
+            throw new DomainException('Attachment file is not stored.');
+        }
+
+        return $this->adapter()->path($relative);
     }
 
     public function absolutePath(Attachment $attachment): string

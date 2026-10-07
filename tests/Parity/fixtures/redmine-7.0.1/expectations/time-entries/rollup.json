@@ -1,0 +1,19 @@
+{
+    "before": [
+        {"issue_id": 1, "spent": "4.50", "total": "4.50"},
+        {"issue_id": 2, "spent": "0.00", "total": "0.00"},
+        {"issue_id": 6, "spent": "0.50", "total": "0.50"},
+        {"issue_id": 5, "spent": "3.00", "total": "3.00"}
+    ],
+    "after_child_hour": {
+        "issue_id": 2,
+        "hours": "1",
+        "activity_id": 3,
+        "spent_on": "2026-08-27",
+        "parent_issue_id": 1,
+        "spent_parent": "4.50",
+        "total_parent": "5.50",
+        "spent_child": "1.00",
+        "total_child": "1.00"
+    }
+}

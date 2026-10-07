@@ -3,8 +3,10 @@
 namespace App\Domain\TimeEntries;
 
 use App\Domain\Acl\PermissionService;
+use App\Domain\CustomFields\CustomValueService;
 use App\Domain\DomainException;
 use App\Domain\PermissionDeniedException;
+use App\Domain\Settings\SettingValue;
 use App\Models\CustomValue;
 use App\Models\Enumeration;
 use App\Models\Issue;
@@ -19,12 +21,17 @@ use Illuminate\Support\Facades\DB;
  *
  * Create requires `log_time`. Update and delete require `edit_time_entries`,
  * or `edit_own_time_entries` when `user_id` is the actor. Assigning another
- * user requires `log_time_for_other_users`. This is not an HTTP time log and
- * it does not authenticate the actor.
+ * user requires `log_time_for_other_users`. Required custom fields are written
+ * with the row. This is not an HTTP time log and it does not authenticate
+ * the actor.
  */
 final class TimeEntryService
 {
-    public function __construct(private readonly PermissionService $permissions) {}
+    public function __construct(
+        private readonly PermissionService $permissions,
+        private readonly CustomValueService $customValues,
+        private readonly SettingValue $settings,
+    ) {}
 
     /**
      * @param  array<string, mixed>  $attributes
@@ -35,14 +42,16 @@ final class TimeEntryService
             throw new PermissionDeniedException('log_time');
         }
 
+        $custom = $this->customInputs($attributes);
         $payload = $this->payload($actor, $project, $attributes, null);
 
-        return DB::transaction(function () use ($actor, $project, $payload): TimeEntry {
+        return DB::transaction(function () use ($actor, $project, $payload, $custom): TimeEntry {
             $entry = TimeEntry::query()->create([
                 'project_id' => $project->id,
                 'author_id' => $actor->id,
                 ...$payload,
             ]);
+            $this->customValues->sync($actor, $entry, $custom, true);
 
             return $entry->refresh();
         });
@@ -55,13 +64,15 @@ final class TimeEntryService
     {
         $project = $this->projectOf($entry);
         $this->assertCanEdit($actor, $project, $entry);
+        $custom = $this->customInputs($attributes);
         $payload = $this->payload($actor, $project, $attributes, $entry);
 
-        return DB::transaction(function () use ($actor, $entry, $payload): TimeEntry {
+        return DB::transaction(function () use ($actor, $entry, $payload, $custom): TimeEntry {
             $locked = $this->lock($entry);
             $this->assertCanEdit($actor, $this->projectOf($locked), $locked);
             $locked->fill($payload);
             $locked->save();
+            $this->customValues->sync($actor, $locked, $custom, false);
 
             return $locked->refresh();
         });
@@ -118,6 +129,7 @@ final class TimeEntryService
             $issueId = $current->issue_id === null ? null : (int) $current->issue_id;
         }
         $calendar = $this->calendar($spentOn);
+        $this->assertRequired($issueId, $comments);
 
         return [
             'activity_id' => $activityId,
@@ -193,21 +205,42 @@ final class TimeEntryService
 
     private function hours(mixed $value): float
     {
-        if (is_string($value)) {
-            $value = trim($value);
+        return HourValue::parse($value);
+    }
+
+    private function assertRequired(?int $issueId, ?string $comments): void
+    {
+        $required = $this->settings->timelogRequiredFields();
+        if (in_array('issue_id', $required, true) && $issueId === null) {
+            throw new DomainException('Issue is required.');
         }
-        if (is_int($value) || (is_string($value) && is_numeric($value))) {
-            $number = (float) $value;
-        } elseif (is_float($value)) {
-            $number = $value;
-        } else {
-            throw new DomainException('Hours must be a number greater than zero.');
+        if (in_array('comments', $required, true) && ($comments === null || $comments === '')) {
+            throw new DomainException('Comments are required.');
         }
-        if (! is_finite($number) || $number <= 0) {
-            throw new DomainException('Hours must be a number greater than zero.');
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     * @return array<int, mixed>
+     */
+    private function customInputs(array $attributes): array
+    {
+        if (! array_key_exists('custom_field_values', $attributes)) {
+            return [];
+        }
+        $raw = $attributes['custom_field_values'];
+        if (! is_array($raw)) {
+            throw new DomainException('Custom field values must be a map.');
+        }
+        $inputs = [];
+        foreach ($raw as $id => $value) {
+            if (! is_int($id) && preg_match('/^\d+$/', $id) !== 1) {
+                throw new DomainException('Custom field id is invalid.');
+            }
+            $inputs[(int) $id] = $value;
         }
 
-        return $number;
+        return $inputs;
     }
 
     private function comments(mixed $value): ?string

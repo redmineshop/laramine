@@ -5,7 +5,7 @@ namespace App\Domain\Queries;
 /**
  * STI names stored in `queries.type`.
  *
- * IssueQuery and UserQuery are executed. The other names can be stored as stubs.
+ * IssueQuery, UserQuery, and TimeEntryQuery are executed. The other names can be stored as stubs.
  */
 final class QueryType
 {

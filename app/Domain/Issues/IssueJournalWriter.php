@@ -149,6 +149,36 @@ final class IssueJournalWriter
         ]]);
     }
 
+    public function recordRelationRemoved(User $actor, Issue $issue, string $relationType, int $otherId): Journal
+    {
+        return $this->insert($actor, $issue, null, false, [[
+            'property' => self::PROPERTY_RELATION,
+            'prop_key' => $relationType,
+            'old_value' => (string) $otherId,
+            'value' => null,
+        ]]);
+    }
+
+    public function recordAttachmentAdded(User $actor, Issue $issue, int $attachmentId, string $filename): Journal
+    {
+        return $this->insert($actor, $issue, null, false, [[
+            'property' => self::PROPERTY_ATTACHMENT,
+            'prop_key' => (string) $attachmentId,
+            'old_value' => null,
+            'value' => $filename,
+        ]]);
+    }
+
+    public function recordAttachmentRemoved(User $actor, Issue $issue, int $attachmentId, string $filename): Journal
+    {
+        return $this->insert($actor, $issue, null, false, [[
+            'property' => self::PROPERTY_ATTACHMENT,
+            'prop_key' => (string) $attachmentId,
+            'old_value' => $filename,
+            'value' => null,
+        ]]);
+    }
+
     public function recordNote(User $actor, Issue $issue, string $notes, bool $privateNotes): Journal
     {
         return $this->insert($actor, $issue, $notes, $privateNotes, []);

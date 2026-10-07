@@ -40,7 +40,7 @@ Applicable roles are memberships of the user and of the user's groups. With no m
 
 Project visibility follows the same statuses. An archived project is visible only to an active admin. A closed project is visible the same way as an active project. An unknown status is hidden. Members of a visible project see it. A public project is visible to a guest and to a logged-in user with no membership.
 
-`time_entries_visibility` filters spent-time rows. An archived project, and any status other than active or closed, yields no rows, including for an active admin. On an active or closed project, `all` shows every row and `own` keeps rows whose `user_id` is the actor. Several roles that grant `view_time_entries` use the most open value. Any other stored value contributes nothing. An active admin on an active or closed project sees every row. This list does not also require the `time_tracking` module. IssueQuery `spent_hours` uses the same mode. The time-entries checklist row stays **NOT VERIFIED** because writes have no dump comparison.
+`time_entries_visibility` filters spent-time rows. An archived project, and any status other than active or closed, yields no rows, including for an active admin. On an active or closed project, `all` shows every row and `own` keeps rows whose `user_id` is the actor. Several roles that grant `view_time_entries` use the most open value. Any other stored value contributes nothing. An active admin on an active or closed project sees every row. This list does not also require the `time_tracking` module. IssueQuery `spent_hours` uses the same mode. Writes, rollup, and TimeEntryQuery are compared on the time entries and attachments row.
 
 `issues_visibility` filters issue lists:
 
@@ -110,21 +110,29 @@ Tracked details use `journal_details.property = attr` and `prop_key` set to the 
 - A detail-only journal, a non-issue journal, or a private journal the actor cannot view is rejected. Quote, edit, and delete that change history also touch the issue `updated_on`.
 - The notes fieldset is present when the actor can add a note or edit the issue. The Private notes checkbox is present only with `set_notes_private`, and the form leaves it unchecked.
 
-A private journal is omitted for an actor without `view_private_notes`, including the author. An active admin sees it. Query filters use the same rule; see [queries.md](queries.md). The journals checklist row is **VERIFIED** only by `tests/Parity/JournalParityTest.php`. The gate in [journals-parity-gate.md](journals-parity-gate.md) still lists HTTP download, thumbnail bytes, and SCM history as open. This is not a 0.1 tag.
+A private journal is omitted for an actor without `view_private_notes`, including the author. An active admin sees it. Query filters use the same rule; see [queries.md](queries.md). The journals checklist row is **VERIFIED** only by `tests/Parity/JournalParityTest.php`. HTTP download, PNG thumbnails, and attachment or relation-removal journal writes are compared on the time entries row. SCM history stays open in [journals-parity-gate.md](journals-parity-gate.md). This is not a 0.1 tag.
 
 ## Time entries
 
-`TimeEntryService` creates, updates, and deletes `time_entries`. It is not an HTTP time log. Parity is **NOT VERIFIED**. This service does not sign anyone in. Web sign-in is in [users-auth-spec.md](users-auth-spec.md). That checklist row is a separate comparison and is not a 0.1 tag.
+`TimeEntryService` creates, updates, and deletes `time_entries`. It is not an HTTP time log and it does not sign anyone in. Web sign-in is in [users-auth-spec.md](users-auth-spec.md). The time entries and attachments checklist row is **VERIFIED** by `tests/Parity/TimeEntryParityTest.php` and `tests/Parity/AttachmentParityTest.php`. That comparison is not a 0.1 tag.
 
-Create requires `log_time` on the project. `time_tracking` must be enabled unless the actor is an active admin. `author_id` is the actor and is not changed later. `user_id` defaults to the actor. Setting it to anyone else requires `log_time_for_other_users` and an active user (`type` User, `status` 1). A group or an inactive user is rejected. Passing the user already stored on an update does not ask for that permission again. Passing null, or the actor's id, stores the actor. The spent user's project membership is not checked.
+Create requires `log_time` on the project. `time_tracking` must be enabled unless the actor is an active admin. A closed or archived project denies the write, including for an active admin. `author_id` is the actor and is not changed later. `user_id` defaults to the actor. Setting it to anyone else requires `log_time_for_other_users` and an active user (`type` User, `status` 1). A group or an inactive user is rejected. Passing the user already stored on an update does not ask for that permission again. Passing null, or the actor's id, stores the actor. The spent user's project membership is not checked.
 
 `issue_id` may be omitted. When it is set, that issue's project must be the time entry's project. `project_id` is chosen at create and is not changed. `activity_id` must be an active `TimeEntryActivity`. A system activity (`project_id` null) is available unless this project has a child row with that `parent_id`. That child replaces the parent: only an active child is accepted, and an inactive child hides the parent as well. An activity that belongs to another project is rejected. `roles.default_time_entry_activity_id` is stored and is not applied.
 
-`hours` must be a finite number greater than zero. `spent_on` is a calendar date `Y-m-d`. `tyear` is the ISO week-year, `tmonth` is the calendar month, and `tweek` is the ISO week number. `comments` are optional, trimmed, and stored as null when blank. Text longer than 1024 characters is rejected. Logging time does not change `issues.updated_on`.
+`hours` accepts a positive decimal (`1.5` or `1,5`), a clock pair (`1:30`, minutes divided by 60), or an hours-and-minutes phrase (`2h15m`, `2h`, `45m`). Zero and other text are rejected. Display follows `timespan_format`: `minutes` renders `h:mm` with a 60-minute carry, and `decimal` renders two fractional digits with a thousands separator. `spent_on` is a calendar date `Y-m-d`. `tyear` is the ISO week-year, `tmonth` is the calendar month, and `tweek` is the ISO week number. Every save writes those three columns from `spent_on`, including a comment-only edit. A report groups by the stored columns, so a row that has not been saved again keeps the week number already in the table. `comments` are optional, trimmed, and stored as null when blank. Text longer than 1024 characters is rejected. `timelog_required_fields` may require `issue_id` and `comments`. The value may be a JSON array, a comma list, or `- name` lines. Other tokens are ignored. Logging time does not change `issues.updated_on`.
 
-Update and delete require `edit_time_entries`, or `edit_own_time_entries` when `user_id` is the actor. Delete removes the row and `custom_values` whose `customized_type` is `TimeEntry` for that id. This service does not write custom field values.
+Create and update write `custom_field_values` through `CustomValueService` inside the same transaction. A required visible time-entry field with no value rolls the new row back. Update and delete require `edit_time_entries`, or `edit_own_time_entries` when `user_id` is the actor. Delete removes the row and `custom_values` whose `customized_type` is `TimeEntry` for that id.
 
-Spent hours are not a column on `issues`. After a write, IssueQuery `spent_hours` totals, the projected column, and the `spent_time` filter read these rows. That visibility is the one already described in [queries.md](queries.md). The Spent time tab is still listed from the unfiltered hours sum.
+`IssueSpentHours::spent` sums `time_entries.hours` for that issue. `total` adds the same sum for every descendant in the issue nested set. Those sums are not filtered by `time_entries_visibility`. IssueQuery `spent_hours`, the projected column, and the `spent_time` filter keep the visibility rule in [queries.md](queries.md). `TimeEntryQueryRunner` lists rows, builds a criteria report (at most three of project, user, activity, issue, tracker, status, version, and category, across year, month, week, or day), and writes a CSV whose last line is `Total`. A project-scoped query stays on that project.
+
+## Attachments
+
+`POST /attachments/upload` stores an unbound file and returns `{id}.{digest}`. `POST /attachments/claim` binds that token to an issue or an issue journal when the actor can edit that container, then writes an `attachment` journal detail (`prop_key` is the attachment id, `value` is the filename). Delete writes the filename into `old_value` and removes the file, the thumbnail cache, and the row. Custom-field files stay on the custom-field routes.
+
+`GET /attachments/{id}` sends the bytes. `Content-Type` is the stored type, or `application/octet-stream`. PDF, image, text, audio, and video are `inline`. Other types are `attachment`. Downloads increment only for `Project` and `Version` containers. `GET /attachments/{id}/thumbnail` renders a PNG when `thumbnails_enabled` is on and the file is a PNG. The edge is the requested size from 1 to 800, otherwise `thumbnails_size`, otherwise 100. The cache file is `thumbnails/{id}_{digest}_{edge}.png` and is reused while it exists. Other image extensions are recognized by filename and are not decoded. `attachment_max_size` is kilobytes and defaults to 5120. An empty file is rejected. A non-empty allow-list is a whitelist, and the deny-list still rejects a match.
+
+Removing a relation journals both issues. The other issue stores the reverse type (`blocks` / `blocked`, `duplicates` / `duplicated`, `precedes` / `follows`, `copied_to` / `copied_from`, `relates` / `relates`). Adding a relation still journals the source issue only.
 
 ## Seed
 
@@ -146,7 +154,7 @@ No workflow matrix is seeded, because statuses and trackers are not created by t
 - `issues_visibility = all` includes other people's private issues. `default` is the mode that hides them.
 - Same-status saves do not require a workflow row that points at the current status.
 - A permission check that omits the tracker does not apply `roles.settings` masks. `edit_own_issues` is not tracker-scoped.
-- `roles.time_entries_visibility` is applied on the issue history Spent time tab, on spent-time row lists, and on IssueQuery `spent_hours` totals, the projected column, and the `spent_time` filter. `TimeEntryService` writes rows. `roles.default_time_entry_activity_id` is stored and is not applied. The spent user's membership is not checked.
+- `roles.time_entries_visibility` is applied on the issue history Spent time tab, on spent-time row lists, and on IssueQuery `spent_hours` totals, the projected column, and the `spent_time` filter. `IssueSpentHours` rollup is not filtered by that visibility. `roles.default_time_entry_activity_id` is stored and is not applied. The spent user's membership is not checked.
 - `roles.users_visibility` is applied by `UserVisibility`. A new assignee must be visible to the actor. The assignee does not have to be a member of the issue's project. Account administration and the user directory are compared on the users and authentication row. Web sign-in is in [users-auth-spec.md](users-auth-spec.md). This is not a 0.1 tag.
 - `MembershipService::assignRole` does not itself require `manage_members` or `roles_managed_roles`. `ManagedRoleGuard` does.
 - An active admin still bypasses a disabled module after the project status gate. The status gate itself applies to that admin.
@@ -154,18 +162,18 @@ No workflow matrix is seeded, because statuses and trackers are not created by t
 - `inherit_members` walks descendants by chaining each new inherited row, not only the direct child.
 - Turning `inherit_members` off removes roles this project inherited from another project. Group expansion on the same project is kept.
 - A user with `status` other than `1` is treated as logged out for ACL, including admins.
-- Relation-add journals are written on the source issue only. The other issue does not get a row.
+- Relation-add journals are written on the source issue only. The other issue does not get a row. Relation delete journals both issues, and the other issue stores the reverse type.
 - A private journal stays hidden from its author when that user lacks `view_private_notes`.
 - Quote writes a new journal immediately. It does not fill a notes field for a later update.
 - Quoting a private journal stores the new note as private. The actor does not need `set_notes_private` for that copy.
 - Edit rejects a blank note. Clearing a note is the delete action.
 - Delete removes a notes-only journal. A journal that also has details keeps the row and the details, with `notes` set to null.
 - Copy link builds `/issues/{id}#note-n` from `protocol` and `host_name`. There is no issue HTTP route. A blank host uses `localhost:3000`.
-- Thumbnail files are marked on the show model. The image bytes are not rendered.
+- Thumbnail files are marked on the show model. The HTTP thumbnail route renders PNG bytes only. Other image extensions are not decoded.
 - Download all files returns zip bytes from the domain service. It does not register an HTTP route.
 - Changeset rows can be listed on the history tab. Commit sync, diffs, and repository browse are not implemented.
 - Custom field workflow failures use `CustomFieldValidationException`. Core field workflow failures still use `WorkflowDeniedException`.
 
 ## Queries
 
-Saved issue queries and the shipped filter operators live in `app/Domain/Queries`. Storage, visibility, and the operator table are described in [queries.md](queries.md). Project, time entry, and user queries are stubs. The HTTP API is not part of this slice.
+Saved issue queries and the shipped filter operators live in `app/Domain/Queries`. Storage, visibility, and the operator table are described in [queries.md](queries.md). `TimeEntryQuery` runs through `TimeEntryQueryRunner` and is compared on the time entries row. Project and user queries are stubs. The HTTP API is not part of this slice.
