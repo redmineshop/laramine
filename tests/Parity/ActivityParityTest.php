@@ -6,9 +6,13 @@ use App\Domain\Activity\ActivityEvent;
 use App\Domain\Activity\ActivityProvider;
 use App\Domain\Attachments\AttachmentContainerService;
 use App\Domain\Auth\ActionToken;
+use App\Domain\Documents\DocumentService;
+use App\Domain\News\NewsService;
+use App\Domain\Projects\ProjectService;
 use App\Domain\Settings\SettingValue;
 use App\Models\JournalDetail;
 use App\Models\Project;
+use App\Models\Role;
 use App\Models\Setting;
 use App\Models\Token;
 use App\Models\User;
@@ -18,9 +22,9 @@ use Tests\Parity\Support\Redmine701Fixture;
 use Tests\TestCase;
 
 /**
- * Compares activity for issues, journals, and time entries, plus Atom feeds, to the pin.
+ * Compares activity for issues, journals, time entries, news, documents, and files to the pin.
  *
- * News, documents, wiki, messages, files, and changesets stay out of this comparison.
+ * Wiki, messages, and changesets stay out of this comparison.
  */
 class ActivityParityTest extends TestCase
 {
@@ -162,6 +166,56 @@ class ActivityParityTest extends TestCase
         $this->assertSame('1.50 hours (Development) on #1', $time->title);
     }
 
+    public function test_news_documents_and_files_match_the_module_window(): void
+    {
+        Redmine701Fixture::load();
+        $expected = $this->expectation();
+        $modules = $expected['modules'];
+        $this->assertIsArray($modules);
+        Carbon::setTestNow($this->stringField($modules, 'now'));
+        $project = Project::query()->where('identifier', 'parity-core')->first();
+        $child = Project::query()->where('identifier', 'parity-child')->first();
+        $this->assertInstanceOf(Project::class, $project);
+        $this->assertInstanceOf(Project::class, $child);
+        $projects = app(ProjectService::class);
+        $projects->enableModule($project, 'news');
+        $projects->enableModule($project, 'documents');
+        $projects->enableModule($project, 'files');
+        $this->grant(1, ['view_news', 'view_files']);
+        $this->grant(2, ['view_news', 'view_documents', 'view_files', 'add_documents', 'edit_documents', 'manage_files']);
+
+        $admin = $this->user('admin');
+        $bea = $this->user('bea');
+        $news = app(NewsService::class)->create($admin, $project, 'Release', null, null);
+        $bare = app(DocumentService::class)->create($admin, $project, 'Bare', 4, null);
+        $guide = app(DocumentService::class)->create($admin, $project, 'Guide', 4, null);
+        app(DocumentService::class)->create($admin, $child, 'Hidden', 4, null);
+
+        $container = app(AttachmentContainerService::class);
+        $guideUpload = $container->upload($bea, 'guide-a.txt', 'guide', 'text/plain');
+        $container->claim($bea, $guideUpload['token'], null, null, 'guide-a.txt', null, (int) $guide->id);
+        $projectUpload = $container->upload($admin, 'tree.txt', 'tree', 'text/plain');
+        $projectFile = $container->claim($admin, $projectUpload['token'], null, null, 'tree.txt', null, null, (int) $project->id);
+        $versionUpload = $container->upload($bea, 'build.txt', 'build', 'text/plain');
+        $versionFile = $container->claim($bea, $versionUpload['token'], null, null, 'build.txt', null, null, (int) $project->id, 1);
+        $ids = [
+            'news' => (int) $news->id,
+            'bare' => (int) $bare->id,
+            'guide' => (int) $guide->id,
+            'project_file' => (int) $projectFile->id,
+            'version_file' => (int) $versionFile->id,
+        ];
+
+        $provider = app(ActivityProvider::class);
+        $from = $this->stringField($modules, 'from');
+        $days = $this->intField($modules, 'days');
+        foreach (['ada', 'admin', 'bea', 'cleo'] as $login) {
+            $rows = $modules[$login];
+            $this->assertIsArray($rows);
+            $this->assertSame($this->withIds($rows, $ids), $this->rows($provider->events($this->user($login), null, $from, $days)), $login);
+        }
+    }
+
     public function test_checklist_evidence_cites_this_comparison(): void
     {
         $checklist = file_get_contents(base_path('docs/parity-checklist.md'));
@@ -170,8 +224,29 @@ class ActivityParityTest extends TestCase
         $this->assertStringContainsString('tests/Parity/ActivityParityTest.php', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/activity/events.json', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/', $checklist);
-        $this->assertMatchesRegularExpression('/^\| Activity for news, documents, wiki, messages, files, and changesets \| NOT VERIFIED \|/m', $checklist);
+        $this->assertMatchesRegularExpression('/^\| Activity for news, documents, and files \| VERIFIED \|/m', $checklist);
+        $this->assertMatchesRegularExpression('/^\| Activity for wiki, messages, and changesets \| NOT VERIFIED \|/m', $checklist);
         $this->assertMatchesRegularExpression('/^\| Users and authentication — full REST API \| NOT VERIFIED \|/m', $checklist);
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $rows
+     * @param  array<string, int>  $ids
+     * @return list<array<string, mixed>>
+     */
+    private function withIds(array $rows, array $ids): array
+    {
+        $resolved = [];
+        foreach ($rows as $row) {
+            $id = $row['id'] ?? null;
+            if (is_string($id)) {
+                $this->assertArrayHasKey($id, $ids);
+                $row['id'] = $ids[$id];
+            }
+            $resolved[] = $row;
+        }
+
+        return $resolved;
     }
 
     /**
@@ -257,6 +332,22 @@ class ActivityParityTest extends TestCase
     private function setting(string $name, string $value): void
     {
         Setting::query()->updateOrCreate(['name' => $name], ['value' => $value]);
+    }
+
+    /**
+     * @param  list<string>  $names
+     */
+    private function grant(int $roleId, array $names): void
+    {
+        $role = Role::query()->find($roleId);
+        $this->assertInstanceOf(Role::class, $role);
+        $permissions = $role->permissions;
+        $this->assertIsArray($permissions);
+        foreach ($names as $name) {
+            $permissions[] = $name;
+        }
+        $role->permissions = array_values(array_unique($permissions));
+        $role->save();
     }
 
     private function user(string $login): User

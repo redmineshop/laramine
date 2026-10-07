@@ -30,8 +30,9 @@ final class CustomFieldTypes
     /**
      * Types this engine can read and write.
      *
-     * Document values use `customized_type` Document. The `documents` table
-     * stays unmigrated. Enumeration hosts are rows in `enumerations`.
+     * Document values use `customized_type` Document. Enumeration hosts are
+     * rows in `enumerations`. A custom-field route may address a document id
+     * that has no `documents` row.
      *
      * @var array<string, string>
      */

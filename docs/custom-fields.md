@@ -14,7 +14,7 @@ Laramine stores custom fields in the Redmine 7.0.1 tables (`custom_fields`, `cus
 | `GroupCustomField` | `Group` | Users with `type = Group` |
 | `TimeEntryCustomField` | `TimeEntry` | The time entry; visibility uses its project |
 | `VersionCustomField` | `Version` | The version; visibility uses its project |
-| `DocumentCustomField` | `Document` | A document id. The `documents` table is not migrated, so the caller supplies the project |
+| `DocumentCustomField` | `Document` | A document id. A missing `documents` row is still a host on the project in the URL. A row stored on another project is rejected |
 | `IssuePriorityCustomField` | `IssuePriority` | An `enumerations` row whose `type` is `IssuePriority` |
 | `TimeEntryActivityCustomField` | `TimeEntryActivity` | An `enumerations` row whose `type` is `TimeEntryActivity`. This does not change which activities a time entry may use |
 | `DocumentCategoryCustomField` | `DocumentCategory` | An `enumerations` row whose `type` is `DocumentCategory` |
@@ -103,7 +103,7 @@ The host check matches the record:
 | User | That user, or an active admin |
 | Group | An active admin |
 | Issue priority, time-entry activity, document category | An active admin |
-| Document | Not loaded by these routes. The documents table is not migrated |
+| Document | A missing row is still accepted. A row on another project is rejected |
 
 A hidden field is refused with `PermissionDeniedException` and the token `custom_field`. That token is not a name in `PermissionCatalog`. Active admins still see the field. `users_visibility` is not read on attachment or link routes. A denial is HTTP 403 JSON. A value that is not an attachment or link, a cleared attachment value, and a missing file are HTTP 404 JSON.
 
@@ -123,7 +123,7 @@ Issue priority, time-entry activity, and document category fields apply to every
 
 The enumeration index matches the shared-row list: `project_id` null, ordered by position then id. Custom fields on that list are those with `visible` true, including an empty value. The edit form uses role visibility, so an active admin still sees `visible = false`. A non-admin receives HTTP 403. API-token access to the index is not implemented.
 
-Document values use `customized_type` Document and the id in the URL. There is no `documents` row. Visibility and edits use `view_documents`, `add_documents`, and `edit_documents` on the project in the URL, and the documents module must be enabled for a non-admin. The HTML form is a plain field list, not a Redmine screen.
+Document values use `customized_type` Document and the id in the URL. A missing `documents` row is still accepted. Visibility and edits use `view_documents`, `add_documents`, and `edit_documents` on the project in the URL, and the documents module must be enabled for a non-admin. The HTML form is a plain field list, not a Redmine screen.
 
 ## Intentional differences from Redmine 7.0.1
 
@@ -136,7 +136,7 @@ Document values use `customized_type` Document and the id in the URL. There is n
 - Int and float are totalable. Progress bar is not. IssueQuery sums the totalable formats; see [queries.md](queries.md).
 - Version custom fields follow `versions.sharing` as described above. Issue `fixed_version_id` is unchanged by that rule.
 - User fields do not offer groups as selectable values. The edit list is active project members limited by `user_role` and by the viewer's `users_visibility`. A host with no project offers nobody, so a new user id on a user or group record is rejected. An id that is already stored may stay, including a user who is no longer a member. The filter list is the author list described above and does not change which ids IssueQuery accepts. Issue assignees use `UserVisibility`.
-- Document, issue-priority, time-entry activity, and document-category values are stored in `custom_values`. The `documents` table is not migrated. Enumeration index JSON shows only `visible = true` fields. The edit routes use role visibility. Time-entry activity values do not change which activities `TimeEntryService` accepts.
+- Document, issue-priority, time-entry activity, and document-category values are stored in `custom_values`. A missing `documents` row is still a custom-field host. Enumeration index JSON shows only `visible = true` fields. The edit routes use role visibility. Time-entry activity values do not change which activities `TimeEntryService` accepts.
 - Text formatting and full-width layout keys are stored and not rendered.
 - Custom field workflow errors are `CustomFieldValidationException`, not `WorkflowDeniedException`.
 - `CustomValueService` does not authorize the host record. `IssueService` still requires `add_issues` or `edit_issues` / `edit_own_issues` before it writes issue values.

@@ -83,6 +83,42 @@ class PermissionCatalogTest extends TestCase
         $this->assertFalse($manage->public);
     }
 
+    public function test_news_documents_and_files_permission_flags(): void
+    {
+        $catalog = new PermissionCatalog;
+
+        $modular = [
+            'view_news' => [false, true, null, 'news'],
+            'manage_news' => [false, false, 'member', 'news'],
+            'comment_news' => [false, false, null, 'news'],
+            'view_documents' => [false, true, null, 'documents'],
+            'add_documents' => [false, false, 'loggedin', 'documents'],
+            'edit_documents' => [false, false, 'loggedin', 'documents'],
+            'delete_documents' => [false, false, 'loggedin', 'documents'],
+            'view_files' => [false, true, null, 'files'],
+            'manage_files' => [false, false, 'loggedin', 'files'],
+        ];
+
+        foreach ($modular as $name => [$public, $read, $require, $module]) {
+            $definition = $catalog->definition($name);
+            $this->assertSame($module, $definition->module, $name);
+            $this->assertSame($public, $definition->public, $name);
+            $this->assertSame($read, $definition->read, $name);
+            $this->assertSame($require, $definition->require, $name);
+            $this->assertTrue($definition->isModular(), $name);
+        }
+
+        $this->assertSame(
+            ['view_news', 'manage_news', 'comment_news'],
+            $catalog->namesForModule('news'),
+        );
+        $this->assertSame(
+            ['view_documents', 'add_documents', 'edit_documents', 'delete_documents'],
+            $catalog->namesForModule('documents'),
+        );
+        $this->assertSame(['view_files', 'manage_files'], $catalog->namesForModule('files'));
+    }
+
     public function test_permission_list_json_round_trip_and_yaml_symbols(): void
     {
         $encoded = PermissionList::encode(['view_issues', 'add_issues', 'view_issues']);

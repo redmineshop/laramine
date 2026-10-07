@@ -15,8 +15,11 @@ use App\Http\Controllers\Auth\UserAdminController;
 use App\Http\Controllers\Auth\UserDirectoryController;
 use App\Http\Controllers\CustomFieldAssetController;
 use App\Http\Controllers\CustomFieldHostController;
+use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\FrontendSmokeController;
 use App\Http\Controllers\IssueFeedController;
+use App\Http\Controllers\NewsController;
+use App\Http\Controllers\ProjectFileController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', FrontendSmokeController::class);
@@ -68,7 +71,7 @@ Route::post('/projects/{project}/documents/{document}/custom-fields', [CustomFie
 Route::post('/attachments/upload', [AttachmentController::class, 'upload'])->name('attachments.upload');
 Route::post('/attachments/claim', [AttachmentController::class, 'claim'])->name('attachments.claim');
 Route::get('/attachments/{objectType}/{objectId}/download', [AttachmentController::class, 'downloadAll'])
-    ->where('objectType', 'issues|journals|projects|versions')
+    ->where('objectType', 'issues|journals|projects|versions|news|documents')
     ->whereNumber('objectId')
     ->name('attachments.download-all');
 Route::get('/attachments/{attachment}/thumbnail', [AttachmentController::class, 'thumbnail'])
@@ -80,6 +83,51 @@ Route::get('/attachments/{attachment}', [AttachmentController::class, 'download'
 Route::delete('/attachments/{attachment}', [AttachmentController::class, 'destroy'])
     ->whereNumber('attachment')
     ->name('attachments.destroy');
+
+Route::get('/news', [NewsController::class, 'index'])->name('news.index');
+Route::get('/news/{news}', [NewsController::class, 'show'])->whereNumber('news')->name('news.show');
+Route::put('/news/{news}', [NewsController::class, 'update'])->whereNumber('news')->name('news.update');
+Route::delete('/news/{news}', [NewsController::class, 'destroy'])->whereNumber('news')->name('news.destroy');
+Route::post('/news/{news}/comments', [NewsController::class, 'storeComment'])->whereNumber('news')->name('news.comments.store');
+Route::delete('/news/{news}/comments/{comment}', [NewsController::class, 'destroyComment'])
+    ->whereNumber('news')
+    ->whereNumber('comment')
+    ->name('news.comments.destroy');
+Route::post('/news/{news}/watch', [NewsController::class, 'watch'])->whereNumber('news')->name('news.watch');
+Route::delete('/news/{news}/watch', [NewsController::class, 'unwatch'])->whereNumber('news')->name('news.unwatch');
+
+Route::get('/projects/{project}/news', [NewsController::class, 'projectIndex'])
+    ->whereNumber('project')
+    ->name('projects.news.index');
+Route::post('/projects/{project}/news', [NewsController::class, 'store'])
+    ->whereNumber('project')
+    ->name('projects.news.store');
+
+Route::get('/projects/{project}/documents', [DocumentController::class, 'index'])
+    ->whereNumber('project')
+    ->name('projects.documents.index');
+Route::post('/projects/{project}/documents', [DocumentController::class, 'store'])
+    ->whereNumber('project')
+    ->name('projects.documents.store');
+Route::put('/projects/{project}/documents/{document}', [DocumentController::class, 'update'])
+    ->whereNumber('project')
+    ->whereNumber('document')
+    ->name('projects.documents.update');
+Route::delete('/projects/{project}/documents/{document}', [DocumentController::class, 'destroy'])
+    ->whereNumber('project')
+    ->whereNumber('document')
+    ->name('projects.documents.destroy');
+
+Route::get('/projects/{project}/files', [ProjectFileController::class, 'index'])
+    ->whereNumber('project')
+    ->name('projects.files.index');
+Route::post('/projects/{project}/files', [ProjectFileController::class, 'store'])
+    ->whereNumber('project')
+    ->name('projects.files.store');
+Route::delete('/projects/{project}/files/{attachment}', [ProjectFileController::class, 'destroy'])
+    ->whereNumber('project')
+    ->whereNumber('attachment')
+    ->name('projects.files.destroy');
 
 Route::get('/users/current.json', RestUserController::class)->name('rest.current-user');
 Route::get('/my.atom', FeedController::class)->name('feed.account');

@@ -6,11 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Document host for `DocumentCustomField` values.
+ * Redmine 7.0.1 `documents` row.
  *
- * The `documents` table is outside the migrated layout, so this model is not
- * queried. Callers set the id and the project relation, and `custom_values`
- * store `customized_type` Document for that id.
+ * `category_id` points at a `DocumentCategory` enumeration. Custom values use
+ * `customized_type` Document. A custom-field route may still address an id
+ * that has no row.
  */
 class Document extends Model
 {
@@ -24,10 +24,28 @@ class Document extends Model
     protected $guarded = ['id'];
 
     /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'created_on' => 'datetime',
+        ];
+    }
+
+    /**
      * @return BelongsTo<Project, $this>
      */
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    /**
+     * @return BelongsTo<Enumeration, $this>
+     */
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Enumeration::class, 'category_id');
     }
 }

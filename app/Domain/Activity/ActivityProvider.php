@@ -8,24 +8,30 @@ use App\Domain\Acl\TimeEntryVisibility;
 use App\Domain\Issues\IssueJournalWriter;
 use App\Domain\Settings\SettingValue;
 use App\Domain\TimeEntries\HourValue;
+use App\Models\Attachment;
+use App\Models\Document;
 use App\Models\EnabledModule;
 use App\Models\Enumeration;
 use App\Models\Issue;
 use App\Models\IssueStatus;
 use App\Models\Journal;
+use App\Models\News;
 use App\Models\Project;
 use App\Models\TimeEntry;
 use App\Models\Tracker;
 use App\Models\User;
+use App\Models\Version;
 use DateTimeInterface;
 use Illuminate\Support\Carbon;
 
 /**
- * Activity for issues, issue journals, and time entries.
+ * Activity for issues, journals, time entries, news, documents, and files.
  *
  * The window ends on `from` (today when omitted) and starts that many days
  * earlier. `activity_days_default` is 30 when the setting is missing.
- * News, documents, wiki, messages, files, and changesets are not providers.
+ * News, documents, and project or version files are included when that module
+ * is enabled, including for an administrator. Wiki, messages, and changesets
+ * are not providers.
  */
 final class ActivityProvider
 {
@@ -63,6 +69,15 @@ final class ActivityProvider
             }
             if ($this->moduleEnabled($candidate, 'time_tracking')) {
                 array_push($events, ...$this->timeEvents($actor, $candidate, $start, $until));
+            }
+            if ($this->moduleEnabled($candidate, 'news')) {
+                array_push($events, ...$this->newsEvents($actor, $candidate, $start, $until));
+            }
+            if ($this->moduleEnabled($candidate, 'documents')) {
+                array_push($events, ...$this->documentEvents($actor, $candidate, $start, $until));
+            }
+            if ($this->moduleEnabled($candidate, 'files')) {
+                array_push($events, ...$this->fileEvents($actor, $candidate, $start, $until));
             }
         }
 
@@ -299,6 +314,145 @@ final class ActivityProvider
             $title,
             $at,
         );
+    }
+
+    /**
+     * @return list<ActivityEvent>
+     */
+    private function newsEvents(User $actor, Project $project, Carbon $start, Carbon $until): array
+    {
+        if (! $this->permissions->allowed($actor, 'view_news', $project)) {
+            return [];
+        }
+
+        $rows = News::query()
+            ->where('project_id', $project->id)
+            ->where('created_on', '>=', $start->format('Y-m-d H:i:s'))
+            ->where('created_on', '<', $until->format('Y-m-d H:i:s'))
+            ->with('author')
+            ->orderBy('id')
+            ->get();
+        $events = [];
+        foreach ($rows as $news) {
+            $author = $news->author;
+            $at = $this->stamp($news->created_on);
+            if (! $author instanceof User || $at === null) {
+                continue;
+            }
+            $events[] = new ActivityEvent(
+                'news',
+                (int) $news->id,
+                (string) $project->identifier,
+                (string) $author->login,
+                (string) $news->title,
+                $at,
+            );
+        }
+
+        return $events;
+    }
+
+    /**
+     * @return list<ActivityEvent>
+     */
+    private function documentEvents(User $actor, Project $project, Carbon $start, Carbon $until): array
+    {
+        if (! $this->permissions->allowed($actor, 'view_documents', $project)) {
+            return [];
+        }
+
+        $rows = Document::query()
+            ->where('project_id', $project->id)
+            ->where('created_on', '>=', $start->format('Y-m-d H:i:s'))
+            ->where('created_on', '<', $until->format('Y-m-d H:i:s'))
+            ->orderBy('id')
+            ->get();
+        $events = [];
+        foreach ($rows as $document) {
+            $at = $this->stamp($document->created_on);
+            if ($at === null) {
+                continue;
+            }
+            $events[] = new ActivityEvent(
+                'document',
+                (int) $document->id,
+                (string) $project->identifier,
+                $this->documentAuthor($document),
+                'Document: '.$document->title,
+                $at,
+            );
+        }
+
+        return $events;
+    }
+
+    /**
+     * @return list<ActivityEvent>
+     */
+    private function fileEvents(User $actor, Project $project, Carbon $start, Carbon $until): array
+    {
+        if (! $this->permissions->allowed($actor, 'view_files', $project)) {
+            return [];
+        }
+
+        $versionIds = [];
+        foreach (Version::query()->where('project_id', $project->id)->pluck('id') as $id) {
+            if (is_numeric($id)) {
+                $versionIds[] = (int) $id;
+            }
+        }
+
+        $rows = Attachment::query()
+            ->where(function ($query) use ($project, $versionIds): void {
+                $query->where(function ($inner) use ($project): void {
+                    $inner->where('container_type', 'Project')->where('container_id', $project->id);
+                });
+                if ($versionIds !== []) {
+                    $query->orWhere(function ($inner) use ($versionIds): void {
+                        $inner->where('container_type', 'Version')->whereIn('container_id', $versionIds);
+                    });
+                }
+            })
+            ->where('created_on', '>=', $start->format('Y-m-d H:i:s'))
+            ->where('created_on', '<', $until->format('Y-m-d H:i:s'))
+            ->with('author')
+            ->orderBy('id')
+            ->get();
+        $events = [];
+        foreach ($rows as $attachment) {
+            $at = $this->stamp($attachment->created_on);
+            if ($at === null) {
+                continue;
+            }
+            $author = $attachment->author;
+            $events[] = new ActivityEvent(
+                'file',
+                (int) $attachment->id,
+                (string) $project->identifier,
+                $author instanceof User ? (string) $author->login : '',
+                (string) $attachment->filename,
+                $at,
+            );
+        }
+
+        return $events;
+    }
+
+    private function documentAuthor(Document $document): string
+    {
+        $first = Attachment::query()
+            ->where('container_type', 'Document')
+            ->where('container_id', $document->id)
+            ->with('author')
+            ->orderBy('created_on')
+            ->orderBy('id')
+            ->first();
+        if (! $first instanceof Attachment) {
+            return '';
+        }
+        $author = $first->author;
+
+        return $author instanceof User ? (string) $author->login : '';
     }
 
     private function issueTitle(Issue $issue): string

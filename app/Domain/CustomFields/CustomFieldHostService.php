@@ -18,8 +18,9 @@ use App\Models\User;
  * Enumeration edits are limited to an active admin, matching the admin form.
  * The enumeration index lists shared rows and custom fields whose `visible`
  * column is true. Document edits use `view_documents`, `add_documents`, and
- * `edit_documents` on the project the caller supplies. There is no documents
- * table, so the host is an id plus that project.
+ * `edit_documents` on the project the caller supplies. A missing documents
+ * row is still a host id on that project. A row stored on another project
+ * is rejected.
  */
 final class CustomFieldHostService
 {
@@ -218,6 +219,11 @@ final class CustomFieldHostService
     {
         if ($documentId <= 0) {
             throw new DomainException('Document id is invalid.');
+        }
+
+        $stored = Document::query()->find($documentId);
+        if ($stored instanceof Document && (int) $stored->project_id !== (int) $project->id) {
+            throw new PermissionDeniedException('view_documents');
         }
 
         $document = new Document;

@@ -11,10 +11,14 @@ use App\Domain\Attachments\ThumbnailDecoder;
 use App\Domain\Auth\CredentialChecker;
 use App\Domain\Auth\Ldap\LdapDirectory;
 use App\Domain\Auth\Ldap\MemoryLdapDirectory;
+use App\Models\Document;
 use App\Models\Issue;
+use App\Models\News;
 use App\Models\Project;
 use App\Models\User;
+use App\Policies\DocumentPolicy;
 use App\Policies\IssuePolicy;
+use App\Policies\NewsPolicy;
 use App\Policies\ProjectPolicy;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Contracts\Foundation\Application;
@@ -69,6 +73,8 @@ class AppServiceProvider extends ServiceProvider
     {
         Gate::policy(Project::class, ProjectPolicy::class);
         Gate::policy(Issue::class, IssuePolicy::class);
+        Gate::policy(News::class, NewsPolicy::class);
+        Gate::policy(Document::class, DocumentPolicy::class);
 
         foreach ($this->app->make(PermissionCatalog::class)->definitions() as $definition) {
             $name = $definition->name;

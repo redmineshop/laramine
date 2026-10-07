@@ -39,5 +39,14 @@
         "message": "Attachment archive is larger than the maximum size."
     },
     "default_kilobytes": 102400,
-    "downloads": 0
+    "downloads": 0,
+    "absent_object_types": ["files", "messages", "wiki_pages"],
+    "news_file": {"filename": "brief.txt", "body": "BRIEF"},
+    "news_permission": "view_news",
+    "news_module": "news",
+    "news_role_id": 1,
+    "document_file": {"filename": "guide.txt", "body": "GUIDE"},
+    "document_permission": "view_documents",
+    "document_module": "documents",
+    "document_category_id": 4
 }

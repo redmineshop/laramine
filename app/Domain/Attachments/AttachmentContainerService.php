@@ -7,11 +7,13 @@ use App\Domain\Acl\PermissionService;
 use App\Domain\DomainException;
 use App\Domain\Issues\IssueJournalWriter;
 use App\Domain\Notifications\IssueNotifier;
+use App\Domain\Notifications\ModuleNotifier;
 use App\Domain\PermissionDeniedException;
 use App\Domain\Settings\SettingValue;
 use App\Models\Attachment;
 use App\Models\CustomField;
 use App\Models\CustomValue;
+use App\Models\Document;
 use App\Models\Issue;
 use App\Models\Journal;
 use App\Models\Project;
@@ -23,9 +25,11 @@ use Illuminate\Support\Facades\DB;
  * Upload tokens, container download, thumbnails, and attachment journals.
  *
  * A token is `{id}.{digest}` of an unbound row. Claiming it sets the
- * container and writes an attachment journal on the issue. Deleting a
- * container file writes the removal journal. Custom-field files stay on
- * the custom-field routes.
+ * container. An issue or issue journal also writes an attachment journal.
+ * A document, project, or version claim does not. Deleting an issue file
+ * writes the removal journal. Deleting a document, project, or version
+ * file removes the row and the thumbnail cache. Custom-field files stay
+ * on the custom-field routes.
  */
 final class AttachmentContainerService
 {
@@ -37,6 +41,7 @@ final class AttachmentContainerService
         private readonly IssueVisibility $issues,
         private readonly IssueJournalWriter $journals,
         private readonly IssueNotifier $notifications,
+        private readonly ModuleNotifier $modules,
         private readonly SettingValue $settings,
     ) {}
 
@@ -61,25 +66,42 @@ final class AttachmentContainerService
         ?int $journalId,
         ?string $filename,
         ?string $description,
+        ?int $documentId = null,
+        ?int $projectId = null,
+        ?int $versionId = null,
     ): Attachment {
         $this->assertActiveUser($actor);
-        [$issue, $journal] = $this->claimTarget($issueId, $journalId);
-        $this->assertCanEdit($actor, $issue, $journal);
         $attachment = $this->findToken($token);
+        $container = $this->claimContainer($actor, $issueId, $journalId, $documentId, $projectId, $versionId);
+        $issue = $container['issue'];
+        $record = $container['record'];
 
         $written = null;
-        $fresh = DB::transaction(function () use ($actor, $attachment, $issue, $journal, $filename, $description, &$written): Attachment {
+        $fresh = DB::transaction(function () use ($actor, $attachment, $container, $filename, $description, $issue, &$written): Attachment {
             $locked = $this->lockUnbound($attachment);
             $this->files->retitle($locked, $filename, $description);
-            $container = $journal instanceof Journal ? $journal : $issue;
-            $this->files->bind($locked, $container);
+            $this->files->bind($locked, $container['record']);
             $fresh = $locked->refresh();
-            $written = $this->journals->recordAttachmentAdded($actor, $issue, (int) $fresh->id, (string) $fresh->filename);
+            if ($issue instanceof Issue) {
+                $written = $this->journals->recordAttachmentAdded($actor, $issue, (int) $fresh->id, (string) $fresh->filename);
+            }
 
             return $fresh;
         });
-        if ($written instanceof Journal) {
+        if ($issue instanceof Issue && $written instanceof Journal) {
             $this->notifications->edited($actor, $issue, $written, null);
+        }
+        if ($record instanceof Document) {
+            $record->loadMissing('project');
+            $this->modules->documentFileAdded($actor, $record, $fresh);
+        } elseif ($record instanceof Project) {
+            $this->modules->fileAdded($actor, $record, $fresh);
+        } elseif ($record instanceof Version) {
+            $record->loadMissing('project');
+            $versionProject = $record->project;
+            if ($versionProject instanceof Project) {
+                $this->modules->fileAdded($actor, $versionProject, $fresh);
+            }
         }
 
         return $fresh;
@@ -89,6 +111,13 @@ final class AttachmentContainerService
     {
         $this->assertActiveUser($actor);
         $this->assertContainerFile($attachment);
+        $type = (string) $attachment->container_type;
+        if ($type === 'Project' || $type === 'Version' || $type === 'Document') {
+            $this->assertCanManageFile($actor, $attachment);
+            $this->removeRow($attachment);
+
+            return;
+        }
         [$issue, $journal] = $this->editableIssue($attachment);
         $this->assertCanEdit($actor, $issue, $journal);
 
@@ -201,9 +230,6 @@ final class AttachmentContainerService
 
             return [$issue, $journal];
         }
-        if ($type === 'Project' || $type === 'Version') {
-            throw new DomainException('Attachment delete is not available for this container.');
-        }
 
         throw new DomainException('Attachment is not attached.');
     }
@@ -285,8 +311,156 @@ final class AttachmentContainerService
 
             return;
         }
+        if ($type === 'Document') {
+            $document = Document::query()->with('project')->find($id);
+            $project = $document instanceof Document ? $document->project : null;
+            if (! $project instanceof Project || ! $this->permissions->allowed($actor, 'view_documents', $project)) {
+                throw new PermissionDeniedException('view_documents');
+            }
+
+            return;
+        }
 
         throw new DomainException('Attachment is not attached.');
+    }
+
+    /**
+     * @return array{record: Issue|Journal|Document|Project|Version, issue: ?Issue}
+     */
+    private function claimContainer(
+        User $actor,
+        ?int $issueId,
+        ?int $journalId,
+        ?int $documentId,
+        ?int $projectId,
+        ?int $versionId,
+    ): array {
+        $families = 0;
+        if ($issueId !== null || $journalId !== null) {
+            $families++;
+        }
+        if ($documentId !== null) {
+            $families++;
+        }
+        if ($projectId !== null || $versionId !== null) {
+            $families++;
+        }
+        if ($families !== 1) {
+            throw new DomainException('Attachment needs an issue or a journal.');
+        }
+        if ($issueId !== null || $journalId !== null) {
+            [$issue, $journal] = $this->claimTarget($issueId, $journalId);
+            $this->assertCanEdit($actor, $issue, $journal);
+
+            return [
+                'record' => $journal instanceof Journal ? $journal : $issue,
+                'issue' => $issue,
+            ];
+        }
+        if ($documentId !== null) {
+            return [
+                'record' => $this->claimDocument($actor, $documentId),
+                'issue' => null,
+            ];
+        }
+
+        return [
+            'record' => $this->claimProjectFile($actor, $projectId, $versionId),
+            'issue' => null,
+        ];
+    }
+
+    private function claimDocument(User $actor, int $documentId): Document
+    {
+        $document = Document::query()->with('project')->find($documentId);
+        if (! $document instanceof Document) {
+            throw new DomainException('Document does not exist.');
+        }
+        $project = $document->project;
+        if (! $project instanceof Project) {
+            throw new DomainException('Document has no project.');
+        }
+        $canAdd = $this->permissions->allowed($actor, 'add_documents', $project);
+        $canEdit = $this->permissions->allowed($actor, 'edit_documents', $project);
+        if (! $canAdd && ! $canEdit) {
+            throw new PermissionDeniedException('edit_documents');
+        }
+
+        return $document;
+    }
+
+    private function claimProjectFile(User $actor, ?int $projectId, ?int $versionId): Project|Version
+    {
+        if ($projectId === null) {
+            throw new DomainException('Version is not on this project.');
+        }
+        $project = Project::query()->find($projectId);
+        if (! $project instanceof Project) {
+            throw new DomainException('Project does not exist.');
+        }
+        if (! $this->permissions->allowed($actor, 'manage_files', $project)) {
+            throw new PermissionDeniedException('manage_files');
+        }
+        if ($versionId === null) {
+            return $project;
+        }
+        $version = Version::query()
+            ->where('project_id', (int) $project->id)
+            ->where('id', $versionId)
+            ->first();
+        if (! $version instanceof Version) {
+            throw new DomainException('Version is not on this project.');
+        }
+
+        return $version;
+    }
+
+    private function assertCanManageFile(User $actor, Attachment $attachment): void
+    {
+        $type = (string) $attachment->container_type;
+        $id = (int) $attachment->container_id;
+        if ($type === 'Project') {
+            $project = Project::query()->find($id);
+            if (! $project instanceof Project || ! $this->permissions->allowed($actor, 'manage_files', $project)) {
+                throw new PermissionDeniedException('manage_files');
+            }
+
+            return;
+        }
+        if ($type === 'Version') {
+            $version = Version::query()->with('project')->find($id);
+            $project = $version instanceof Version ? $version->project : null;
+            if (! $project instanceof Project || ! $this->permissions->allowed($actor, 'manage_files', $project)) {
+                throw new PermissionDeniedException('manage_files');
+            }
+
+            return;
+        }
+        if ($type === 'Document') {
+            $document = Document::query()->with('project')->find($id);
+            $project = $document instanceof Document ? $document->project : null;
+            if (! $project instanceof Project || ! $this->permissions->allowed($actor, 'edit_documents', $project)) {
+                throw new PermissionDeniedException('edit_documents');
+            }
+
+            return;
+        }
+
+        throw new DomainException('Attachment is not attached.');
+    }
+
+    private function removeRow(Attachment $attachment): void
+    {
+        DB::transaction(function () use ($attachment): void {
+            $locked = Attachment::query()->whereKey($attachment->id)->lockForUpdate()->first();
+            if (! $locked instanceof Attachment) {
+                throw new DomainException('Attachment does not exist.');
+            }
+            $this->assertContainerFile($locked);
+            $this->thumbnails->forget($locked);
+            $this->files->forgetFile($locked);
+            $locked->delete();
+        });
     }
 
     private function assertContainerFile(Attachment $attachment): void

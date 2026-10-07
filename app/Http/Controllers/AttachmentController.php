@@ -69,6 +69,9 @@ class AttachmentController extends Controller
                 $this->intInput($request, 'journal_id'),
                 $this->stringInput($request, 'filename'),
                 $this->stringInput($request, 'description'),
+                $this->intInput($request, 'document_id'),
+                $this->intInput($request, 'project_id'),
+                $this->intInput($request, 'version_id'),
             );
         } catch (PermissionDeniedException $denied) {
             return $this->denied($denied);

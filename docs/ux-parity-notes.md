@@ -1,9 +1,10 @@
 # UX parity notes
 
-The Inertia.js + React + TypeScript + Vite + Tailwind CSS + shadcn/ui stack has two pages.
+The Inertia.js + React + TypeScript + Vite + Tailwind CSS + shadcn/ui stack has the health page, the sign-in page, and minimal news, document, and file pages.
 
 - `GET /` is the health smoke page. It proves the Inertia response, the Vite client entry, and that the SSR bundle compiles.
 - `GET /login` is a P0 sign-in screen (`Auth/Login`). It posts login and password to the session action. Lost password and register links, when the settings allow them, are full page loads to Blade forms. `GET /login?view=blade` still renders the Blade form at `resources/views/auth/login.blade.php`. Register, lost password, activation, and the password form are Blade. They are not Redmine screens.
+- `GET /news`, `GET /projects/{project}/news`, `GET /news/{news}`, `GET /projects/{project}/documents`, and `GET /projects/{project}/files` are minimal lists. They are not Redmine screens.
 
 This stack is not UI-ready.
 This stack is not Redmine UX parity.

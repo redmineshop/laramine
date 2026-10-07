@@ -11,9 +11,11 @@ use App\Domain\Issues\JournalNoteAccess;
 use App\Domain\PermissionDeniedException;
 use App\Domain\Settings\SettingValue;
 use App\Models\Attachment;
+use App\Models\Document;
 use App\Models\Issue;
 use App\Models\Journal;
 use App\Models\JournalDetail;
+use App\Models\News;
 use App\Models\Project;
 use App\Models\User;
 use App\Models\Version;
@@ -52,11 +54,14 @@ final class AttachmentArchive
     }
 
     /**
-     * Zip every readable file on an issue, journal, project, or version.
+     * Zip every readable file on an issue, journal, project, version, news row, or document.
      *
      * Journal files are the attachment ids named by that journal's details.
      * A private note does not hide those files when the issue itself is visible.
-     * News, documents, messages, and wiki pages are not containers here.
+     * News needs `view_news`. A document needs `view_documents`. The zip name
+     * is the class name in lower case, so a document is `document-{id}-attachments.zip`.
+     * There is no `files` object type: project and version rows are those containers.
+     * Messages and wiki pages are not served here.
      */
     public function downloadBundle(?User $actor, string $objectType, int $objectId): AttachmentZip
     {
@@ -181,6 +186,32 @@ final class AttachmentArchive
             }
 
             return ['Version', $this->readable($this->containerAttachments('Version', $objectId))];
+        }
+
+        if ($objectType === 'news') {
+            $news = News::query()->with('project')->find($objectId);
+            $project = $news instanceof News ? $news->project : null;
+            if (! $news instanceof News || ! $project instanceof Project) {
+                throw new DomainException('Attachment container does not exist.');
+            }
+            if (! $this->permissions->allowed($actor, 'view_news', $project)) {
+                throw new PermissionDeniedException('view_news');
+            }
+
+            return ['News', $this->readable($this->containerAttachments('News', $objectId))];
+        }
+
+        if ($objectType === 'documents') {
+            $document = Document::query()->with('project')->find($objectId);
+            $project = $document instanceof Document ? $document->project : null;
+            if (! $document instanceof Document || ! $project instanceof Project) {
+                throw new DomainException('Attachment container does not exist.');
+            }
+            if (! $this->permissions->allowed($actor, 'view_documents', $project)) {
+                throw new PermissionDeniedException('view_documents');
+            }
+
+            return ['Document', $this->readable($this->containerAttachments('Document', $objectId))];
         }
 
         throw new DomainException('This record has no attachment archive.');
