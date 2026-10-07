@@ -114,7 +114,7 @@ The value `me` is the current user id. It is accepted on `author_id`, `assigned_
 | `watcher_id` | list | `=`, `!` on `watchers`. `me` includes the actor's groups. Other users require `view_issue_watchers` |
 | `updated_by` | list | `=`, `!` on a visible journal `user_id`. Private notes are skipped without `view_private_notes`. `me` is the user id only |
 | `last_updated_by` | list | `user_id` of the latest visible journal (`id` descending). No visible journal matches `!` |
-| `spent_time` | hour | `COALESCE(ROUND(SUM(time_entries.hours), 2), 0)`. `*` is greater than 0. `!*` and `=` 0 include a missing sum |
+| `spent_time` | hour | Same per-issue number as `spent_hours`: `COALESCE(ROUND(SUM(time_entries.hours), 2), 0)` for entries whose `project_id` is the issue's project, after `time_entries_visibility`. `*` is greater than 0. `!*` and `=` 0 include a missing or fully hidden sum |
 | `any_searchable` | search | `~`, `*~`, `!~` across subject, description, visible journal notes, and visible searchable issue custom fields |
 
 `parent_id` and `child_id` read the issue nested set (`root_id`, `lft`, `rgt`). `=` and `~` scan decimal ids out of the value; a value with no digits matches nothing. `parent_id` `=` is `parent_id` in those ids. `parent_id` `~` is a strict descendant of any of those issues. `parent_id` `*` / `!*` is a non-null parent, or none. `child_id` `=` keeps the direct parent of those child ids. `child_id` `~` keeps ancestors of the first id. `child_id` `*` is `rgt - lft > 1`. `child_id` `!*` is a leaf (`rgt - lft = 1`).
@@ -228,7 +228,7 @@ An unknown operator or an unknown field is rejected.
 - Active admins can read private saved queries.
 - `execute` returns full issue rows. `present` projects the available columns. `totalable_names` is summed even when those names are absent from `column_names`.
 - `display_type` accepts `list` and `board` only. Board columns are statuses. `group_by` does not pick the board axis.
-- `spent_hours` totals and the projected column count time entries on the issue's own project after `time_entries_visibility`. They do not roll descendant time into a parent that is outside the result. The `spent_time` filter still sums every time entry on the issue and does not read visibility.
+- `spent_hours` totals, the projected column, and the `spent_time` filter count time entries on the issue's own project after `time_entries_visibility`. They do not roll descendant time into a parent that is outside the result. A stored visibility other than `all` or `own` contributes nothing.
 - A hidden custom field is an error for sort and totals. The same name in `column_names` is omitted from the projection for an actor who cannot see the field.
 - Global queries check `view_issues` per project in PHP, then OR the visibility groups. Spent hours use each issue's project, not the query project alone.
 
@@ -240,7 +240,6 @@ These are Laramine gaps. They are not a parity verdict.
 | --- | --- |
 | Gantt, calendar, and other display types | Only `list` and `board` run. Any other `display_type` is rejected for IssueQuery. |
 | Board grouped by a field other than status | Board columns are statuses. `group_by` only sorts. |
-| `spent_time` filter visibility | The filter still sums every time entry on the issue. Totals and the `spent_hours` column apply `time_entries_visibility`. |
 | `cf_N.*` other than `.due_date` and `.status` | Listed under deferred fields. |
 | Custom-field history | `ev` / `!ev` / `cf` are not compiled for custom fields. |
 | Descendant hour and estimate columns | `total_estimated_hours` and `total_spent_hours` are not totalable names and are not projected. |

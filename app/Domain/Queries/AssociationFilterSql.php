@@ -26,6 +26,7 @@ final class AssociationFilterSql
         private readonly FieldFormatRegistry $formats,
         private readonly CustomFieldVisibility $visibility,
         private readonly JournalVisibility $journals,
+        private readonly SpentHoursQuery $spentHours,
     ) {}
 
     /**
@@ -47,7 +48,7 @@ final class AssociationFilterSql
             'watcher_id' => $this->watcher($query, $filter, $actor, $project),
             'updated_by' => $this->updatedBy($query, $filter, $actor, $project),
             'last_updated_by' => $this->lastUpdatedBy($query, $filter, $actor, $project),
-            'spent_time' => $this->spentTime($query, $filter),
+            'spent_time' => $this->spentTime($query, $filter, $actor),
             'any_searchable' => $this->anySearchable($query, $filter, $actor, $project),
             default => throw new QueryValidationException('Unknown filter field: '.$field->name.'.'),
         };
@@ -534,32 +535,36 @@ final class AssociationFilterSql
     }
 
     /**
+     * Same rounded sum as `spent_hours`: entries on the issue's project, then
+     * `time_entries_visibility`. A hidden or missing sum is 0.
+     *
      * @param  Builder<Issue>  $query
      */
-    private function spentTime(Builder $query, QueryFilter $filter): void
+    private function spentTime(Builder $query, QueryFilter $filter, ?User $actor): void
     {
         $operator = $filter->operator;
-        $sum = 'COALESCE((SELECT ROUND(CAST(SUM(time_entries.hours) AS DECIMAL(30,3)), 2) FROM time_entries WHERE time_entries.issue_id = issues.id), 0)';
+        [$sum, $bindings] = $this->spentHours->correlatedSum($query, $actor);
         if ($operator === '*') {
-            $query->whereRaw($sum.' > 0');
+            $query->whereRaw($sum.' > 0', $bindings);
 
             return;
         }
 
         if ($operator === '!*') {
-            $query->whereRaw($sum.' = 0');
+            $query->whereRaw($sum.' = 0', $bindings);
 
             return;
         }
 
         $numbers = FilterValues::decimals($filter);
         if ($operator === '=') {
-            $query->where(function (Builder $inner) use ($sum, $numbers): void {
+            $query->where(function (Builder $inner) use ($sum, $bindings, $numbers): void {
                 foreach ($numbers as $index => $number) {
+                    $bound = [...$bindings, $number];
                     if ($index === 0) {
-                        $inner->whereRaw($sum.' = ?', [$number]);
+                        $inner->whereRaw($sum.' = ?', $bound);
                     } else {
-                        $inner->orWhereRaw($sum.' = ?', [$number]);
+                        $inner->orWhereRaw($sum.' = ?', $bound);
                     }
                 }
             });
@@ -568,13 +573,13 @@ final class AssociationFilterSql
         }
 
         if ($operator === '>=') {
-            $query->whereRaw($sum.' >= ?', [$numbers[0]]);
+            $query->whereRaw($sum.' >= ?', [...$bindings, $numbers[0]]);
 
             return;
         }
 
         if ($operator === '<=') {
-            $query->whereRaw($sum.' <= ?', [$numbers[0]]);
+            $query->whereRaw($sum.' <= ?', [...$bindings, $numbers[0]]);
 
             return;
         }
@@ -583,7 +588,7 @@ final class AssociationFilterSql
             throw new QueryValidationException('Operator '.$operator.' is not valid for '.$filter->field.'.');
         }
 
-        $query->whereRaw($sum.' BETWEEN ? AND ?', [$numbers[0], $numbers[1]]);
+        $query->whereRaw($sum.' BETWEEN ? AND ?', [...$bindings, $numbers[0], $numbers[1]]);
     }
 
     /**

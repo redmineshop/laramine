@@ -343,17 +343,38 @@ class IssueQueryDepthTest extends TestCase
         $this->assertSame('3.5', $runner->present($admin, $query)->rows[0]->values['spent_hours']);
 
         $this->assertSame(
-            [$issue->id],
+            [],
             $this->ids($runner->preview($ada, $world->project, [
                 'subject' => ['operator' => '=', 'values' => ['Timed']],
                 'spent_time' => ['operator' => '>=', 'values' => ['3']],
             ])),
         );
         $this->assertSame(
-            [],
+            [$issue->id],
             $this->ids($runner->preview($ada, $world->project, [
                 'subject' => ['operator' => '=', 'values' => ['Timed']],
-                'spent_time' => ['operator' => '>=', 'values' => ['4']],
+                'spent_time' => ['operator' => '>=', 'values' => ['1']],
+            ])),
+        );
+        $this->assertSame(
+            [$issue->id],
+            $this->ids($runner->preview($bea, $world->project, [
+                'subject' => ['operator' => '=', 'values' => ['Timed']],
+                'spent_time' => ['operator' => '>=', 'values' => ['3']],
+            ])),
+        );
+        $this->assertSame(
+            [],
+            $this->ids($runner->preview($cy, $world->project, [
+                'subject' => ['operator' => '=', 'values' => ['Timed']],
+                'spent_time' => ['operator' => '*', 'values' => []],
+            ])),
+        );
+        $this->assertSame(
+            [$issue->id],
+            $this->ids($runner->preview($admin, $world->project, [
+                'subject' => ['operator' => '=', 'values' => ['Timed']],
+                'spent_time' => ['operator' => '>=', 'values' => ['3']],
             ])),
         );
 
@@ -364,6 +385,129 @@ class IssueQueryDepthTest extends TestCase
         $memberships->assignRole($world->project, $ada, $opening);
         $this->assertSame(['spent_hours' => '3.5'], $runner->totals($ada, $query));
         $this->assertSame('3.5', $runner->present($ada, $query)->rows[0]->values['spent_hours']);
+        $this->assertSame(
+            [$issue->id],
+            $this->ids($runner->preview($ada, $world->project, [
+                'subject' => ['operator' => '=', 'values' => ['Timed']],
+                'spent_time' => ['operator' => '>=', 'values' => ['3']],
+            ])),
+        );
+    }
+
+    public function test_spent_time_filter_follows_time_entries_visibility(): void
+    {
+        $world = $this->member();
+        $ada = User::factory()->create(['firstname' => 'Ada', 'lastname' => 'Lovelace']);
+        $bea = User::factory()->create(['firstname' => 'Bea', 'lastname' => 'Coder']);
+        $ned = User::factory()->create(['firstname' => 'Ned', 'lastname' => 'None']);
+        $odd = User::factory()->create(['firstname' => 'Odd', 'lastname' => 'Value']);
+        $own = $this->role('filter_own', ['view_issues', 'view_time_entries'], 'own');
+        $wide = $this->role('filter_all', ['view_issues', 'view_time_entries'], 'all');
+        $closed = $this->role('filter_none', ['view_issues', 'view_time_entries'], 'none');
+        $unknown = $this->role('filter_unknown', ['view_issues', 'view_time_entries'], 'members');
+        $memberships = app(MembershipService::class);
+        $memberships->assignRole($world->project, $ada, $own);
+        $memberships->assignRole($world->project, $bea, $wide);
+        $memberships->assignRole($world->project, $ned, $closed);
+        $memberships->assignRole($world->project, $odd, $unknown);
+
+        $projects = app(ProjectService::class);
+        $otherProject = $projects->create([
+            'name' => 'Elsewhere',
+            'identifier' => 'query-spent-elsewhere',
+            'is_public' => true,
+        ]);
+        $projects->enableModule($otherProject, 'issue_tracking');
+        $projects->attachTracker($otherProject, $world->tracker);
+        $memberships->assignRole($otherProject, $ada, $wide);
+        $memberships->assignRole($otherProject, $bea, $own);
+        $memberships->assignRole($otherProject, $ned, $closed);
+        $memberships->assignRole($otherProject, $odd, $unknown);
+
+        $activity = Enumeration::query()->create([
+            'name' => 'Design',
+            'type' => 'TimeEntryActivity',
+            'active' => true,
+            'position' => 1,
+        ]);
+        $here = $this->issue($world, ['subject' => 'Here', 'author_id' => $ada->id]);
+        $there = $this->issue($world, [
+            'project_id' => $otherProject->id,
+            'subject' => 'There',
+            'author_id' => $ada->id,
+        ]);
+        $this->hours($world->project, $here, $ada, $activity, 1.5);
+        $this->hours($world->project, $here, $bea, $activity, 2);
+        $this->hours($otherProject, $there, $ada, $activity, 4);
+        $this->hours($otherProject, $there, $bea, $activity, 1);
+        TimeEntry::query()->create([
+            'project_id' => $otherProject->id,
+            'issue_id' => $here->id,
+            'user_id' => $bea->id,
+            'author_id' => $bea->id,
+            'activity_id' => $activity->id,
+            'hours' => 10,
+            'spent_on' => '2026-10-01',
+            'tmonth' => 10,
+            'tweek' => 40,
+            'tyear' => 2026,
+        ]);
+
+        $runner = app(IssueQueryRunner::class);
+        $filters = [
+            'subject' => ['operator' => '=', 'values' => ['Here', 'There']],
+        ];
+
+        $this->assertSame([$there->id], $this->ids($runner->preview($ada, null, [
+            ...$filters,
+            'spent_time' => ['operator' => '>=', 'values' => ['4']],
+        ])));
+        $this->assertSame([$here->id], $this->ids($runner->preview($ada, null, [
+            ...$filters,
+            'spent_time' => ['operator' => '=', 'values' => ['1.5']],
+        ])));
+        $this->assertSame([$here->id, $there->id], $this->ids($runner->preview($ada, null, [
+            ...$filters,
+            'spent_time' => ['operator' => '*', 'values' => []],
+        ])));
+
+        $this->assertSame([$here->id], $this->ids($runner->preview($bea, null, [
+            ...$filters,
+            'spent_time' => ['operator' => '>=', 'values' => ['3']],
+        ])));
+        $this->assertSame([$there->id], $this->ids($runner->preview($bea, null, [
+            ...$filters,
+            'spent_time' => ['operator' => '=', 'values' => ['1']],
+        ])));
+        $this->assertSame([], $this->ids($runner->preview($bea, null, [
+            ...$filters,
+            'spent_time' => ['operator' => '>=', 'values' => ['10']],
+        ])));
+
+        foreach ([$ned, $odd] as $hidden) {
+            $this->assertSame([], $this->ids($runner->preview($hidden, null, [
+                ...$filters,
+                'spent_time' => ['operator' => '*', 'values' => []],
+            ])));
+            $this->assertSame([$here->id, $there->id], $this->ids($runner->preview($hidden, null, [
+                ...$filters,
+                'spent_time' => ['operator' => '!*', 'values' => []],
+            ])));
+            $this->assertSame([$here->id, $there->id], $this->ids($runner->preview($hidden, null, [
+                ...$filters,
+                'spent_time' => ['operator' => '=', 'values' => ['0']],
+            ])));
+        }
+
+        $admin = User::factory()->create(['admin' => true]);
+        $this->assertSame([$here->id, $there->id], $this->ids($runner->preview($admin, null, [
+            ...$filters,
+            'spent_time' => ['operator' => '><', 'values' => ['3', '6']],
+        ])));
+        $this->assertSame([], $this->ids($runner->preview($admin, null, [
+            ...$filters,
+            'spent_time' => ['operator' => '>=', 'values' => ['10']],
+        ])));
     }
 
     public function test_spent_hours_use_each_issue_project(): void
