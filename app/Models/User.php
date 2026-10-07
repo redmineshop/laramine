@@ -15,7 +15,7 @@ use Illuminate\Notifications\Notifiable;
  * Redmine 7.0.1 `users` row.
  *
  * `type` stores the STI name (User, Group, AnonymousUser). Subclasses are not mapped yet.
- * Mail lives on `email_addresses`. `hashed_password` is not a Laravel bcrypt column.
+ * Mail lives on `email_addresses`. `hashed_password` is a Redmine SHA-1 digest, not bcrypt.
  */
 class User extends Authenticatable
 {
@@ -28,7 +28,13 @@ class User extends Authenticatable
 
     public const TYPE_ANONYMOUS = 'AnonymousUser';
 
+    public const STATUS_ANONYMOUS = 0;
+
     public const STATUS_ACTIVE = 1;
+
+    public const STATUS_REGISTERED = 2;
+
+    public const STATUS_LOCKED = 3;
 
     public const CREATED_AT = 'created_on';
 
@@ -70,6 +76,29 @@ class User extends Authenticatable
     public function isActive(): bool
     {
         return (int) $this->status === self::STATUS_ACTIVE;
+    }
+
+    /**
+     * Whether this row may keep a web session. Password is checked only at sign-in.
+     */
+    public function canKeepWebSession(): bool
+    {
+        return $this->type === self::TYPE_USER
+            && $this->auth_source_id === null
+            && $this->isActive()
+            && ! $this->twoFactorGate();
+    }
+
+    /**
+     * Phase 1 does not complete a second factor, so required or enrolled 2FA blocks sign-in.
+     */
+    public function twoFactorGate(): bool
+    {
+        if ($this->twofa_required === true) {
+            return true;
+        }
+
+        return is_string($this->twofa_scheme) && $this->twofa_scheme !== '';
     }
 
     public function getAuthPasswordName(): string

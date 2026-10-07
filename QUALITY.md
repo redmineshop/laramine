@@ -41,7 +41,7 @@ First public / v1 ship must meet **all** gates below. Same spirit as Redmine cor
 
 There is no 0.1 tag. The ACL/workflow smoke above is not that tag.
 
-Users and authentication are a **spec hole** in [docs/users-auth-spec.md](docs/users-auth-spec.md). The parity row is **NOT VERIFIED**. That file does not implement login, sessions, password hashing, or account administration. A founder unlock is required before any authentication implementation slice. Journals, custom fields, and queries stay **NOT VERIFIED**.
+Users and authentication are locked in [docs/users-auth-spec.md](docs/users-auth-spec.md) (founder date 2026-10-07). Phase 1 is web session sign-in with a Redmine-shaped password digest. The parity row is **NOT VERIFIED**. Later phases (registration, LDAP, two-factor, OAuth, tokens, account administration) are not done. This is not a 0.1 tag and not a production-ready claim. Journals, custom fields, and queries stay **NOT VERIFIED**.
 
 ## CI (every PR + default branch)
 
