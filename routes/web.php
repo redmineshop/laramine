@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\Auth\FeedController;
 use App\Http\Controllers\Auth\MyAccountController;
@@ -15,6 +16,7 @@ use App\Http\Controllers\Auth\UserDirectoryController;
 use App\Http\Controllers\CustomFieldAssetController;
 use App\Http\Controllers\CustomFieldHostController;
 use App\Http\Controllers\FrontendSmokeController;
+use App\Http\Controllers\IssueFeedController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', FrontendSmokeController::class);
@@ -77,6 +79,18 @@ Route::delete('/attachments/{attachment}', [AttachmentController::class, 'destro
 
 Route::get('/users/current.json', RestUserController::class)->name('rest.current-user');
 Route::get('/my.atom', FeedController::class)->name('feed.account');
+Route::get('/activity', [ActivityController::class, 'index'])->name('activity.index');
+Route::get('/activity.atom', [ActivityController::class, 'atom'])->name('activity.atom');
+Route::get('/issues.atom', IssueFeedController::class)->name('issues.atom');
+Route::get('/projects/{identifier}/activity', [ActivityController::class, 'index'])
+    ->where('identifier', '[A-Za-z0-9_\-]+')
+    ->name('projects.activity.index');
+Route::get('/projects/{identifier}/activity.atom', [ActivityController::class, 'atom'])
+    ->where('identifier', '[A-Za-z0-9_\-]+')
+    ->name('projects.activity.atom');
+Route::get('/projects/{identifier}/issues.atom', IssueFeedController::class)
+    ->where('identifier', '[A-Za-z0-9_\-]+')
+    ->name('projects.issues.atom');
 Route::get('/users', [UserDirectoryController::class, 'index'])->name('users.index');
 
 Route::get('/account/twofa', [TwoFactorController::class, 'challenge'])->name('twofa.challenge');

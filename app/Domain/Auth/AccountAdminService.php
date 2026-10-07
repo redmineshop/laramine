@@ -3,6 +3,7 @@
 namespace App\Domain\Auth;
 
 use App\Domain\DomainException;
+use App\Domain\Notifications\AccountNotifier;
 use App\Domain\PermissionDeniedException;
 use App\Domain\Queries\QueryVisibility;
 use App\Models\AuthSource;
@@ -25,6 +26,7 @@ final class AccountAdminService
     public function __construct(
         private readonly RedminePassword $passwords,
         private readonly PasswordPolicy $policy,
+        private readonly AccountNotifier $mail,
     ) {}
 
     /**
@@ -50,7 +52,7 @@ final class AccountAdminService
         $mustChange = $this->flag($input['must_change_passwd'] ?? false, 'must_change_passwd');
         $sealed = $this->passwords->seal($password);
 
-        return DB::transaction(function () use ($login, $firstname, $lastname, $mail, $admin, $notification, $authSourceId, $status, $mustChange, $sealed): User {
+        $user = DB::transaction(function () use ($login, $firstname, $lastname, $mail, $admin, $notification, $authSourceId, $status, $mustChange, $sealed): User {
             $user = new User;
             $user->forceFill([
                 'login' => $login,
@@ -80,6 +82,9 @@ final class AccountAdminService
 
             return $user->refresh();
         });
+        $this->mail->information($actor, $user, $password);
+
+        return $user;
     }
 
     /**
@@ -162,8 +167,10 @@ final class AccountAdminService
             throw new DomainException('Only an active account can be locked.');
         }
         $subject->forceFill(['status' => User::STATUS_LOCKED])->save();
+        $locked = $subject->refresh();
+        $this->mail->locked($actor, $locked);
 
-        return $subject->refresh();
+        return $locked;
     }
 
     public function unlock(User $actor, User $subject): User
@@ -174,8 +181,10 @@ final class AccountAdminService
             throw new DomainException('Only a locked account can be unlocked.');
         }
         $subject->forceFill(['status' => User::STATUS_ACTIVE])->save();
+        $unlocked = $subject->refresh();
+        $this->mail->unlocked($actor, $unlocked);
 
-        return $subject->refresh();
+        return $unlocked;
     }
 
     public function activate(User $actor, User $subject): User
@@ -186,8 +195,10 @@ final class AccountAdminService
             throw new DomainException('Only a registered account can be activated.');
         }
         $subject->forceFill(['status' => User::STATUS_ACTIVE])->save();
+        $activated = $subject->refresh();
+        $this->mail->activated($actor, $activated);
 
-        return $subject->refresh();
+        return $activated;
     }
 
     public function addToGroup(User $actor, User $user, User $group): void

@@ -2,20 +2,24 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Domain\Activity\ActivityProvider;
+use App\Domain\Activity\AtomFeed;
 use App\Domain\Auth\RestAuthenticator;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 /**
- * Atom document authenticated by a `feeds` token.
+ * Personal Atom feed authenticated by a `feeds` token.
  *
- * This is the key gate. It does not list activity entries.
+ * Entries are the caller's activity. An API key does not open this route.
  */
 class FeedController extends Controller
 {
     public function __construct(
         private readonly RestAuthenticator $authenticator,
+        private readonly ActivityProvider $activity,
+        private readonly AtomFeed $atom,
     ) {}
 
     public function __invoke(Request $request): Response
@@ -25,14 +29,15 @@ class FeedController extends Controller
             return response('Unauthorized', 401);
         }
 
-        $login = htmlspecialchars((string) $user->login, ENT_XML1 | ENT_QUOTES, 'UTF-8');
-        $body = <<<XML
-            <?xml version="1.0" encoding="UTF-8"?>
-            <feed xmlns="http://www.w3.org/2005/Atom">
-              <title>Account feed</title>
-              <author><name>{$login}</name></author>
-            </feed>
-            XML;
+        $from = $request->query('from');
+        $days = $request->query('days');
+        $events = $this->activity->events(
+            $user,
+            null,
+            is_string($from) ? $from : null,
+            is_string($days) && preg_match('/^\d+$/', $days) === 1 ? (int) $days : null,
+        );
+        $body = $this->atom->render('Activity', $user, $events);
 
         return response($body, 200, ['Content-Type' => 'application/atom+xml; charset=UTF-8']);
     }

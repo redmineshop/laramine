@@ -3,6 +3,7 @@
 namespace App\Domain\Issues;
 
 use App\Domain\DomainException;
+use App\Domain\Notifications\IssueNotifier;
 use App\Domain\PermissionDeniedException;
 use App\Models\Issue;
 use App\Models\Journal;
@@ -24,6 +25,7 @@ final class JournalNoteService
         private readonly JournalNoteAccess $access,
         private readonly JournalQuoteText $quotes,
         private readonly IssueJournalWriter $journals,
+        private readonly IssueNotifier $notifications,
     ) {}
 
     public function quote(User $actor, Journal $journal): Journal
@@ -35,7 +37,7 @@ final class JournalNoteService
             throw new PermissionDeniedException('add_issue_notes');
         }
 
-        return DB::transaction(function () use ($actor, $journal, $issue, $project): Journal {
+        $created = DB::transaction(function () use ($actor, $journal, $issue, $project): Journal {
             $locked = $this->lock($journal);
             $this->assertVisible($actor, $project, $locked);
             $source = $this->requireNote($locked, 'quote');
@@ -55,6 +57,9 @@ final class JournalNoteService
                 (bool) $locked->private_notes,
             );
         });
+        $this->notifications->edited($actor, $issue, $created, null);
+
+        return $created;
     }
 
     public function edit(User $actor, Journal $journal, string $notes): Journal

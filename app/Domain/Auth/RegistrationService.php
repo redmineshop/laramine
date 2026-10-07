@@ -2,6 +2,7 @@
 
 namespace App\Domain\Auth;
 
+use App\Domain\Notifications\AccountNotifier;
 use App\Domain\Settings\SettingValue;
 use App\Models\EmailAddress;
 use App\Models\Token;
@@ -12,7 +13,8 @@ use Illuminate\Support\Facades\DB;
 /**
  * Self-registration and the `register` token that activates a status-2 account.
  *
- * Outbound mail is not sent. Email mode stores the token for a later mailer.
+ * Email activation mails the register token. Manual activation mails active
+ * administrators. Automatic registration does not send mail.
  */
 final class RegistrationService
 {
@@ -21,6 +23,7 @@ final class RegistrationService
         private readonly RedminePassword $passwords,
         private readonly PasswordPolicy $policy,
         private readonly ActionToken $tokens,
+        private readonly AccountNotifier $mail,
     ) {}
 
     /**
@@ -45,7 +48,7 @@ final class RegistrationService
             throw new AccountValidationException($errors);
         }
 
-        return DB::transaction(function () use ($login, $firstname, $lastname, $mail, $password, $mode): RegistrationResult {
+        $result = DB::transaction(function () use ($login, $firstname, $lastname, $mail, $password, $mode): RegistrationResult {
             $sealed = $this->passwords->seal($password);
             $user = new User;
             $user->forceFill([
@@ -85,6 +88,9 @@ final class RegistrationService
 
             return new RegistrationResult($user, $mode, $token);
         });
+        $this->notifyRegistration($result);
+
+        return $result;
     }
 
     public function activate(string $tokenValue): User
@@ -123,7 +129,20 @@ final class RegistrationService
             throw new TokenRejectedException('Activation email is not available.');
         }
 
-        $this->tokens->issue($user, Token::ACTION_REGISTER);
+        $token = $this->tokens->issue($user, Token::ACTION_REGISTER);
+        $this->mail->activation($user, $token);
+    }
+
+    private function notifyRegistration(RegistrationResult $result): void
+    {
+        if ($result->mode === SelfRegistrationMode::Email && $result->token instanceof Token) {
+            $this->mail->activation($result->user, $result->token);
+
+            return;
+        }
+        if ($result->mode === SelfRegistrationMode::Manual) {
+            $this->mail->activationRequest($result->user);
+        }
     }
 
     /**

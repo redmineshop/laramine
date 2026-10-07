@@ -4,6 +4,7 @@ namespace App\Domain\Settings;
 
 use App\Domain\Auth\SelfRegistrationMode;
 use App\Models\Setting;
+use JsonException;
 
 /**
  * Reads a Redmine setting row. A missing row uses the Redmine default.
@@ -49,6 +50,14 @@ final class SettingValue
     public const ATTACHMENT_EXTENSIONS_ALLOWED = 'attachment_extensions_allowed';
 
     public const ATTACHMENT_EXTENSIONS_DENIED = 'attachment_extensions_denied';
+
+    public const NOTIFIED_EVENTS = 'notified_events';
+
+    public const ACTIVITY_DAYS_DEFAULT = 'activity_days_default';
+
+    public const APP_TITLE = 'app_title';
+
+    public const MAIL_FROM = 'mail_from';
 
     /**
      * Redmine `display_subprojects_issues` defaults to 1.
@@ -268,6 +277,62 @@ final class SettingValue
     public function sessionTimeoutMinutes(): int
     {
         return $this->integer(self::SESSION_TIMEOUT, 0);
+    }
+
+    /**
+     * Days of activity shown when the request does not pass a count. Missing means 30.
+     */
+    public function activityDaysDefault(): int
+    {
+        return $this->integer(self::ACTIVITY_DAYS_DEFAULT, 30);
+    }
+
+    /**
+     * Site name used in mail and feeds. Missing means Laramine.
+     */
+    public function appTitle(): string
+    {
+        return $this->string(self::APP_TITLE) ?? 'Laramine';
+    }
+
+    /**
+     * Outbound From address. Empty when the row is missing.
+     */
+    public function mailFrom(): string
+    {
+        return $this->string(self::MAIL_FROM) ?? '';
+    }
+
+    /**
+     * JSON array of strings. Null when the row is missing or not a JSON array.
+     *
+     * @return list<string>|null
+     */
+    public function stringList(string $name): ?array
+    {
+        $stored = Setting::query()->where('name', $name)->value('value');
+        if (! is_string($stored)) {
+            return null;
+        }
+
+        try {
+            $decoded = json_decode($stored, true, 512, JSON_THROW_ON_ERROR);
+        } catch (JsonException) {
+            return null;
+        }
+        if (! is_array($decoded) || ! array_is_list($decoded)) {
+            return null;
+        }
+
+        $values = [];
+        foreach ($decoded as $item) {
+            if (! is_string($item)) {
+                return null;
+            }
+            $values[] = $item;
+        }
+
+        return $values;
     }
 
     private function integer(string $name, int $default): int

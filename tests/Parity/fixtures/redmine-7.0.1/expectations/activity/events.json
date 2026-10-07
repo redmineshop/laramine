@@ -1,0 +1,98 @@
+{
+  "window": {"from": "2026-08-27", "days": 2},
+  "empty_default": {"from": null, "days": null, "now": "2026-10-07 12:00:00", "setting_days": 30},
+  "actors": {
+    "ada": [
+      {"kind": "time_entry", "id": 5, "project": "parity-core", "author": "finn", "title": "1.00 hours (Development) on #1", "at": "2026-08-27 12:00:00"},
+      {"kind": "time_entry", "id": 4, "project": "parity-child", "author": "dora", "title": "3.00 hours (Development) on #5", "at": "2026-08-27 12:00:00"},
+      {"kind": "time_entry", "id": 3, "project": "parity-core", "author": "ada", "title": "0.50 hours (Development) on #6", "at": "2026-08-27 12:00:00"},
+      {"kind": "time_entry", "id": 2, "project": "parity-core", "author": "bea", "title": "2.00 hours (Development) on #1", "at": "2026-08-27 12:00:00"},
+      {"kind": "journal", "id": 4, "project": "parity-core", "author": "bea", "title": "Feature #6 (In Progress): Grouped assignee", "at": "2026-08-27 10:00:00"},
+      {"kind": "journal", "id": 3, "project": "parity-core", "author": "finn", "title": "Feature #2 (New): Parity pin subtask", "at": "2026-08-27 09:00:00"},
+      {"kind": "journal", "id": 8, "project": "parity-core", "author": "admin", "title": "Bug #1 (New): Parity pin parent", "at": "2026-08-26 13:15:00"},
+      {"kind": "journal", "id": 6, "project": "parity-core", "author": "ada", "title": "Bug #1 (New): Parity pin parent", "at": "2026-08-26 13:05:00"},
+      {"kind": "journal", "id": 5, "project": "parity-core", "author": "ada", "title": "Bug #1 (New): Parity pin parent", "at": "2026-08-26 13:00:00"},
+      {"kind": "issue", "id": 2, "project": "parity-core", "author": "ada", "title": "Feature #2 (New): Parity pin subtask", "at": "2026-08-26 12:00:00"},
+      {"kind": "issue", "id": 1, "project": "parity-core", "author": "ada", "title": "Bug #1 (New): Parity pin parent", "at": "2026-08-26 12:00:00"},
+      {"kind": "journal", "id": 1, "project": "parity-core", "author": "ada", "title": "Bug #1 (New): Parity pin parent", "at": "2026-08-26 12:00:00"},
+      {"kind": "time_entry", "id": 1, "project": "parity-core", "author": "ada", "title": "1.50 hours (Development) on #1", "at": "2026-08-26 12:00:00"}
+    ],
+    "admin": [
+      {"kind": "time_entry", "id": 5, "project": "parity-core", "author": "finn", "title": "1.00 hours (Development) on #1", "at": "2026-08-27 12:00:00"},
+      {"kind": "time_entry", "id": 4, "project": "parity-child", "author": "dora", "title": "3.00 hours (Development) on #5", "at": "2026-08-27 12:00:00"},
+      {"kind": "time_entry", "id": 3, "project": "parity-core", "author": "ada", "title": "0.50 hours (Development) on #6", "at": "2026-08-27 12:00:00"},
+      {"kind": "time_entry", "id": 2, "project": "parity-core", "author": "bea", "title": "2.00 hours (Development) on #1", "at": "2026-08-27 12:00:00"},
+      {"kind": "journal", "id": 4, "project": "parity-core", "author": "bea", "title": "Feature #6 (In Progress): Grouped assignee", "at": "2026-08-27 10:00:00"},
+      {"kind": "journal", "id": 3, "project": "parity-core", "author": "finn", "title": "Feature #2 (New): Parity pin subtask", "at": "2026-08-27 09:00:00"},
+      {"kind": "journal", "id": 8, "project": "parity-core", "author": "admin", "title": "Bug #1 (New): Parity pin parent", "at": "2026-08-26 13:15:00"},
+      {"kind": "journal", "id": 7, "project": "parity-core", "author": "ada", "title": "Bug #1 (New): Parity pin parent", "at": "2026-08-26 13:10:00"},
+      {"kind": "journal", "id": 6, "project": "parity-core", "author": "ada", "title": "Bug #1 (New): Parity pin parent", "at": "2026-08-26 13:05:00"},
+      {"kind": "journal", "id": 5, "project": "parity-core", "author": "ada", "title": "Bug #1 (New): Parity pin parent", "at": "2026-08-26 13:00:00"},
+      {"kind": "journal", "id": 2, "project": "parity-core", "author": "admin", "title": "Bug #1 (New): Parity pin parent", "at": "2026-08-26 12:05:00"},
+      {"kind": "issue", "id": 2, "project": "parity-core", "author": "ada", "title": "Feature #2 (New): Parity pin subtask", "at": "2026-08-26 12:00:00"},
+      {"kind": "issue", "id": 1, "project": "parity-core", "author": "ada", "title": "Bug #1 (New): Parity pin parent", "at": "2026-08-26 12:00:00"},
+      {"kind": "journal", "id": 1, "project": "parity-core", "author": "ada", "title": "Bug #1 (New): Parity pin parent", "at": "2026-08-26 12:00:00"},
+      {"kind": "time_entry", "id": 1, "project": "parity-core", "author": "ada", "title": "1.50 hours (Development) on #1", "at": "2026-08-26 12:00:00"}
+    ],
+    "bea": [
+      {"kind": "time_entry", "id": 5, "project": "parity-core", "author": "finn", "title": "1.00 hours (Development) on #1", "at": "2026-08-27 12:00:00"},
+      {"kind": "time_entry", "id": 3, "project": "parity-core", "author": "ada", "title": "0.50 hours (Development) on #6", "at": "2026-08-27 12:00:00"},
+      {"kind": "time_entry", "id": 2, "project": "parity-core", "author": "bea", "title": "2.00 hours (Development) on #1", "at": "2026-08-27 12:00:00"},
+      {"kind": "journal", "id": 4, "project": "parity-core", "author": "bea", "title": "Feature #6 (In Progress): Grouped assignee", "at": "2026-08-27 10:00:00"},
+      {"kind": "journal", "id": 3, "project": "parity-core", "author": "finn", "title": "Feature #2 (New): Parity pin subtask", "at": "2026-08-27 09:00:00"},
+      {"kind": "journal", "id": 8, "project": "parity-core", "author": "admin", "title": "Bug #1 (New): Parity pin parent", "at": "2026-08-26 13:15:00"},
+      {"kind": "journal", "id": 7, "project": "parity-core", "author": "ada", "title": "Bug #1 (New): Parity pin parent", "at": "2026-08-26 13:10:00"},
+      {"kind": "journal", "id": 6, "project": "parity-core", "author": "ada", "title": "Bug #1 (New): Parity pin parent", "at": "2026-08-26 13:05:00"},
+      {"kind": "journal", "id": 5, "project": "parity-core", "author": "ada", "title": "Bug #1 (New): Parity pin parent", "at": "2026-08-26 13:00:00"},
+      {"kind": "journal", "id": 2, "project": "parity-core", "author": "admin", "title": "Bug #1 (New): Parity pin parent", "at": "2026-08-26 12:05:00"},
+      {"kind": "issue", "id": 2, "project": "parity-core", "author": "ada", "title": "Feature #2 (New): Parity pin subtask", "at": "2026-08-26 12:00:00"},
+      {"kind": "issue", "id": 1, "project": "parity-core", "author": "ada", "title": "Bug #1 (New): Parity pin parent", "at": "2026-08-26 12:00:00"},
+      {"kind": "journal", "id": 1, "project": "parity-core", "author": "ada", "title": "Bug #1 (New): Parity pin parent", "at": "2026-08-26 12:00:00"},
+      {"kind": "time_entry", "id": 1, "project": "parity-core", "author": "ada", "title": "1.50 hours (Development) on #1", "at": "2026-08-26 12:00:00"}
+    ],
+    "finn": [
+      {"kind": "time_entry", "id": 5, "project": "parity-core", "author": "finn", "title": "1.00 hours (Development) on #1", "at": "2026-08-27 12:00:00"},
+      {"kind": "journal", "id": 4, "project": "parity-core", "author": "bea", "title": "Feature #6 (In Progress): Grouped assignee", "at": "2026-08-27 10:00:00"},
+      {"kind": "journal", "id": 3, "project": "parity-core", "author": "finn", "title": "Feature #2 (New): Parity pin subtask", "at": "2026-08-27 09:00:00"},
+      {"kind": "journal", "id": 8, "project": "parity-core", "author": "admin", "title": "Bug #1 (New): Parity pin parent", "at": "2026-08-26 13:15:00"},
+      {"kind": "journal", "id": 6, "project": "parity-core", "author": "ada", "title": "Bug #1 (New): Parity pin parent", "at": "2026-08-26 13:05:00"},
+      {"kind": "journal", "id": 5, "project": "parity-core", "author": "ada", "title": "Bug #1 (New): Parity pin parent", "at": "2026-08-26 13:00:00"},
+      {"kind": "issue", "id": 2, "project": "parity-core", "author": "ada", "title": "Feature #2 (New): Parity pin subtask", "at": "2026-08-26 12:00:00"},
+      {"kind": "issue", "id": 1, "project": "parity-core", "author": "ada", "title": "Bug #1 (New): Parity pin parent", "at": "2026-08-26 12:00:00"},
+      {"kind": "journal", "id": 1, "project": "parity-core", "author": "ada", "title": "Bug #1 (New): Parity pin parent", "at": "2026-08-26 12:00:00"}
+    ],
+    "cleo": [],
+    "dora": [
+      {"kind": "time_entry", "id": 4, "project": "parity-child", "author": "dora", "title": "3.00 hours (Development) on #5", "at": "2026-08-27 12:00:00"}
+    ]
+  },
+  "project_ada": [
+    {"kind": "time_entry", "id": 5, "project": "parity-core", "author": "finn", "title": "1.00 hours (Development) on #1", "at": "2026-08-27 12:00:00"},
+    {"kind": "time_entry", "id": 3, "project": "parity-core", "author": "ada", "title": "0.50 hours (Development) on #6", "at": "2026-08-27 12:00:00"},
+    {"kind": "time_entry", "id": 2, "project": "parity-core", "author": "bea", "title": "2.00 hours (Development) on #1", "at": "2026-08-27 12:00:00"},
+    {"kind": "journal", "id": 4, "project": "parity-core", "author": "bea", "title": "Feature #6 (In Progress): Grouped assignee", "at": "2026-08-27 10:00:00"},
+    {"kind": "journal", "id": 3, "project": "parity-core", "author": "finn", "title": "Feature #2 (New): Parity pin subtask", "at": "2026-08-27 09:00:00"},
+    {"kind": "journal", "id": 8, "project": "parity-core", "author": "admin", "title": "Bug #1 (New): Parity pin parent", "at": "2026-08-26 13:15:00"},
+    {"kind": "journal", "id": 6, "project": "parity-core", "author": "ada", "title": "Bug #1 (New): Parity pin parent", "at": "2026-08-26 13:05:00"},
+    {"kind": "journal", "id": 5, "project": "parity-core", "author": "ada", "title": "Bug #1 (New): Parity pin parent", "at": "2026-08-26 13:00:00"},
+    {"kind": "issue", "id": 2, "project": "parity-core", "author": "ada", "title": "Feature #2 (New): Parity pin subtask", "at": "2026-08-26 12:00:00"},
+    {"kind": "issue", "id": 1, "project": "parity-core", "author": "ada", "title": "Bug #1 (New): Parity pin parent", "at": "2026-08-26 12:00:00"},
+    {"kind": "journal", "id": 1, "project": "parity-core", "author": "ada", "title": "Bug #1 (New): Parity pin parent", "at": "2026-08-26 12:00:00"},
+    {"kind": "time_entry", "id": 1, "project": "parity-core", "author": "ada", "title": "1.50 hours (Development) on #1", "at": "2026-08-26 12:00:00"}
+  ],
+  "issues": {
+    "ada": [6, 5, 3, 2, 1],
+    "admin": [6, 5, 4, 3, 2, 1],
+    "cleo": [],
+    "parity_core_ada": [6, 3, 2, 1]
+  },
+  "issue_titles": {
+    "1": "Bug #1 (New): Parity pin parent",
+    "2": "Feature #2 (New): Parity pin subtask",
+    "3": "Feature #3 (Closed): Closed feature",
+    "4": "Bug #4 (In Progress): Bea private bug",
+    "5": "Bug #5 (New): Child project bug",
+    "6": "Feature #6 (In Progress): Grouped assignee"
+  },
+  "out_of_scope": ["news", "documents", "wiki", "messages", "files", "changesets"]
+}
