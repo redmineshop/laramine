@@ -29,6 +29,7 @@ final class IssueQueryProjection
     public function __construct(
         private readonly CustomFieldVisibility $visibility,
         private readonly SpentHoursQuery $spentHours,
+        private readonly IssueTreeHours $treeHours,
     ) {}
 
     /**
@@ -92,6 +93,10 @@ final class IssueQueryProjection
      */
     private function available(string $name, ?User $actor, ?Project $project, array $builtin): bool
     {
+        if ($name === 'total_spent_hours') {
+            return $this->treeHours->spentAvailable($actor, $project);
+        }
+
         if (isset($builtin[$name])) {
             return true;
         }
@@ -121,6 +126,8 @@ final class IssueQueryProjection
      *     categories: array<int, string>,
      *     versions: array<int, string>,
      *     spent: array<int, string>,
+     *     estimated_total: array<int, string>,
+     *     spent_total: array<int, string>,
      *     custom: array<int, array<string, string|null>>
      * }
      */
@@ -135,6 +142,8 @@ final class IssueQueryProjection
         if (isset($need['spent_hours']) && $issueIds !== []) {
             $spent = $this->spentHours->perIssue(Issue::query()->whereIn('issues.id', $issueIds), $actor);
         }
+        $estimatedTotal = isset($need['total_estimated_hours']) ? $this->treeHours->estimated($actor, $issueIds) : [];
+        $spentTotal = isset($need['total_spent_hours']) ? $this->treeHours->spent($actor, $issueIds) : [];
 
         $categoryIds = $this->ids($issues, 'category_id');
 
@@ -151,6 +160,8 @@ final class IssueQueryProjection
                 : [],
             'versions' => isset($need['fixed_version']) ? $this->versionNames($this->ids($issues, 'fixed_version_id')) : [],
             'spent' => $spent,
+            'estimated_total' => $estimatedTotal,
+            'spent_total' => $spentTotal,
             'custom' => $this->customCells($issues, $columns),
         ];
     }
@@ -165,6 +176,8 @@ final class IssueQueryProjection
      *     categories: array<int, string>,
      *     versions: array<int, string>,
      *     spent: array<int, string>,
+     *     estimated_total: array<int, string>,
+     *     spent_total: array<int, string>,
      *     custom: array<int, array<string, string|null>>
      * }  $context
      */
@@ -190,7 +203,9 @@ final class IssueQueryProjection
             'start_date' => $this->clock($issue, 'start_date', 10),
             'due_date' => $this->clock($issue, 'due_date', 10),
             'estimated_hours' => $this->hours($issue),
+            'total_estimated_hours' => $context['estimated_total'][(int) $issue->id] ?? '0',
             'spent_hours' => $context['spent'][(int) $issue->id] ?? '0',
+            'total_spent_hours' => $context['spent_total'][(int) $issue->id] ?? '0',
             'done_ratio' => $this->whole($issue, 'done_ratio'),
             'created_on' => $this->clock($issue, 'created_on', 19),
             'closed_on' => $this->clock($issue, 'closed_on', 19),

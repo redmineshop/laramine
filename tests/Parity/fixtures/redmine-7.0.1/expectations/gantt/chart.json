@@ -1,0 +1,416 @@
+{
+    "ada_denied_before_grant": "Permission denied: view_gantt",
+    "png": "n/a",
+    "admin": {
+        "year_from": 2026,
+        "month_from": 8,
+        "date_from": "2026-08-01",
+        "date_to": "2026-09-30",
+        "zoom": 2,
+        "months": 2,
+        "truncated": false,
+        "max_rows": 500,
+        "png": "n/a",
+        "rows": [
+            {
+                "kind": "project",
+                "id": 1,
+                "indent": 0,
+                "name": "Parity Core",
+                "status": "1",
+                "bar": {
+                    "start": "2026-07-01",
+                    "end": "2026-09-10",
+                    "bar_start": 0,
+                    "bar_end": 82,
+                    "bar_progress_end": null,
+                    "bar_late_end": null,
+                    "marker_start": null,
+                    "marker_end": 82,
+                    "progress": null,
+                    "markers": true
+                }
+            },
+            {
+                "kind": "issue",
+                "id": 2,
+                "indent": 1,
+                "name": "Parity pin subtask",
+                "status": "New",
+                "bar": null
+            },
+            {
+                "kind": "issue",
+                "id": 4,
+                "indent": 1,
+                "name": "Bea private bug",
+                "status": "In Progress",
+                "bar": {
+                    "start": "2026-09-01",
+                    "end": "2026-09-10",
+                    "bar_start": 62,
+                    "bar_end": 82,
+                    "bar_progress_end": null,
+                    "bar_late_end": null,
+                    "marker_start": 62,
+                    "marker_end": 82,
+                    "progress": 0,
+                    "markers": false
+                }
+            },
+            {
+                "kind": "version",
+                "id": 1,
+                "indent": 1,
+                "name": "1.0",
+                "status": "open",
+                "bar": null
+            },
+            {
+                "kind": "issue",
+                "id": 1,
+                "indent": 2,
+                "name": "Parity pin parent",
+                "status": "New",
+                "bar": {
+                    "start": "2026-08-26",
+                    "end": "2026-09-02",
+                    "bar_start": 50,
+                    "bar_end": 66,
+                    "bar_progress_end": null,
+                    "bar_late_end": null,
+                    "marker_start": 50,
+                    "marker_end": 66,
+                    "progress": 0,
+                    "markers": true
+                }
+            },
+            {
+                "kind": "issue",
+                "id": 6,
+                "indent": 2,
+                "name": "Grouped assignee",
+                "status": "In Progress",
+                "bar": null
+            },
+            {
+                "kind": "project",
+                "id": 2,
+                "indent": 1,
+                "name": "Parity Child",
+                "status": "1",
+                "bar": null
+            },
+            {
+                "kind": "issue",
+                "id": 5,
+                "indent": 2,
+                "name": "Child project bug",
+                "status": "New",
+                "bar": null
+            }
+        ],
+        "relations": [
+            {
+                "from": 6,
+                "to": 4,
+                "type": "blocks"
+            }
+        ],
+        "pdf_header": "%PDF-1.4",
+        "pdf_missing_labels": []
+    },
+    "relations_hidden": [],
+    "truncated": {
+        "truncated": true,
+        "rows": [
+            {
+                "kind": "project",
+                "id": 1,
+                "indent": 0,
+                "name": "Parity Core",
+                "status": "1",
+                "bar": {
+                    "start": "2026-07-01",
+                    "end": "2026-09-10",
+                    "bar_start": 0,
+                    "bar_end": 82,
+                    "bar_progress_end": null,
+                    "bar_late_end": null,
+                    "marker_start": null,
+                    "marker_end": 82,
+                    "progress": null,
+                    "markers": true
+                }
+            },
+            {
+                "kind": "issue",
+                "id": 2,
+                "indent": 1,
+                "name": "Parity pin subtask",
+                "status": "New",
+                "bar": null
+            }
+        ]
+    },
+    "ada_project": {
+        "year_from": 2026,
+        "month_from": 8,
+        "date_from": "2026-08-01",
+        "date_to": "2026-09-30",
+        "zoom": 2,
+        "months": 2,
+        "truncated": false,
+        "max_rows": 500,
+        "png": "n/a",
+        "rows": [
+            {
+                "kind": "project",
+                "id": 1,
+                "indent": 0,
+                "name": "Parity Core",
+                "status": "1",
+                "bar": {
+                    "start": "2026-07-01",
+                    "end": "2026-09-10",
+                    "bar_start": 0,
+                    "bar_end": 82,
+                    "bar_progress_end": null,
+                    "bar_late_end": null,
+                    "marker_start": null,
+                    "marker_end": 82,
+                    "progress": null,
+                    "markers": true
+                }
+            },
+            {
+                "kind": "issue",
+                "id": 2,
+                "indent": 1,
+                "name": "Parity pin subtask",
+                "status": "New",
+                "bar": null
+            },
+            {
+                "kind": "version",
+                "id": 1,
+                "indent": 1,
+                "name": "1.0",
+                "status": "open",
+                "bar": null
+            },
+            {
+                "kind": "issue",
+                "id": 1,
+                "indent": 2,
+                "name": "Parity pin parent",
+                "status": "New",
+                "bar": {
+                    "start": "2026-08-26",
+                    "end": "2026-09-02",
+                    "bar_start": 50,
+                    "bar_end": 66,
+                    "bar_progress_end": null,
+                    "bar_late_end": null,
+                    "marker_start": 50,
+                    "marker_end": 66,
+                    "progress": 0,
+                    "markers": true
+                }
+            },
+            {
+                "kind": "issue",
+                "id": 6,
+                "indent": 2,
+                "name": "Grouped assignee",
+                "status": "In Progress",
+                "bar": null
+            },
+            {
+                "kind": "project",
+                "id": 2,
+                "indent": 1,
+                "name": "Parity Child",
+                "status": "1",
+                "bar": null
+            },
+            {
+                "kind": "issue",
+                "id": 5,
+                "indent": 2,
+                "name": "Child project bug",
+                "status": "New",
+                "bar": null
+            }
+        ],
+        "relations": [],
+        "pdf_header": "%PDF-1.4",
+        "pdf_missing_labels": []
+    },
+    "closed_version": {
+        "year_from": 2026,
+        "month_from": 9,
+        "date_from": "2026-09-01",
+        "date_to": "2026-09-30",
+        "zoom": 4,
+        "months": 1,
+        "truncated": false,
+        "max_rows": 500,
+        "png": "n/a",
+        "rows": [
+            {
+                "kind": "project",
+                "id": 1,
+                "indent": 0,
+                "name": "Parity Core",
+                "status": "1",
+                "bar": {
+                    "start": "2026-07-01",
+                    "end": "2026-09-20",
+                    "bar_start": 0,
+                    "bar_end": 80,
+                    "bar_progress_end": null,
+                    "bar_late_end": null,
+                    "marker_start": null,
+                    "marker_end": 80,
+                    "progress": null,
+                    "markers": true
+                }
+            },
+            {
+                "kind": "issue",
+                "id": 2,
+                "indent": 1,
+                "name": "Parity pin subtask",
+                "status": "New",
+                "bar": null
+            },
+            {
+                "kind": "issue",
+                "id": 4,
+                "indent": 1,
+                "name": "Bea private bug",
+                "status": "In Progress",
+                "bar": {
+                    "start": "2026-09-01",
+                    "end": "2026-09-10",
+                    "bar_start": 0,
+                    "bar_end": 40,
+                    "bar_progress_end": null,
+                    "bar_late_end": null,
+                    "marker_start": 0,
+                    "marker_end": 40,
+                    "progress": 0,
+                    "markers": false
+                }
+            },
+            {
+                "kind": "version",
+                "id": 8,
+                "indent": 1,
+                "name": "Locked",
+                "status": "closed",
+                "bar": {
+                    "start": "2026-09-01",
+                    "end": "2026-09-20",
+                    "bar_start": 0,
+                    "bar_end": 80,
+                    "bar_progress_end": null,
+                    "bar_late_end": null,
+                    "marker_start": 0,
+                    "marker_end": 80,
+                    "progress": 0,
+                    "markers": true
+                }
+            },
+            {
+                "kind": "issue",
+                "id": 6,
+                "indent": 2,
+                "name": "Grouped assignee",
+                "status": "In Progress",
+                "bar": {
+                    "start": "2026-09-01",
+                    "end": "2026-09-20",
+                    "bar_start": 0,
+                    "bar_end": 80,
+                    "bar_progress_end": null,
+                    "bar_late_end": null,
+                    "marker_start": 0,
+                    "marker_end": 80,
+                    "progress": 0,
+                    "markers": false
+                }
+            },
+            {
+                "kind": "version",
+                "id": 1,
+                "indent": 1,
+                "name": "1.0",
+                "status": "open",
+                "bar": null
+            },
+            {
+                "kind": "issue",
+                "id": 1,
+                "indent": 2,
+                "name": "Parity pin parent",
+                "status": "New",
+                "bar": {
+                    "start": "2026-08-26",
+                    "end": "2026-09-02",
+                    "bar_start": 0,
+                    "bar_end": 8,
+                    "bar_progress_end": null,
+                    "bar_late_end": null,
+                    "marker_start": null,
+                    "marker_end": 8,
+                    "progress": 0,
+                    "markers": true
+                }
+            },
+            {
+                "kind": "project",
+                "id": 2,
+                "indent": 1,
+                "name": "Parity Child",
+                "status": "1",
+                "bar": {
+                    "start": "2026-08-20",
+                    "end": "2026-09-20",
+                    "bar_start": 0,
+                    "bar_end": 80,
+                    "bar_progress_end": null,
+                    "bar_late_end": null,
+                    "marker_start": null,
+                    "marker_end": 80,
+                    "progress": null,
+                    "markers": true
+                }
+            },
+            {
+                "kind": "issue",
+                "id": 5,
+                "indent": 2,
+                "name": "Child project bug",
+                "status": "New",
+                "bar": null
+            }
+        ],
+        "relations": [
+            {
+                "from": 6,
+                "to": 4,
+                "type": "blocks"
+            },
+            {
+                "from": 1,
+                "to": 6,
+                "type": "precedes"
+            }
+        ],
+        "pdf_header": "%PDF-1.4",
+        "pdf_missing_labels": []
+    },
+    "preference": "{\"gantt_zoom\":\"4\",\"gantt_months\":\"1\"}"
+}

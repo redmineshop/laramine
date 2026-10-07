@@ -57,6 +57,6 @@ TODO: when the registry is specified, a Composer package should register Inertia
 
 ## Deferred
 
-- Issues, projects, wiki, boards, calendar, gantt, and the rest of a Redmine-like UI.
+- A Redmine-like UI for issues, projects, wiki, boards, calendar, and gantt. Minimal calendar, gantt, and project-list pages exist and are not that UI.
 - The page registry itself.
 - Parity. Nothing in this file is **VERIFIED**. The sign-in page is a P0 screen on the Phase 1 session action. It is not UI-ready, not Redmine UX parity, and not a 0.1 release. See [ux-parity-notes.md](ux-parity-notes.md).

@@ -136,6 +136,17 @@ final class IssueQueryRunner
     }
 
     /**
+     * Filtered issues with no sort. Calendar and Gantt apply their own order.
+     *
+     * @param  array<mixed>  $filters
+     * @return Builder<Issue>
+     */
+    public function matching(?User $actor, ?Project $project, array $filters): Builder
+    {
+        return $this->filtered($actor, $project, QueryPayload::filters($filters));
+    }
+
+    /**
      * @return list<string>
      */
     public function displayColumns(Query $query): array

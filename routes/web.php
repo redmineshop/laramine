@@ -13,13 +13,16 @@ use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\Auth\UserAdminController;
 use App\Http\Controllers\Auth\UserDirectoryController;
+use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\CustomFieldAssetController;
 use App\Http\Controllers\CustomFieldHostController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\FrontendSmokeController;
+use App\Http\Controllers\GanttController;
 use App\Http\Controllers\IssueFeedController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\ProjectFileController;
+use App\Http\Controllers\ProjectListController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', FrontendSmokeController::class);
@@ -83,6 +86,21 @@ Route::get('/attachments/{attachment}', [AttachmentController::class, 'download'
 Route::delete('/attachments/{attachment}', [AttachmentController::class, 'destroy'])
     ->whereNumber('attachment')
     ->name('attachments.destroy');
+
+Route::get('/issues/calendar', [CalendarController::class, 'index'])->name('calendar.index');
+Route::get('/projects/{project}/issues/calendar', [CalendarController::class, 'project'])
+    ->whereNumber('project')
+    ->name('projects.calendar');
+Route::get('/issues/gantt.pdf', [GanttController::class, 'pdf'])->name('gantt.pdf');
+Route::get('/issues/gantt', [GanttController::class, 'index'])->name('gantt.index');
+Route::get('/projects/{project}/issues/gantt.pdf', [GanttController::class, 'projectPdf'])
+    ->whereNumber('project')
+    ->name('projects.gantt.pdf');
+Route::get('/projects/{project}/issues/gantt', [GanttController::class, 'project'])
+    ->whereNumber('project')
+    ->name('projects.gantt');
+Route::get('/projects', [ProjectListController::class, 'index'])->name('projects.index');
+Route::get('/admin/projects', [ProjectListController::class, 'admin'])->name('admin.projects');
 
 Route::get('/news', [NewsController::class, 'index'])->name('news.index');
 Route::get('/news/{news}', [NewsController::class, 'show'])->whereNumber('news')->name('news.show');

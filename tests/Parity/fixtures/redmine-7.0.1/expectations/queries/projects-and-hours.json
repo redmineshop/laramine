@@ -1,0 +1,148 @@
+{
+    "ada_admin_query_denied": "Permission denied: view_project",
+    "active": {
+        "ids": [
+            2,
+            1
+        ],
+        "columns": [
+            "name",
+            "identifier",
+            "status",
+            "is_public",
+            "parent_id",
+            "last_activity_date"
+        ],
+        "rows": [
+            {
+                "name": "Parity Child",
+                "identifier": "parity-child",
+                "status": "1",
+                "is_public": "0",
+                "parent_id": "1",
+                "last_activity_date": "2026-08-27"
+            },
+            {
+                "name": "Parity Core",
+                "identifier": "parity-core",
+                "status": "1",
+                "is_public": "1",
+                "parent_id": null,
+                "last_activity_date": "2026-09-01"
+            }
+        ],
+        "groups": []
+    },
+    "grouped": {
+        "ids": [
+            2,
+            1
+        ],
+        "columns": [
+            "name",
+            "identifier",
+            "status",
+            "is_public",
+            "parent_id",
+            "last_activity_date"
+        ],
+        "rows": [
+            {
+                "name": "Parity Child",
+                "identifier": "parity-child",
+                "status": "1",
+                "is_public": "0",
+                "parent_id": "1",
+                "last_activity_date": "2026-08-27"
+            },
+            {
+                "name": "Parity Core",
+                "identifier": "parity-core",
+                "status": "1",
+                "is_public": "1",
+                "parent_id": null,
+                "last_activity_date": "2026-08-27"
+            }
+        ],
+        "groups": [
+            {
+                "value": "0",
+                "count": 1
+            },
+            {
+                "value": "1",
+                "count": 1
+            }
+        ]
+    },
+    "archived_project_query_ids": [
+        1
+    ],
+    "archived_status_rejected": "Project status is not available: 9.",
+    "archived_admin": [
+        2
+    ],
+    "hours": {
+        "admin": [
+            {
+                "id": 3,
+                "total_estimated_hours": "4",
+                "total_spent_hours": "0"
+            },
+            {
+                "id": 1,
+                "total_estimated_hours": "2.5",
+                "total_spent_hours": "4.5"
+            },
+            {
+                "id": 4,
+                "total_estimated_hours": "1.25",
+                "total_spent_hours": "0"
+            },
+            {
+                "id": 5,
+                "total_estimated_hours": "0.5",
+                "total_spent_hours": "3"
+            },
+            {
+                "id": 2,
+                "total_estimated_hours": "0",
+                "total_spent_hours": "0"
+            },
+            {
+                "id": 6,
+                "total_estimated_hours": "0",
+                "total_spent_hours": "0.5"
+            }
+        ],
+        "finn": [
+            {
+                "id": 3,
+                "total_estimated_hours": "4",
+                "total_spent_hours": "0"
+            },
+            {
+                "id": 1,
+                "total_estimated_hours": "2.5",
+                "total_spent_hours": "1"
+            },
+            {
+                "id": 2,
+                "total_estimated_hours": "0",
+                "total_spent_hours": "0"
+            },
+            {
+                "id": 6,
+                "total_estimated_hours": "0",
+                "total_spent_hours": "0"
+            }
+        ],
+        "ada_columns": [
+            "total_spent_hours",
+            "total_estimated_hours"
+        ],
+        "erin_columns": [
+            "total_estimated_hours"
+        ]
+    }
+}

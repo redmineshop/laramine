@@ -6,7 +6,7 @@ use App\Domain\Queries\QueryType;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * Stub STI row. Project query filters are not executed.
+ * Saved project list. `ProjectQueryRunner` executes the filters.
  */
 class ProjectQuery extends Query
 {

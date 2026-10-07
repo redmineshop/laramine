@@ -49,6 +49,7 @@ final class IssueQuerySort
 
     public function __construct(
         private readonly CustomFieldVisibility $visibility,
+        private readonly IssueTreeHours $treeHours,
     ) {}
 
     /**
@@ -110,6 +111,19 @@ final class IssueQuerySort
         $users = $this->userExpressions($name);
         if ($users !== null) {
             return $users;
+        }
+
+        if ($name === 'total_estimated_hours' || $name === 'total_spent_hours') {
+            if ($type !== QueryType::ISSUE) {
+                throw new QueryValidationException('Sort column is not available: '.$name.'.');
+            }
+            if ($name === 'total_spent_hours' && ! $this->treeHours->spentAvailable($actor, $project)) {
+                throw new QueryValidationException('Sort column is not available: '.$name.'.');
+            }
+
+            return [$name === 'total_estimated_hours'
+                ? $this->treeHours->estimatedOrder($actor)
+                : $this->treeHours->spentOrder($actor)];
         }
 
         if (preg_match('/^cf_(\d+)$/', $name, $matches) !== 1) {

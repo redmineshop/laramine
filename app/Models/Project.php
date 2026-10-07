@@ -24,6 +24,8 @@ class Project extends Model
 
     public const STATUS_ARCHIVED = 9;
 
+    public const STATUS_SCHEDULED_FOR_DELETION = 10;
+
     /**
      * @var list<string>
      */
