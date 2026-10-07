@@ -14,6 +14,7 @@ This is the Laramine checklist for `link`, `enumeration`, `attachment`, and `pro
 | Value sync, read shape, and attachment bind | `App\Domain\CustomFields\CustomValueService` |
 | Enumeration option insert, reorder, activate, delete | `App\Domain\CustomFields\CustomFieldEnumerationService` |
 | Attachment bytes, digest, disk directory | `App\Domain\Attachments\AttachmentService` |
+| Authorized attachment download and link URL | `App\Domain\CustomFields\CustomFieldAssetAccess`, `GET /custom-fields/attachments/{id}`, `GET /custom-fields/links/{id}` |
 | `cf_{id}` filters | `App\Domain\Queries\CustomFieldFilterSql` |
 
 Domain behavior is described in [custom-fields.md](custom-fields.md). Filter types are described in [queries.md](queries.md). The parity row stays **NOT VERIFIED** in [parity-checklist.md](parity-checklist.md).
@@ -34,6 +35,8 @@ Domain behavior is described in [custom-fields.md](custom-fields.md). Filter typ
 | Attachment upload writes the file, SHA-256 `digest`, and `YYYY/MM` `disk_directory`, then binds an unbound row when the custom value is saved. Extension rules stay in `AttachmentFormat`. Clearing the value leaves the file and the container | `tests/Feature/CustomFieldAttachmentUploadTest.php` `test_upload_writes_digest_and_binds_when_the_custom_value_is_set` and `test_upload_rejects_a_bad_extension_and_a_foreign_container` |
 | Enumeration options can be inserted, renamed, reordered, and activated or deactivated. Stored custom values keep the same ids. The current default cannot be deactivated | `tests/Feature/CustomFieldEnumerationOptionTest.php` `test_enumeration_options_reorder_and_values_stay_on_the_same_ids` |
 | Enumeration option deletion removes an unused option. An option that custom values still store is rewritten to another option of the same field, including an inactive one, or left in place when no replacement is given. The current default cannot be deleted. A record that already stores the replacement keeps one row. Positions of the remaining options stay as stored | `tests/Feature/CustomFieldEnumerationOptionTest.php` `test_enumeration_option_delete_rewrites_values_or_refuses` |
+| Attachment download sends the file and increments `downloads` for a member who can see the issue. An outsider, a guest, and a member who cannot see a hidden field are refused. A cleared value and a missing file are not served | `tests/Feature/CustomFieldAssetHttpTest.php` `test_member_downloads_an_attachment_custom_value`, `test_outsider_and_guest_cannot_download_an_issue_attachment`, `test_hidden_attachment_field_follows_custom_field_roles`, and `test_cleared_or_unbound_attachment_is_not_served` |
+| Link HTTP view returns the stored string and the formatted URL. A guest can read a public project link. A private project, an outsider on an issue, and another user's link are refused. The server does not request the URL | `tests/Feature/CustomFieldAssetHttpTest.php` `test_member_resolves_a_link_and_an_outsider_is_denied`, `test_public_project_link_is_readable_by_a_guest_and_a_private_project_is_not`, and `test_user_link_is_visible_to_that_user_and_an_admin_only` |
 
 MySQL 8 is the database (`phpunit.xml`). These tests do not live under `tests/Parity`.
 
@@ -41,8 +44,8 @@ MySQL 8 is the database (`phpunit.xml`). These tests do not live under `tests/Pa
 
 | Item | Status |
 | --- | --- |
-| Link HTTP view and live fetch | **Open.** `formattedUrl` builds an encoded URL and does not request it. There is no HTTP view. |
-| Attachment download | **Open.** Bytes are stored on the local `attachments` disk. Nothing serves or deletes that file over HTTP. |
+| Link outbound fetch | **Open.** The link route returns the resolved URL. This process does not request it. |
+| Attachment delete over HTTP | **Open.** Download serves a current custom-field file. Nothing deletes that file over HTTP. Journal and issue attachments stay off this route. |
 | Version sharing | **Open.** Unchanged. A version value must belong to the record's project. |
 | Custom-field journal diffs | **Open.** Unchanged. Issue journals do not record custom-value edits. |
 | Redmine 7.0.1 comparison | **Open.** No `tests/Parity` fixture compares these formats to Redmine. |
