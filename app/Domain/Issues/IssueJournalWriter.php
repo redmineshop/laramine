@@ -30,6 +30,8 @@ final class IssueJournalWriter
 
     public const PROPERTY_RELATION = 'relation';
 
+    public const PROPERTY_ATTACHMENT = 'attachment';
+
     /**
      * Redmine STI name stored on reactions that target a journal.
      */

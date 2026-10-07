@@ -1,0 +1,32 @@
+[
+    {
+        "id": 1,
+        "author_id": 1,
+        "container_id": 1,
+        "container_type": "Issue",
+        "content_type": "application/pdf",
+        "created_on": "2026-08-26 12:00:00",
+        "description": null,
+        "digest": null,
+        "disk_directory": null,
+        "disk_filename": "before.pdf",
+        "downloads": 0,
+        "filename": "before.pdf",
+        "filesize": 12
+    },
+    {
+        "id": 2,
+        "author_id": 1,
+        "container_id": 1,
+        "container_type": "Issue",
+        "content_type": "application/pdf",
+        "created_on": "2026-08-26 12:00:00",
+        "description": null,
+        "digest": null,
+        "disk_directory": null,
+        "disk_filename": "after.pdf",
+        "downloads": 0,
+        "filename": "after.pdf",
+        "filesize": 18
+    }
+]

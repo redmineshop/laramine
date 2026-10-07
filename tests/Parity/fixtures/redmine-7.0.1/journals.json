@@ -42,5 +42,49 @@
         "updated_by_id": null,
         "created_on": "2026-08-27 10:00:00",
         "updated_on": "2026-08-27 10:00:00"
+    },
+    {
+        "id": 5,
+        "journalized_type": "Issue",
+        "journalized_id": 1,
+        "user_id": 1,
+        "notes": null,
+        "private_notes": false,
+        "updated_by_id": null,
+        "created_on": "2026-08-26 13:00:00",
+        "updated_on": "2026-08-26 13:00:00"
+    },
+    {
+        "id": 6,
+        "journalized_type": "Issue",
+        "journalized_id": 1,
+        "user_id": 1,
+        "notes": null,
+        "private_notes": false,
+        "updated_by_id": null,
+        "created_on": "2026-08-26 13:05:00",
+        "updated_on": "2026-08-26 13:05:00"
+    },
+    {
+        "id": 7,
+        "journalized_type": "Issue",
+        "journalized_id": 1,
+        "user_id": 1,
+        "notes": "Ada hid this remark.",
+        "private_notes": true,
+        "updated_by_id": null,
+        "created_on": "2026-08-26 13:10:00",
+        "updated_on": "2026-08-26 13:10:00"
+    },
+    {
+        "id": 8,
+        "journalized_type": "Issue",
+        "journalized_id": 1,
+        "user_id": 2,
+        "notes": "Manager left a remark.",
+        "private_notes": false,
+        "updated_by_id": null,
+        "created_on": "2026-08-26 13:15:00",
+        "updated_on": "2026-08-26 13:15:00"
     }
 ]

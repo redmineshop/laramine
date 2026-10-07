@@ -313,5 +313,26 @@
         "format_store": null,
         "description": "Synthetic link field whose value already has a scheme",
         "position": 15
+    },
+    {
+        "id": 16,
+        "type": "IssueCustomField",
+        "name": "Pin file",
+        "field_format": "attachment",
+        "possible_values": null,
+        "regexp": "",
+        "min_length": null,
+        "max_length": null,
+        "is_required": false,
+        "is_for_all": false,
+        "is_filter": false,
+        "searchable": false,
+        "editable": true,
+        "visible": true,
+        "multiple": false,
+        "default_value": null,
+        "format_store": null,
+        "description": "Synthetic attachment field kept off the issue tracker so value sync does not apply it",
+        "position": 16
     }
 ]

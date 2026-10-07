@@ -5,11 +5,11 @@ alwaysApply: true
 
 # Laramine
 
-Early MIT Laravel core. Domain goal is Redmine 7.0.1 semantics, reimplemented in original PHP. Read `AGENTS.md` before a large change. The P0 layout, users and authentication, identity, projects nested-set, workflows, custom fields, and queries rows in `docs/parity-checklist.md` are **VERIFIED** by the tests named there. Every other row is **NOT VERIFIED**. Do not describe the project as production-ready.
+Early MIT Laravel core. Domain goal is Redmine 7.0.1 semantics, reimplemented in original PHP. Read `AGENTS.md` before a large change. The P0 layout, users and authentication, identity, projects nested-set, workflows, custom fields, queries, and journals rows in `docs/parity-checklist.md` are **VERIFIED** by the tests named there. Every other row is **NOT VERIFIED**. Do not describe the project as production-ready.
 
 ## Architecture
 
-- `app/Domain/Issues` — `IssueService` create/update, nested set, workflow, journal write (notes, private notes, attribute diffs, custom-value diffs, relation-add). `JournalNoteService` quotes, edits, and deletes a note under the same permissions as the history markers.
+- `app/Domain/Issues` — `IssueService` create/update, nested set, workflow, journal write (notes, private notes, attribute diffs, custom-value diffs, relation-add). `JournalNoteService` quotes, edits, and deletes a note under the same permissions as the history markers. History lines for `attr`, `attachment`, `relation`, and `cf` are compared on the journals row by `tests/Parity/JournalParityTest.php`.
 - `app/Domain/Acl` — `PermissionCatalog`, `PermissionService`, `MembershipService`, `UserVisibility`. Permission names are catalog strings. `roles.permissions` is stored as a JSON array.
 - `app/Domain/Workflow` — transitions (`WorkflowTransition`) and field rules (`WorkflowPermission`). MVP smoke: `docs/acl-workflow-parity-gate.md` (a checklist **PASS** there is Laramine smoke, not a 0.1 tag). The workflows checklist row is **VERIFIED** only by `tests/Parity/WorkflowParityTest.php`.
 - `app/Domain/CustomFields` — formats and `CustomValueService`. Version values follow `versions.sharing`. See `docs/custom-fields.md`. The checklist row is **VERIFIED** only by `tests/Parity/CustomFieldParityTest.php`.

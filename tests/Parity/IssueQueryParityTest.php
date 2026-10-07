@@ -120,7 +120,6 @@ class IssueQueryParityTest extends TestCase
         $this->assertStringContainsString('tests/Parity/IssueQueryParityTest.php', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/queries/results.json', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/', $checklist);
-        $this->assertMatchesRegularExpression('/^\| Journals and private notes \| NOT VERIFIED \|/m', $checklist);
     }
 
     /**

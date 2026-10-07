@@ -37,6 +37,20 @@ class JournalPresentationTest extends TestCase
         $this->assertNull($formatter->attribute('Subject', 'Same', 'Same'));
     }
 
+    public function test_updated_and_added_lines_keep_relation_style_plain(): void
+    {
+        $updated = JournalPropertyLine::updated('Description');
+        $file = JournalPropertyLine::added('File', 'spec.pdf');
+        $multi = JournalPropertyLine::added('Pin multi', 'alpha, beta', true);
+
+        $this->assertSame('Description updated', $updated->text);
+        $this->assertSame('Description updated', $updated->html);
+        $this->assertSame('File spec.pdf added', $file->text);
+        $this->assertSame('File spec.pdf added', $file->html);
+        $this->assertSame('Pin multi alpha, beta added', $multi->text);
+        $this->assertSame('Pin multi <em>alpha, beta</em> added', $multi->html);
+    }
+
     public function test_relation_add_line_names_the_other_issue(): void
     {
         $line = JournalPropertyLine::relationAdded('Related to', 'Bug', 2, 'Sample issue 2');

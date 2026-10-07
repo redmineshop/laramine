@@ -6,7 +6,7 @@
         "builtin": 0,
         "assignable": true,
         "all_roles_managed": false,
-        "permissions": ["view_issues", "add_issues", "edit_issues", "edit_own_issues", "add_issue_notes", "view_issue_watchers", "add_issue_watchers", "view_time_entries", "log_time", "save_queries"],
+        "permissions": ["view_issues", "add_issues", "edit_issues", "edit_own_issues", "add_issue_notes", "edit_own_issue_notes", "view_issue_watchers", "add_issue_watchers", "view_time_entries", "log_time", "save_queries"],
         "issues_visibility": "default",
         "users_visibility": "members_of_visible_projects",
         "time_entries_visibility": "all",
