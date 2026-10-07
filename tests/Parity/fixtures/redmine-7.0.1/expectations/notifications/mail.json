@@ -1,0 +1,272 @@
+{
+  "host": "parity.test",
+  "from": "laramine@parity.test",
+  "stamp": "20261007120000",
+  "unbuilt": [
+    "news_added",
+    "news_comment_added",
+    "document_added",
+    "file_added",
+    "message_posted",
+    "wiki_content_added",
+    "wiki_content_updated"
+  ],
+  "defaults_omit": ["issue_fixed_version_updated", "issue_attachment_added"],
+  "classifier": [
+    {
+      "journal_id": 1,
+      "specific": ["issue_note_added"],
+      "checks": [
+        {"enabled": ["issue_updated"], "emits": true},
+        {"enabled": ["issue_note_added"], "emits": true},
+        {"enabled": ["issue_status_updated"], "emits": false}
+      ]
+    },
+    {
+      "journal_id": 5,
+      "specific": [
+        "issue_status_updated",
+        "issue_priority_updated",
+        "issue_assigned_to_updated",
+        "issue_fixed_version_updated",
+        "issue_attachment_added"
+      ],
+      "checks": [
+        {"enabled": ["issue_fixed_version_updated"], "emits": true},
+        {"enabled": ["issue_attachment_added"], "emits": true},
+        {"enabled": ["issue_priority_updated"], "emits": true},
+        {"enabled": ["issue_note_added"], "emits": false},
+        {"enabled": ["news_added"], "emits": false},
+        {"enabled": [], "emits": false}
+      ]
+    },
+    {
+      "journal_id": 6,
+      "specific": [],
+      "checks": [
+        {"enabled": ["issue_updated"], "emits": true},
+        {"enabled": ["issue_note_added"], "emits": false},
+        {"enabled": ["issue_attachment_added"], "emits": false},
+        {"enabled": ["wiki_content_updated"], "emits": false}
+      ]
+    }
+  ],
+  "issue_add": {
+    "mails": [
+      {
+        "to": "ada@parity.test",
+        "subject": "[Parity Core - Bug #{issue}] (New) Mail pin",
+        "message_id": "redmine.issue-{issue}.{stamp}@parity.test",
+        "references": ["redmine.issue-{issue}.{stamp}@parity.test"],
+        "body_contains": ["Mail pin"],
+        "body_omits": []
+      },
+      {
+        "to": "admin@parity.test",
+        "subject": "[Parity Core - Bug #{issue}] (New) Mail pin",
+        "message_id": "redmine.issue-{issue}.{stamp}@parity.test",
+        "references": ["redmine.issue-{issue}.{stamp}@parity.test"],
+        "body_contains": ["Project: parity-core"],
+        "body_omits": []
+      },
+      {
+        "to": "erin@parity.test",
+        "subject": "[Parity Core - Bug #{issue}] (New) Mail pin",
+        "message_id": "redmine.issue-{issue}.{stamp}@parity.test",
+        "references": ["redmine.issue-{issue}.{stamp}@parity.test"],
+        "body_contains": ["Issue: {issue}"],
+        "body_omits": []
+      }
+    ],
+    "headers": {
+      "X-Mailer": "Redmine",
+      "X-Redmine-Host": "parity.test",
+      "X-Redmine-Site": "Parity",
+      "X-Redmine-Sender": "bea",
+      "X-Auto-Response-Suppress": "All",
+      "Auto-Submitted": "auto-generated",
+      "X-Redmine-Project": "parity-core",
+      "X-Redmine-Issue-Id": "{issue}",
+      "X-Redmine-Issue-Author": "bea",
+      "X-Redmine-Issue-Assignee": "ada"
+    },
+    "absent": ["bea@parity.test", "finn@parity.test", "dora@parity.test"]
+  },
+  "no_self": {
+    "mails": [
+      {
+        "to": "erin@parity.test",
+        "subject": "[Parity Core - Bug #{issue}] (New) Self pin"
+      }
+    ],
+    "absent": ["ada@parity.test", "admin@parity.test", "bea@parity.test"]
+  },
+  "watcher": {
+    "mails": [
+      {"to": "ada@parity.test"},
+      {"to": "bea@parity.test"},
+      {"to": "erin@parity.test"}
+    ],
+    "absent": ["finn@parity.test", "admin@parity.test"]
+  },
+  "selected_off": {
+    "mails": [
+      {"to": "ada@parity.test"},
+      {"to": "bea@parity.test"}
+    ],
+    "absent": ["erin@parity.test", "admin@parity.test"]
+  },
+  "group_on": {
+    "mails": [
+      {"to": "ada@parity.test"},
+      {"to": "bea@parity.test"}
+    ]
+  },
+  "group_off": {
+    "mails": [
+      {"to": "bea@parity.test"}
+    ],
+    "absent": ["ada@parity.test"]
+  },
+  "private_note": {
+    "mails": [
+      {
+        "to": "bea@parity.test",
+        "body_contains": ["Secret pin note"],
+        "body_omits": []
+      }
+    ],
+    "absent": ["ada@parity.test", "admin@parity.test", "erin@parity.test"]
+  },
+  "private_and_status": {
+    "subject": "[Parity Core - Bug #1] (In Progress) Parity pin parent",
+    "with_note": ["bea@parity.test"],
+    "without_note": ["ada@parity.test", "erin@parity.test"],
+    "absent": ["admin@parity.test"],
+    "note": "Secret status note"
+  },
+  "events_off": {
+    "subject_only_count": 0,
+    "status_only": {
+      "to": ["ada@parity.test", "admin@parity.test"]
+    }
+  },
+  "fixed_version_only": {
+    "to": ["ada@parity.test", "admin@parity.test"],
+    "message_id": "redmine.journal-5.20260826130000@parity.test",
+    "references": ["redmine.issue-1.20260826120000@parity.test"],
+    "headers": {
+      "X-Redmine-Project": "parity-core",
+      "X-Redmine-Issue-Id": "1",
+      "X-Redmine-Issue-Author": "ada",
+      "X-Redmine-Issue-Assignee": "ada",
+      "X-Redmine-Sender": "admin"
+    }
+  },
+  "attachment_claim": {
+    "mails": [
+      {
+        "to": "ada@parity.test",
+        "subject": "[Parity Core - Bug #1] Parity pin parent",
+        "message_id": "redmine.journal-{journal}.{stamp}@parity.test",
+        "references": ["redmine.issue-1.20260826120000@parity.test"],
+        "body_contains": ["Journal: {journal}"]
+      },
+      {
+        "to": "admin@parity.test",
+        "subject": "[Parity Core - Bug #1] Parity pin parent",
+        "message_id": "redmine.journal-{journal}.{stamp}@parity.test",
+        "references": ["redmine.issue-1.20260826120000@parity.test"]
+      }
+    ],
+    "removal_count": 0
+  },
+  "news_only_count": 0,
+  "notify_false_count": 0,
+  "quote": {
+    "mails": [
+      {
+        "to": "ada@parity.test",
+        "message_id": "redmine.journal-{journal}.{stamp}@parity.test",
+        "references": ["redmine.issue-1.20260826120000@parity.test"],
+        "body_contains": ["Ada Lovelace wrote:"]
+      }
+    ],
+    "absent": ["admin@parity.test"]
+  },
+  "relation": {
+    "mails": [
+      {
+        "to": "ada@parity.test",
+        "message_id": "redmine.journal-{journal}.{stamp}@parity.test",
+        "references": ["redmine.issue-2.20260826120000@parity.test"]
+      },
+      {
+        "to": "admin@parity.test",
+        "message_id": "redmine.journal-{journal}.{stamp}@parity.test",
+        "references": ["redmine.issue-2.20260826120000@parity.test"]
+      }
+    ]
+  },
+  "accounts": {
+    "activation": {
+      "to": "nora@parity.test",
+      "subject": "Account activation",
+      "message_id": "redmine.account-{user}.activation-{token}.{stamp}@parity.test",
+      "references": ["redmine.user-{user}.{stamp}@parity.test"],
+      "body_contains": ["Login: nora", "Path: /account/activate?token="],
+      "headers": {
+        "X-Mailer": "Redmine",
+        "X-Redmine-Host": "parity.test",
+        "X-Redmine-Site": "Parity",
+        "X-Redmine-Sender": "nora",
+        "X-Auto-Response-Suppress": "All",
+        "Auto-Submitted": "auto-generated"
+      }
+    },
+    "activation_request": {
+      "to": "admin@parity.test",
+      "subject": "New user account",
+      "message_id": "redmine.account-2.activation-request-2.{stamp}@parity.test",
+      "references": ["redmine.user-2.20260826120000@parity.test"],
+      "body_contains": ["Login: mira"],
+      "absent": ["mira@parity.test"]
+    },
+    "automatic_count": 0,
+    "lost_password": {
+      "to": "ada@parity.test",
+      "subject": "Lost password",
+      "message_id": "redmine.account-1.recovery-{token}.{stamp}@parity.test",
+      "references": ["redmine.user-1.20260826120000@parity.test"],
+      "body_contains": ["Login: ada", "Path: /account/lost_password?token="]
+    },
+    "information": {
+      "to": "otto@parity.test",
+      "subject": "Account information",
+      "message_id": "redmine.account-{user}.information-{user}.{stamp}@parity.test",
+      "references": ["redmine.user-{user}.{stamp}@parity.test"],
+      "body_contains": ["Login: otto", "Password: parity-pass"],
+      "headers": {"X-Redmine-Sender": "admin"}
+    },
+    "activated": {
+      "to": "mira@parity.test",
+      "subject": "Account activated",
+      "body_contains": ["Login: mira", "Status: active"],
+      "headers": {"X-Redmine-Sender": "admin"}
+    },
+    "locked": {
+      "to": "erin@parity.test",
+      "subject": "Account locked",
+      "message_id": "redmine.account-8.locked-8.{stamp}@parity.test",
+      "references": ["redmine.user-8.20260826120000@parity.test"],
+      "body_contains": ["Login: erin", "Status: locked"]
+    },
+    "unlocked": {
+      "to": "erin@parity.test",
+      "subject": "Account unlocked",
+      "message_id": "redmine.account-8.unlocked-8.{stamp}@parity.test",
+      "references": ["redmine.user-8.20260826120000@parity.test"],
+      "body_contains": ["Status: active"]
+    }
+  }
+}

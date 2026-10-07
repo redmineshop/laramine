@@ -2,6 +2,7 @@
 
 namespace App\Domain\Auth;
 
+use App\Domain\Notifications\AccountNotifier;
 use App\Domain\Settings\SettingValue;
 use App\Models\EmailAddress;
 use App\Models\Token;
@@ -20,6 +21,7 @@ final class AccountRecovery
         private readonly SettingValue $settings,
         private readonly ActionToken $tokens,
         private readonly PasswordChangeService $passwords,
+        private readonly AccountNotifier $mail,
     ) {}
 
     /**
@@ -90,14 +92,14 @@ final class AccountRecovery
         }
 
         if ($user->isActive()) {
-            $this->tokens->issue($user, Token::ACTION_RECOVERY);
+            $this->mail->lostPassword($user, $this->tokens->issue($user, Token::ACTION_RECOVERY));
 
             return;
         }
 
         if ((int) $user->status === User::STATUS_REGISTERED
             && $this->settings->selfRegistration() === SelfRegistrationMode::Email) {
-            $this->tokens->issue($user, Token::ACTION_REGISTER);
+            $this->mail->activation($user, $this->tokens->issue($user, Token::ACTION_REGISTER));
         }
     }
 

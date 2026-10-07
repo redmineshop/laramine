@@ -134,6 +134,36 @@ Create and update write `custom_field_values` through `CustomValueService` insid
 
 Removing a relation journals both issues. The other issue stores the reverse type (`blocks` / `blocked`, `duplicates` / `duplicated`, `precedes` / `follows`, `copied_to` / `copied_from`, `relates` / `relates`). Adding a relation still journals the source issue only.
 
+## Notifications
+
+`IssueNotifier` and `AccountNotifier` queue `RedmineNotificationMail` after the domain transaction returns. One message is queued for each `email_addresses` row with `notify` true, in id order. `notify` false, `0`, or `"0"` on an issue create or update suppresses that mail. A missing `notify` sends.
+
+`users.mail_notification` `none`, blank, or any value outside the six legal ones never receives mail. `all`, `selected`, and `only_my_events` receive when the user is the author or the current or previous assignee. `only_assigned` receives for the current or previous assignee. `only_owner` receives for the author. A group assignee expands through `groups_users`. Project-level recipients are user members with `all`, and `selected` members whose `members.mail_notification` checkbox is on. A group membership with that checkbox on, or a group whose own `mail_notification` is `all`, adds the group's active users without applying `only_*` again. Watchers of the issue are included unless their preference is `none` or blank. `user_preferences.others` flag `no_self_notified` drops the actor.
+
+A private journal that has notes and no details is sent only to users who may `view_private_notes`. An active admin is included. The author without that permission is not. A private note that also has details is still sent to the other recipients, and the note text is omitted from their body.
+
+`settings.notified_events` is a JSON array. A missing or invalid value uses the default list. A stored `[]` sends nothing. Unknown names are dropped. The default list enables `issue_added`, `issue_updated`, `issue_note_added`, `issue_status_updated`, `issue_assigned_to_updated`, and `issue_priority_updated`, plus the unbuilt news, document, file, message, and wiki names. `issue_fixed_version_updated` and `issue_attachment_added` are known and off until stored. An empty journal does not emit. `issue_updated` matches any journal with a note or a detail. The specific events match only `status_id`, `assigned_to_id`, `priority_id`, `fixed_version_id`, and an `attachment` detail. Other attribute, `cf`, and `relation` details match only the catch-all. Unbuilt event names never match a journal and are never sent. Quote and relation-add write a journal and send issue-edit mail. Note edit and delete do not. Claiming or deleting a container attachment does not write a second journal: mail uses the row `AttachmentContainerService` already stores through `IssueJournalWriter`. `issue_attachment_added` matches an attachment detail whose new value is the filename. A removal detail matches only `issue_updated`.
+
+Account mail: self-registration mode `1` emails the user a `register` token at `/account/activate?token=`. Mode `2` emails active administrators "New user account" and does not include a token. Mode `3` sends nothing. Lost password emails the `recovery` token at `/account/lost_password?token=`. A registered user in email-activation mode receives the activation mail instead. Administrator create sends "Account information" including the plaintext password. Administrator activate sends "Account activated". Lock and unlock send "Account locked" and "Account unlocked" to that account's notify addresses.
+
+The message id is `redmine.{kind}-{id}.{YmdHis}@{host}` without angle brackets and without a random suffix. The host is the domain of `mail_from` when that value contains `@`, otherwise `host_name`, otherwise `localhost`. Issue add uses the issue id and `issues.created_on` for both `Message-ID` and `References`. Issue edit uses the journal id and `journals.created_on` for `Message-ID`, and the issue id with `issues.created_on` for `References`. Account mail uses kind `account-{userId}.{action}` and the token id when a token exists, otherwise the user id. `References` is `redmine.user-{id}.{user created_on stamp}`. Common headers are `X-Mailer`, `X-Redmine-Host`, `X-Redmine-Site`, `X-Redmine-Sender`, `X-Auto-Response-Suppress`, and `Auto-Submitted`. Issue mail also sets `X-Redmine-Project`, `X-Redmine-Issue-Id`, `X-Redmine-Issue-Author`, and `X-Redmine-Issue-Assignee`. The From address is the email in `mail_from`, or `noreply@{host}`. The From name is the application title.
+
+The issue subject is `[{project} - {tracker} #{id}] ({status}) {subject}` on add. An edit includes `({status}) ` only when the journal has an `attr` `status_id` detail. The status name is the current issue status.
+
+The outbound mail checklist row is **VERIFIED** only by `tests/Parity/NotificationParityTest.php`. News, documents, files, messages, and wiki notifications stay **NOT VERIFIED**. This is not a 0.1 tag.
+
+## Activity
+
+`ActivityProvider` lists issues (`created_on`), journals (`created_on`), and time entries (`created_on`, not `spent_on`). An empty journal is skipped. A private note with no details is skipped without `view_private_notes`. A private journal that also has details stays in the list. `issue_tracking` and `time_tracking` must be enabled, including for an administrator. Projects are status active (`1`) or closed (`5`). Archived projects are excluded. Issue rows use `IssueVisibility`. Time rows use `TimeEntryVisibility`. `view_project` is required.
+
+The window ends at the start of `from` (`Y-m-d`), or today when `from` is omitted, and starts `days` earlier. `days` comes from the query, otherwise `activity_days_default`. A missing setting is 30. `0` is a valid span. Events satisfy `created_on >= end - days` at `00:00:00` and `created_on < end + 1 day`. Sort is `at` descending, then kind `issue`, `journal`, `time_entry`, then id descending.
+
+An issue or journal title is `{Tracker} #{id} ({Status}): {subject}` using the current tracker and status. A time title uses `HourValue` decimal formatting (`1.50`) plus the activity name, and ` on #{issue_id}` when the entry has an issue. The row is a `TimeEntry`. An attachment claim or delete shows up as the issue journal that service already wrote, not as a separate activity kind. The author is the issue author, the journal user, or the time entry user.
+
+`AtomFeed` writes `tag:{host},{date}:{kind}/{id}`, a title, `updated` as `Y-m-dTH:i:sZ`, the author name, and a category. The feed author is the authenticated user's login. `GET /activity` and `GET /activity.atom` are global. `GET /projects/{identifier}/activity` and `activity.atom` are project-scoped. `GET /issues.atom` and `GET /projects/{identifier}/issues.atom` list visible issues, newest id first. `GET /my.atom` is the same activity feed for the feed user. A `feeds` token in `key`, or a session user, opens these routes. An API key does not. Anonymous is not served. The HTML page is a short Blade list and is not a Redmine screen.
+
+The activity checklist row is **VERIFIED** only by `tests/Parity/ActivityParityTest.php` for issues, journals, and time entries. News, documents, wiki, messages, files, and changesets stay **NOT VERIFIED**. This is not a 0.1 tag.
+
 ## Seed
 
 `php artisan db:seed` runs `DefaultAccessSeeder` before the sample user:
@@ -173,6 +203,12 @@ No workflow matrix is seeded, because statuses and trackers are not created by t
 - Download all files returns zip bytes from the domain service. It does not register an HTTP route.
 - Changeset rows can be listed on the history tab. Commit sync, diffs, and repository browse are not implemented.
 - Custom field workflow failures use `CustomFieldValidationException`. Core field workflow failures still use `WorkflowDeniedException`.
+- `settings.notified_events` is a JSON array, not a YAML list.
+- Message ids have no random suffix.
+- A blank `mail_notification` does not receive mail, including a watcher or a user added through a group checkbox.
+- Lock and unlock queue an informational message. The account HTTP notice still does not include a token; the mail body does.
+- Mail is queued after the domain transaction returns.
+- Activity covers issues, journals, and time entries. News, documents, wiki, messages, files, and changesets have no provider.
 
 ## Queries
 

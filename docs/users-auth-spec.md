@@ -1,6 +1,6 @@
 # Users and authentication spec
 
-**Status: founder lock 2026-10-07. Phases 1–10 are implemented.** The Phase 2 checklist row is **VERIFIED** by `tests/Parity/UsersAuthParityTest.php`. The later-phase sub-rows are **VERIFIED** by `tests/Parity/UsersAuthGapParityTest.php` except OpenID Connect, live LDAP, outbound mail, and the rest of the REST API and Atom activity, which stay **NOT VERIFIED**. This is not a 0.1 tag and it is not production-ready. A green feature test by itself is Laramine behavior. `users_visibility` is compared on the identity row.
+**Status: founder lock 2026-10-07. Phases 1–10 are implemented.** The Phase 2 checklist row is **VERIFIED** by `tests/Parity/UsersAuthParityTest.php`. The later-phase sub-rows are **VERIFIED** by `tests/Parity/UsersAuthGapParityTest.php`. Outbound mail is **VERIFIED** by `tests/Parity/NotificationParityTest.php`. Activity for issues, journals, and time entries is **VERIFIED** by `tests/Parity/ActivityParityTest.php`. OpenID Connect, live LDAP, and the rest of the REST API stay **NOT VERIFIED**. This is not a 0.1 tag and it is not production-ready. A green feature test by itself is Laramine behavior. `users_visibility` is compared on the identity row.
 
 Column lists stay in [schema-inventory.md](schema-inventory.md) (section “1. Identity / ACL”) and in the structure dump [sources/redmine-7.0.1-schema.rb](sources/redmine-7.0.1-schema.rb). This file does not copy that inventory and does not copy Redmine Ruby.
 
@@ -66,7 +66,7 @@ The sixteen decisions below are closed. A later slice follows them. If a new pro
 
 12. **Account administration.** `users.admin` on an active user is the account-admin flag: create, edit, lock, unlock, activate, and delete accounts, and group membership outside project roles. `manage_members` stays project membership only. Deleting an account removes personal rows and reassigns public authorship to `AnonymousUser`, or fails closed when that row is missing and authorship exists. The existing admin bypass of project permission checks is unchanged.
 
-13. **Mail notification and preferences.** `users.mail_notification` values are `all`, `selected`, `only_my_events`, `only_assigned`, `only_owner`, and `none`. `members.mail_notification` stays a boolean. `user_preferences` stores `hide_mail`, `time_zone`, and `others`. `others` is JSON. Mail delivery stays outside this slice. The factory’s empty `mail_notification` is not one of the six values and is left as-is.
+13. **Mail notification and preferences.** `users.mail_notification` values are `all`, `selected`, `only_my_events`, `only_assigned`, `only_owner`, and `none`. `members.mail_notification` stays a boolean. `user_preferences` stores `hide_mail`, `time_zone`, and `others`. `others` is JSON. Delivery of account and issue mail is in [domain.md](domain.md) and is compared on the outbound mail checklist row. The factory’s empty `mail_notification` is not one of the six values and is left as-is. A blank value does not receive mail.
 
 14. **`UserQuery`.** Running a saved user query is Phase 7. Storing the stub with empty filters is already allowed and is not a user directory. See [queries.md](queries.md).
 
@@ -79,14 +79,14 @@ The sixteen decisions below are closed. A later slice follows them. If a new pro
 | Phase | Scope | State |
 | --- | --- | --- |
 | 1 | Redmine-compatible digest, session sign-in and sign-out, active-status gate, generic failure, `last_login_on` | Landed |
-| 2 | Registration, `register` token, password change, `must_change_passwd`, `recovery` token via `email_addresses`, status notices | Landed. Compared by `tests/Parity/UsersAuthParityTest.php`. Outbound mail is not sent. |
+| 2 | Registration, `register` token, password change, `must_change_passwd`, `recovery` token via `email_addresses`, status notices | Landed. Compared by `tests/Parity/UsersAuthParityTest.php`. Account mail is compared on the outbound mail row. |
 | 3 | `auth_sources` / LDAP, including on-the-fly registration | Landed. `MemoryLdapDirectory` is the tested adapter. A live directory is not implemented. |
 | 4 | Two-factor scheme, TOTP, backup codes | Landed. Setting `twofa` is `0` disabled, `1` optional, `2` required for administrators, `3` required. A disabled setting ignores a stored scheme. |
 | 5 | OAuth services on the existing `oauth_*` tables | Landed for the authorization-code grant, PKCE (`S256` and `plain`), and refresh-token rotation. OpenID Connect and an external identity provider are not in 7.0.1 core and are not implemented. |
-| 6 | API and feed tokens | Landed. `GET /users/current.json` accepts `X-Redmine-API-Key`, `key`, HTTP basic, and a bearer access token when `rest_api_enabled` is on. `GET /my.atom` accepts a `feeds` key. This is not the rest of the REST API or an activity stream. |
+| 6 | API and feed tokens | Landed. `GET /users/current.json` accepts `X-Redmine-API-Key`, `key`, HTTP basic, and a bearer access token when `rest_api_enabled` is on. `GET /my.atom` accepts a `feeds` key and renders that account's activity feed. The activity comparison is the Activity checklist row. This is not the rest of the REST API. |
 | 7 | User directory, running `UserQuery` | Landed. `UserQueryRunner` applies `UserVisibility`. `users_visibility` itself stays on the identity row. The queries checklist row stays IssueQuery. |
 | 8 | Account administration under `users.admin` | Landed. Create, edit, lock, unlock, activate, delete, and group membership. Delete reassigns authorship to `AnonymousUser` and fails closed when that row is missing. |
-| 9 | Mail-notification values and the `user_preferences.others` codec | Landed. `others` is a JSON object. Text that is not a JSON object is ignored on read. Mail is not delivered. |
+| 9 | Mail-notification values and the `user_preferences.others` codec | Landed. `others` is a JSON object. Text that is not a JSON object is ignored on read. Delivery is the outbound mail row. |
 | 10 | `session` and `autologin` token rows; operator-supplied administrator seed | Landed. Sign-in writes one `session` token. `autologin` is a cookie. `session_lifetime` and `session_timeout` are minutes, and `0` disables each cap. |
 
 ## Phase 1 behavior
@@ -156,9 +156,9 @@ Laravel `sessions` is the Phase 1 web session store. `sessions.user_id` referenc
 - The web session row is Laravel `sessions`. A `tokens.action = session` row can revoke that session. Autologin is a cookie holding an `autologin` token, not a remember column.
 - A user with `auth_source_id` is checked against that LDAP source. The local digest is not the credential. A blank host fails closed before the directory is contacted. On-the-fly creation stores a random sealed digest so the directory password is not kept.
 - `user_preferences.others` is JSON. A Ruby YAML document in that column is ignored on read.
-- Outbound mail is not sent. Email registration and recovery still store the token. The HTTP notice does not include the token value.
+- `settings.notified_events` is JSON. Message ids have no random suffix. A blank `mail_notification` does not receive mail. Lock and unlock queue an informational message. The HTTP notice still does not include the token value; the mail body does. News, documents, files, messages, and wiki mail are not sent.
 - `users_visibility` is applied by `UserVisibility` on the ACL path and on the user directory. The Phase 2 sign-in comparison does not read it.
-- OpenID Connect, a live LDAP directory, the rest of the REST API, and an Atom activity stream are not implemented.
+- OpenID Connect, a live LDAP directory, and the rest of the REST API are not implemented. Activity Atom feeds cover issues, journals, and time entries. News, documents, wiki, messages, files, and changesets have no activity provider.
 - The forty-zero placeholder never verifies, even if a digest collided with it.
 - Posted passwords are not trimmed. Identifiers are trimmed.
 - A wrong password stays on the generic notice. Locked and registered accounts get their own notice only after the digest matches.
@@ -166,12 +166,12 @@ Laravel `sessions` is the Phase 1 web session store. `sessions.user_id` referenc
 
 ## What the parity row covers
 
-`tests/Parity/UsersAuthParityTest.php` loads the shared pin and compares digest check, session login and logout, status notices, `must_change_passwd`, and the `recovery` / `register` token rules to `tests/Parity/fixtures/redmine-7.0.1/expectations/users-auth/sign-in.json`. `tests/Parity/UsersAuthGapParityTest.php` compares the later phases to `tests/Parity/fixtures/redmine-7.0.1/expectations/users-auth/gap.json`. Passing the ACL/workflow smoke does not close users and auth. `users_visibility` is part of the identity comparison. OpenID Connect, live LDAP, outbound mail, and the rest of the REST API stay out of both comparisons.
+`tests/Parity/UsersAuthParityTest.php` loads the shared pin and compares digest check, session login and logout, status notices, `must_change_passwd`, and the `recovery` / `register` token rules to `tests/Parity/fixtures/redmine-7.0.1/expectations/users-auth/sign-in.json`. `tests/Parity/UsersAuthGapParityTest.php` compares the later phases to `tests/Parity/fixtures/redmine-7.0.1/expectations/users-auth/gap.json`. Passing the ACL/workflow smoke does not close users and auth. `users_visibility` is part of the identity comparison. OpenID Connect, live LDAP, and the rest of the REST API stay out of both comparisons. Outbound mail and activity are separate checklist rows.
 
 ## Checklist links
 
 | Checklist | Users / auth status |
 | --- | --- |
-| [parity-checklist.md](parity-checklist.md) | **VERIFIED** for the Phase 2 row and the later-phase sub-rows that cite a passing pin comparison. OpenID Connect, live LDAP, outbound mail, and the rest of the REST API and Atom activity stay **NOT VERIFIED**. `users_visibility` is on the identity row. Not a 0.1 tag. |
+| [parity-checklist.md](parity-checklist.md) | **VERIFIED** for the Phase 2 row, the later-phase sub-rows that cite a passing pin comparison, the outbound mail row, and the activity row. OpenID Connect, live LDAP, and the rest of the REST API stay **NOT VERIFIED**. `users_visibility` is on the identity row. Not a 0.1 tag. |
 | [acl-workflow-parity-gate.md](acl-workflow-parity-gate.md) | Smoke **PASS** is not the checklist. `users_visibility` is applied by `UserVisibility`. The directory comparison is the users and authentication row. Not a 0.1 tag. |
 | [QUALITY.md](../QUALITY.md) | No 0.1 tag. Phase 1 is not a production-ready claim. |

@@ -6,6 +6,7 @@ use App\Domain\Acl\IssueVisibility;
 use App\Domain\Acl\PermissionService;
 use App\Domain\DomainException;
 use App\Domain\Issues\IssueJournalWriter;
+use App\Domain\Notifications\IssueNotifier;
 use App\Domain\PermissionDeniedException;
 use App\Domain\Settings\SettingValue;
 use App\Models\Attachment;
@@ -35,6 +36,7 @@ final class AttachmentContainerService
         private readonly PermissionService $permissions,
         private readonly IssueVisibility $issues,
         private readonly IssueJournalWriter $journals,
+        private readonly IssueNotifier $notifications,
         private readonly SettingValue $settings,
     ) {}
 
@@ -65,16 +67,22 @@ final class AttachmentContainerService
         $this->assertCanEdit($actor, $issue, $journal);
         $attachment = $this->findToken($token);
 
-        return DB::transaction(function () use ($actor, $attachment, $issue, $journal, $filename, $description): Attachment {
+        $written = null;
+        $fresh = DB::transaction(function () use ($actor, $attachment, $issue, $journal, $filename, $description, &$written): Attachment {
             $locked = $this->lockUnbound($attachment);
             $this->files->retitle($locked, $filename, $description);
             $container = $journal instanceof Journal ? $journal : $issue;
             $this->files->bind($locked, $container);
             $fresh = $locked->refresh();
-            $this->journals->recordAttachmentAdded($actor, $issue, (int) $fresh->id, (string) $fresh->filename);
+            $written = $this->journals->recordAttachmentAdded($actor, $issue, (int) $fresh->id, (string) $fresh->filename);
 
             return $fresh;
         });
+        if ($written instanceof Journal) {
+            $this->notifications->edited($actor, $issue, $written, null);
+        }
+
+        return $fresh;
     }
 
     public function delete(User $actor, Attachment $attachment): void
@@ -84,17 +92,21 @@ final class AttachmentContainerService
         [$issue, $journal] = $this->editableIssue($attachment);
         $this->assertCanEdit($actor, $issue, $journal);
 
-        DB::transaction(function () use ($actor, $attachment, $issue): void {
+        $written = null;
+        DB::transaction(function () use ($actor, $attachment, $issue, &$written): void {
             $locked = Attachment::query()->whereKey($attachment->id)->lockForUpdate()->first();
             if (! $locked instanceof Attachment) {
                 throw new DomainException('Attachment does not exist.');
             }
             $this->assertContainerFile($locked);
-            $this->journals->recordAttachmentRemoved($actor, $issue, (int) $locked->id, (string) $locked->filename);
+            $written = $this->journals->recordAttachmentRemoved($actor, $issue, (int) $locked->id, (string) $locked->filename);
             $this->thumbnails->forget($locked);
             $this->files->forgetFile($locked);
             $locked->delete();
         });
+        if ($written instanceof Journal) {
+            $this->notifications->edited($actor, $issue, $written, null);
+        }
     }
 
     public function download(?User $actor, Attachment $attachment): AttachmentDownload

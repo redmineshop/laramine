@@ -4,9 +4,11 @@ namespace App\Domain\Issues;
 
 use App\Domain\Acl\PermissionService;
 use App\Domain\DomainException;
+use App\Domain\Notifications\IssueNotifier;
 use App\Domain\PermissionDeniedException;
 use App\Models\Issue;
 use App\Models\IssueRelation;
+use App\Models\Journal;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -43,6 +45,7 @@ final class IssueRelationService
     public function __construct(
         private readonly PermissionService $permissions,
         private readonly IssueJournalWriter $journals,
+        private readonly IssueNotifier $notifications,
     ) {}
 
     public function add(User $actor, Issue $from, Issue $to, string $type = 'relates'): IssueRelation
@@ -64,16 +67,22 @@ final class IssueRelationService
             throw new DomainException('Relation already exists.');
         }
 
-        return DB::transaction(function () use ($actor, $from, $to, $type): IssueRelation {
+        $journal = null;
+        $relation = DB::transaction(function () use ($actor, $from, $to, $type, &$journal): IssueRelation {
             $relation = IssueRelation::query()->create([
                 'issue_from_id' => $from->id,
                 'issue_to_id' => $to->id,
                 'relation_type' => $type,
             ]);
-            $this->journals->recordRelationAdded($actor, $from, $to, $type);
+            $journal = $this->journals->recordRelationAdded($actor, $from, $to, $type);
 
             return $relation;
         });
+        if ($journal instanceof Journal) {
+            $this->notifications->edited($actor, $from, $journal, null);
+        }
+
+        return $relation;
     }
 
     public function remove(User $actor, IssueRelation $relation): void

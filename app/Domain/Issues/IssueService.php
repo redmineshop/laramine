@@ -6,12 +6,14 @@ use App\Domain\Acl\PermissionService;
 use App\Domain\Acl\UserVisibility;
 use App\Domain\CustomFields\CustomValueService;
 use App\Domain\DomainException;
+use App\Domain\Notifications\IssueNotifier;
 use App\Domain\PermissionDeniedException;
 use App\Domain\Workflow\WorkflowService;
 use App\Domain\WorkflowDeniedException;
 use App\Models\Enumeration;
 use App\Models\Issue;
 use App\Models\IssueStatus;
+use App\Models\Journal;
 use App\Models\Project;
 use App\Models\Tracker;
 use App\Models\User;
@@ -32,6 +34,7 @@ final class IssueService
         private readonly CustomValueService $customValues,
         private readonly IssueJournalWriter $journals,
         private readonly IssueCloseGuard $closeGuard,
+        private readonly IssueNotifier $notifications,
     ) {}
 
     /**
@@ -86,7 +89,7 @@ final class IssueService
         $this->enforceFieldRules($actor, $probe, $rulePayload, []);
         $customInputs = $this->customFieldInputs($attributes);
 
-        return DB::transaction(function () use ($actor, $parent, $payload, $customInputs): Issue {
+        $issue = DB::transaction(function () use ($actor, $parent, $payload, $customInputs): Issue {
             $issue = $parent === null
                 ? $this->trees->createRoot($payload)
                 : $this->trees->createChild($parent, $payload);
@@ -94,6 +97,11 @@ final class IssueService
 
             return $issue->refresh();
         });
+        if ($this->wantsNotice($attributes)) {
+            $this->notifications->added($actor, $issue);
+        }
+
+        return $issue;
     }
 
     /**
@@ -124,14 +132,19 @@ final class IssueService
 
         $before = $this->journals->snapshot($issue);
         $customBefore = $this->journals->customSnapshot($issue);
+        $previousAssignee = $this->previousAssignee($before);
         if (! $editing) {
-            return DB::transaction(function () use ($actor, $issue, $before, $customBefore, $notes, $privateNotes): Issue {
+            $written = null;
+            $saved = DB::transaction(function () use ($actor, $issue, $before, $customBefore, $notes, $privateNotes, &$written): Issue {
                 if ($notes !== null) {
                     $issue->touch();
                 }
 
-                return $this->persistJournal($actor, $issue, $before, $customBefore, $notes, $privateNotes);
+                return $this->persistJournal($actor, $issue, $before, $customBefore, $notes, $privateNotes, $written);
             });
+            $this->notifyEdit($actor, $saved, $written, $previousAssignee, $attributes);
+
+            return $saved;
         }
 
         $current = [
@@ -214,7 +227,8 @@ final class IssueService
         $this->assertStatusChange($issue, $nextStatus, $parent);
         $customInputs = $this->customFieldInputs($attributes);
 
-        return DB::transaction(function () use ($actor, $issue, $parent, $parentChanged, $nextStatus, $customInputs, $before, $customBefore, $notes, $privateNotes): Issue {
+        $written = null;
+        $saved = DB::transaction(function () use ($actor, $issue, $parent, $parentChanged, $nextStatus, $customInputs, $before, $customBefore, $notes, $privateNotes, &$written): Issue {
             // Field rules use the status already stored on the issue.
             $this->customValues->sync($actor, $issue, $customInputs, false);
             if ($nextStatus !== null) {
@@ -224,18 +238,21 @@ final class IssueService
             $issue->save();
             $saved = $parentChanged ? $this->trees->move($issue, $parent) : $issue;
 
-            return $this->persistJournal($actor, $saved, $before, $customBefore, $notes, $privateNotes);
+            return $this->persistJournal($actor, $saved, $before, $customBefore, $notes, $privateNotes, $written);
         });
+        $this->notifyEdit($actor, $saved, $written, $previousAssignee, $attributes);
+
+        return $saved;
     }
 
     /**
      * @param  array<string, string|null>  $before
      * @param  array<int, list<string>>  $customBefore
      */
-    private function persistJournal(User $actor, Issue $issue, array $before, array $customBefore, ?string $notes, bool $privateNotes): Issue
+    private function persistJournal(User $actor, Issue $issue, array $before, array $customBefore, ?string $notes, bool $privateNotes, ?Journal &$written): Issue
     {
         $fresh = $issue->refresh();
-        $this->journals->recordIssueUpdate(
+        $written = $this->journals->recordIssueUpdate(
             $actor,
             $fresh,
             $before,
@@ -247,6 +264,42 @@ final class IssueService
         );
 
         return $fresh;
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    private function notifyEdit(User $actor, Issue $issue, ?Journal $journal, ?int $previousAssignee, array $attributes): void
+    {
+        if ($journal instanceof Journal && $this->wantsNotice($attributes)) {
+            $this->notifications->edited($actor, $issue, $journal, $previousAssignee);
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    private function wantsNotice(array $attributes): bool
+    {
+        if (! array_key_exists('notify', $attributes)) {
+            return true;
+        }
+        $notify = $attributes['notify'];
+
+        return $notify !== false && $notify !== 0 && $notify !== '0';
+    }
+
+    /**
+     * @param  array<string, string|null>  $before
+     */
+    private function previousAssignee(array $before): ?int
+    {
+        $value = $before['assigned_to_id'] ?? null;
+        if (! is_string($value) || preg_match('/^\d+$/', $value) !== 1) {
+            return null;
+        }
+
+        return (int) $value;
     }
 
     /**
