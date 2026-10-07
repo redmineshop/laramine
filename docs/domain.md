@@ -178,6 +178,20 @@ The activity checklist row is **VERIFIED** only by `tests/Parity/ActivityParityT
 
 No workflow matrix is seeded, because statuses and trackers are not created by the seeder.
 
+## News, documents, and files
+
+`NewsService`, `DocumentService`, and `ProjectFileService` are the write and list paths. `NewsPolicy`, `DocumentPolicy`, and the file methods on `ProjectPolicy` use the same permission names. Gates for those names were already registered from `PermissionCatalog`.
+
+`view_news`, `manage_news`, and `comment_news` require the `news` module, except for the active-admin bypass that already skips a disabled module. `manage_news` also requires a member. It creates, edits, and deletes a news row and deletes a comment. `comment_news` adds a comment and increments `comments_count`. A blank comment is rejected. Deleting the last comments stops at zero.
+
+A project news index denies the actor when `view_news` fails. The cross-project index returns news on every project that actor may view. Order is `created_on` descending, then id descending. Creating news does not add the author as a watcher. An active user who can view the news may watch and unwatch that row. A second watch does not insert another row. Groups and locked users are not watchers. Watcher ids are listed to anyone who can view the news, ordered by user id.
+
+`view_documents`, `add_documents`, `edit_documents`, and `delete_documents` require the `documents` module. The category is a `DocumentCategory` enumeration with no project or with this project. A newly chosen category must be active. Keeping the current category is allowed when it is inactive. Delete removes the document, its `Document` attachments, and its `custom_values`. Add or edit may attach a file. Listing loads documents by id ascending, then groups them. `category` (and any other sort name) groups by `category_id` in that order. `title` groups by the first character, uppercased. `author` keeps documents that have an attachment and groups by the author of the latest attachment (`created_on`, then id). `date` sorts by that same stamp descending, then id descending, and groups by the calendar date. The stamp is the latest attachment `created_on`, or the document `created_on` when there is no attachment.
+
+`view_files` and `manage_files` require the `files` module. Files are `attachments` rows whose container is the project or a version with that `project_id`. A version shared from another project is not a container on this page. The project container is first. Versions follow the reverse of the dated-before-undated comparison: undated names descending, then later `effective_date` values, with id breaking a tie. Inside a container, `filename` is case-insensitive ascending then id ascending. `created_on`, `size`, and `downloads` are descending, then id descending. Any other sort name is `filename`. A download of a project or version file increments `downloads`. An issue attachment is not a project file.
+
+Document custom-field routes still accept an id that has no `documents` row. A row stored on another project is rejected. Wiki, boards, calendar, and gantt are not implemented. Repository, git, and SCM stay out of this slice.
+
 ## Intentional differences from Redmine 7.0.1
 
 - Permission storage is JSON text, not a YAML dump of symbols. YAML symbol lists are accepted on read only.
@@ -209,6 +223,9 @@ No workflow matrix is seeded, because statuses and trackers are not created by t
 - Lock and unlock queue an informational message. The account HTTP notice still does not include a token; the mail body does.
 - Mail is queued after the domain transaction returns.
 - Activity covers issues, journals, and time entries. News, documents, wiki, messages, files, and changesets have no provider.
+- News listing adds id descending after `created_on` descending so a shared timestamp has one order. The 7.0.1 query does not add that second key.
+- Document groups load by id ascending before grouping. The 7.0.1 index query does not declare an `ORDER BY`.
+- File and document sort ties break on id. Filename ties use the lower id. Descending sorts use the higher id.
 
 ## Queries
 

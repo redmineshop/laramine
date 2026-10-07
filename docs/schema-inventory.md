@@ -474,9 +474,9 @@ erDiagram
 
 ## Laramine migration notes (pin 7.0.1)
 
-Migrations in this repository create the **P0** tables (41) plus `settings`, and the three SCM tables the issue history revisions tab reads: `repositories`, `changesets`, and `changesets_issues`. Wiki (P1), the rest of SCM (`changes`, `changeset_parents`), forums, news, and `webhooks` / `projects_webhooks` are omitted.
+Migrations in this repository create the **P0** tables (41) plus `settings`, the three SCM tables the issue history revisions tab reads (`repositories`, `changesets`, and `changesets_issues`), and the `news` and `documents` tables. Wiki (P1), the rest of SCM (`changes`, `changeset_parents`), forums, and `webhooks` / `projects_webhooks` are omitted. News and documents are outside the P0 layout compare.
 
-`tests/Parity/SchemaLayoutParityTest.php` compares the migrated MySQL 8 layout of those 41 tables plus `settings` to [`sources/redmine-7.0.1-schema.rb`](sources/redmine-7.0.1-schema.rb). The test also loads `tests/Parity/fixtures/redmine-7.0.1/`. Repository, git, and SCM tables are not part of that compare. A pass marks only the schema row in [parity-checklist.md](parity-checklist.md). It is not a 0.1 tag.
+`tests/Parity/SchemaLayoutParityTest.php` compares the migrated MySQL 8 layout of those 41 tables plus `settings` to [`sources/redmine-7.0.1-schema.rb`](sources/redmine-7.0.1-schema.rb). The test also loads `tests/Parity/fixtures/redmine-7.0.1/`. Repository, git, and SCM tables are not part of that compare. `news` and `documents` are migrated and are not part of that compare. A pass marks only the schema row in [parity-checklist.md](parity-checklist.md). It is not a 0.1 tag.
 
 PHPUnit and GitHub Actions apply these migrations on **MySQL 8**. SQLite is an optional local smoke path and is not the authoritative test database.
 

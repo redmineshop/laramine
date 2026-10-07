@@ -56,7 +56,7 @@ php artisan migrate
 
 ## Schema
 
-`php artisan migrate` creates the P0 tables described in [docs/schema-inventory.md](docs/schema-inventory.md), pinned to Redmine 7.0.1. A structure-only dump of that release is kept at [docs/sources/redmine-7.0.1-schema.rb](docs/sources/redmine-7.0.1-schema.rb). Wiki, SCM, forums, news, settings, and webhooks are not migrated.
+`php artisan migrate` creates the P0 tables described in [docs/schema-inventory.md](docs/schema-inventory.md), pinned to Redmine 7.0.1. A structure-only dump of that release is kept at [docs/sources/redmine-7.0.1-schema.rb](docs/sources/redmine-7.0.1-schema.rb). Wiki, forums, the rest of SCM, and webhooks are not migrated. `news` and `documents` are migrated for the modules row and are outside the P0 layout compare.
 
 The column names match that dump so a later ETL can load Redmine rows. Adapter differences (SQLite versus MySQL string lengths, integer width, and the `lower(login)` index) are listed at the bottom of the inventory. Eloquent models under `app/Models` map those tables. Project, membership, and issue services maintain nested sets and evaluate permission names and workflow rows. Custom field formats validate and store `custom_values`. Issue query filters are evaluated in `app/Domain/Queries` and stored as JSON.
 
@@ -90,7 +90,7 @@ GitHub Actions runs Pint, PHPStan, and the full PHPUnit suite on MySQL 8 for eve
 
 Coding agents: start at [AGENTS.md](AGENTS.md). Cursor rules are in `.cursor/rules/`. The skill for issues, queries, and custom fields is `.cursor/skills/continue-domain-work/SKILL.md`. Copilot instructions are in `.github/copilot-instructions.md`.
 
-The P0 schema layout, users and authentication, identity, projects nested-set, workflows, custom fields, queries, journals, and time entries and attachments rows in [docs/parity-checklist.md](docs/parity-checklist.md) are **VERIFIED** by the tests named there. Every other P0 row is **NOT VERIFIED**. [QUALITY.md](QUALITY.md) still lists the v1 ship checklist as open. Community count definitions, separate from product status, are in [docs/community-metrics.md](docs/community-metrics.md).
+The P0 schema layout, users and authentication, identity, projects nested-set, workflows, custom fields, queries, journals, time entries and attachments, and news, documents, and files rows in [docs/parity-checklist.md](docs/parity-checklist.md) are **VERIFIED** by the tests named there. Wiki, boards and forums, and calendar and Gantt stay **NOT VERIFIED**. Every other P0 row is **NOT VERIFIED**. [QUALITY.md](QUALITY.md) still lists the v1 ship checklist as open. Community count definitions, separate from product status, are in [docs/community-metrics.md](docs/community-metrics.md).
 
 ## License
 

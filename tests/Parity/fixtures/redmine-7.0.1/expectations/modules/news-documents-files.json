@@ -1,0 +1,1871 @@
+{
+  "pin": "7.0.1",
+  "setup": {
+    "modules": [
+      {
+        "project_id": 1,
+        "name": "news"
+      },
+      {
+        "project_id": 1,
+        "name": "documents"
+      },
+      {
+        "project_id": 1,
+        "name": "files"
+      },
+      {
+        "project_id": 2,
+        "name": "news"
+      },
+      {
+        "project_id": 2,
+        "name": "files"
+      }
+    ],
+    "grants": [
+      {
+        "role_id": 1,
+        "permissions": [
+          "view_news",
+          "comment_news",
+          "view_documents",
+          "add_documents",
+          "edit_documents",
+          "view_files"
+        ]
+      },
+      {
+        "role_id": 2,
+        "permissions": [
+          "view_news",
+          "manage_news",
+          "comment_news",
+          "view_documents",
+          "add_documents",
+          "edit_documents",
+          "delete_documents",
+          "view_files",
+          "manage_files"
+        ]
+      },
+      {
+        "role_id": 3,
+        "permissions": [
+          "view_news",
+          "manage_news",
+          "comment_news",
+          "view_documents",
+          "view_files"
+        ]
+      },
+      {
+        "role_id": 4,
+        "permissions": [
+          "view_news",
+          "add_documents",
+          "view_files"
+        ]
+      }
+    ]
+  },
+  "permissions": [
+    {
+      "login": "ada",
+      "project_id": 1,
+      "permission": "view_news",
+      "allowed": true
+    },
+    {
+      "login": "ada",
+      "project_id": 1,
+      "permission": "manage_news",
+      "allowed": false
+    },
+    {
+      "login": "ada",
+      "project_id": 1,
+      "permission": "comment_news",
+      "allowed": true
+    },
+    {
+      "login": "ada",
+      "project_id": 1,
+      "permission": "view_documents",
+      "allowed": true
+    },
+    {
+      "login": "ada",
+      "project_id": 1,
+      "permission": "add_documents",
+      "allowed": true
+    },
+    {
+      "login": "ada",
+      "project_id": 1,
+      "permission": "edit_documents",
+      "allowed": true
+    },
+    {
+      "login": "ada",
+      "project_id": 1,
+      "permission": "delete_documents",
+      "allowed": false
+    },
+    {
+      "login": "ada",
+      "project_id": 1,
+      "permission": "view_files",
+      "allowed": true
+    },
+    {
+      "login": "ada",
+      "project_id": 1,
+      "permission": "manage_files",
+      "allowed": false
+    },
+    {
+      "login": "ada",
+      "project_id": 2,
+      "permission": "view_news",
+      "allowed": true
+    },
+    {
+      "login": "ada",
+      "project_id": 2,
+      "permission": "manage_news",
+      "allowed": false
+    },
+    {
+      "login": "ada",
+      "project_id": 2,
+      "permission": "comment_news",
+      "allowed": true
+    },
+    {
+      "login": "ada",
+      "project_id": 2,
+      "permission": "view_documents",
+      "allowed": false
+    },
+    {
+      "login": "ada",
+      "project_id": 2,
+      "permission": "add_documents",
+      "allowed": false
+    },
+    {
+      "login": "ada",
+      "project_id": 2,
+      "permission": "edit_documents",
+      "allowed": false
+    },
+    {
+      "login": "ada",
+      "project_id": 2,
+      "permission": "delete_documents",
+      "allowed": false
+    },
+    {
+      "login": "ada",
+      "project_id": 2,
+      "permission": "view_files",
+      "allowed": true
+    },
+    {
+      "login": "ada",
+      "project_id": 2,
+      "permission": "manage_files",
+      "allowed": false
+    },
+    {
+      "login": "bea",
+      "project_id": 1,
+      "permission": "view_news",
+      "allowed": true
+    },
+    {
+      "login": "bea",
+      "project_id": 1,
+      "permission": "manage_news",
+      "allowed": true
+    },
+    {
+      "login": "bea",
+      "project_id": 1,
+      "permission": "comment_news",
+      "allowed": true
+    },
+    {
+      "login": "bea",
+      "project_id": 1,
+      "permission": "view_documents",
+      "allowed": true
+    },
+    {
+      "login": "bea",
+      "project_id": 1,
+      "permission": "add_documents",
+      "allowed": true
+    },
+    {
+      "login": "bea",
+      "project_id": 1,
+      "permission": "edit_documents",
+      "allowed": true
+    },
+    {
+      "login": "bea",
+      "project_id": 1,
+      "permission": "delete_documents",
+      "allowed": true
+    },
+    {
+      "login": "bea",
+      "project_id": 1,
+      "permission": "view_files",
+      "allowed": true
+    },
+    {
+      "login": "bea",
+      "project_id": 1,
+      "permission": "manage_files",
+      "allowed": true
+    },
+    {
+      "login": "bea",
+      "project_id": 2,
+      "permission": "view_news",
+      "allowed": false
+    },
+    {
+      "login": "bea",
+      "project_id": 2,
+      "permission": "manage_news",
+      "allowed": false
+    },
+    {
+      "login": "bea",
+      "project_id": 2,
+      "permission": "comment_news",
+      "allowed": false
+    },
+    {
+      "login": "bea",
+      "project_id": 2,
+      "permission": "view_documents",
+      "allowed": false
+    },
+    {
+      "login": "bea",
+      "project_id": 2,
+      "permission": "add_documents",
+      "allowed": false
+    },
+    {
+      "login": "bea",
+      "project_id": 2,
+      "permission": "edit_documents",
+      "allowed": false
+    },
+    {
+      "login": "bea",
+      "project_id": 2,
+      "permission": "delete_documents",
+      "allowed": false
+    },
+    {
+      "login": "bea",
+      "project_id": 2,
+      "permission": "view_files",
+      "allowed": false
+    },
+    {
+      "login": "bea",
+      "project_id": 2,
+      "permission": "manage_files",
+      "allowed": false
+    },
+    {
+      "login": "cleo",
+      "project_id": 1,
+      "permission": "view_news",
+      "allowed": true
+    },
+    {
+      "login": "cleo",
+      "project_id": 1,
+      "permission": "manage_news",
+      "allowed": false
+    },
+    {
+      "login": "cleo",
+      "project_id": 1,
+      "permission": "comment_news",
+      "allowed": true
+    },
+    {
+      "login": "cleo",
+      "project_id": 1,
+      "permission": "view_documents",
+      "allowed": true
+    },
+    {
+      "login": "cleo",
+      "project_id": 1,
+      "permission": "add_documents",
+      "allowed": false
+    },
+    {
+      "login": "cleo",
+      "project_id": 1,
+      "permission": "edit_documents",
+      "allowed": false
+    },
+    {
+      "login": "cleo",
+      "project_id": 1,
+      "permission": "delete_documents",
+      "allowed": false
+    },
+    {
+      "login": "cleo",
+      "project_id": 1,
+      "permission": "view_files",
+      "allowed": true
+    },
+    {
+      "login": "cleo",
+      "project_id": 1,
+      "permission": "manage_files",
+      "allowed": false
+    },
+    {
+      "login": "cleo",
+      "project_id": 2,
+      "permission": "view_news",
+      "allowed": false
+    },
+    {
+      "login": "cleo",
+      "project_id": 2,
+      "permission": "manage_news",
+      "allowed": false
+    },
+    {
+      "login": "cleo",
+      "project_id": 2,
+      "permission": "comment_news",
+      "allowed": false
+    },
+    {
+      "login": "cleo",
+      "project_id": 2,
+      "permission": "view_documents",
+      "allowed": false
+    },
+    {
+      "login": "cleo",
+      "project_id": 2,
+      "permission": "add_documents",
+      "allowed": false
+    },
+    {
+      "login": "cleo",
+      "project_id": 2,
+      "permission": "edit_documents",
+      "allowed": false
+    },
+    {
+      "login": "cleo",
+      "project_id": 2,
+      "permission": "delete_documents",
+      "allowed": false
+    },
+    {
+      "login": "cleo",
+      "project_id": 2,
+      "permission": "view_files",
+      "allowed": false
+    },
+    {
+      "login": "cleo",
+      "project_id": 2,
+      "permission": "manage_files",
+      "allowed": false
+    },
+    {
+      "login": "dora",
+      "project_id": 1,
+      "permission": "view_news",
+      "allowed": true
+    },
+    {
+      "login": "dora",
+      "project_id": 1,
+      "permission": "manage_news",
+      "allowed": false
+    },
+    {
+      "login": "dora",
+      "project_id": 1,
+      "permission": "comment_news",
+      "allowed": true
+    },
+    {
+      "login": "dora",
+      "project_id": 1,
+      "permission": "view_documents",
+      "allowed": true
+    },
+    {
+      "login": "dora",
+      "project_id": 1,
+      "permission": "add_documents",
+      "allowed": false
+    },
+    {
+      "login": "dora",
+      "project_id": 1,
+      "permission": "edit_documents",
+      "allowed": false
+    },
+    {
+      "login": "dora",
+      "project_id": 1,
+      "permission": "delete_documents",
+      "allowed": false
+    },
+    {
+      "login": "dora",
+      "project_id": 1,
+      "permission": "view_files",
+      "allowed": true
+    },
+    {
+      "login": "dora",
+      "project_id": 1,
+      "permission": "manage_files",
+      "allowed": false
+    },
+    {
+      "login": "dora",
+      "project_id": 2,
+      "permission": "view_news",
+      "allowed": true
+    },
+    {
+      "login": "dora",
+      "project_id": 2,
+      "permission": "manage_news",
+      "allowed": false
+    },
+    {
+      "login": "dora",
+      "project_id": 2,
+      "permission": "comment_news",
+      "allowed": true
+    },
+    {
+      "login": "dora",
+      "project_id": 2,
+      "permission": "view_documents",
+      "allowed": false
+    },
+    {
+      "login": "dora",
+      "project_id": 2,
+      "permission": "add_documents",
+      "allowed": false
+    },
+    {
+      "login": "dora",
+      "project_id": 2,
+      "permission": "edit_documents",
+      "allowed": false
+    },
+    {
+      "login": "dora",
+      "project_id": 2,
+      "permission": "delete_documents",
+      "allowed": false
+    },
+    {
+      "login": "dora",
+      "project_id": 2,
+      "permission": "view_files",
+      "allowed": true
+    },
+    {
+      "login": "dora",
+      "project_id": 2,
+      "permission": "manage_files",
+      "allowed": false
+    },
+    {
+      "login": "erin",
+      "project_id": 1,
+      "permission": "view_news",
+      "allowed": false
+    },
+    {
+      "login": "erin",
+      "project_id": 1,
+      "permission": "manage_news",
+      "allowed": false
+    },
+    {
+      "login": "erin",
+      "project_id": 1,
+      "permission": "comment_news",
+      "allowed": false
+    },
+    {
+      "login": "erin",
+      "project_id": 1,
+      "permission": "view_documents",
+      "allowed": false
+    },
+    {
+      "login": "erin",
+      "project_id": 1,
+      "permission": "add_documents",
+      "allowed": false
+    },
+    {
+      "login": "erin",
+      "project_id": 1,
+      "permission": "edit_documents",
+      "allowed": false
+    },
+    {
+      "login": "erin",
+      "project_id": 1,
+      "permission": "delete_documents",
+      "allowed": false
+    },
+    {
+      "login": "erin",
+      "project_id": 1,
+      "permission": "view_files",
+      "allowed": false
+    },
+    {
+      "login": "erin",
+      "project_id": 1,
+      "permission": "manage_files",
+      "allowed": false
+    },
+    {
+      "login": "erin",
+      "project_id": 2,
+      "permission": "view_news",
+      "allowed": false
+    },
+    {
+      "login": "erin",
+      "project_id": 2,
+      "permission": "manage_news",
+      "allowed": false
+    },
+    {
+      "login": "erin",
+      "project_id": 2,
+      "permission": "comment_news",
+      "allowed": false
+    },
+    {
+      "login": "erin",
+      "project_id": 2,
+      "permission": "view_documents",
+      "allowed": false
+    },
+    {
+      "login": "erin",
+      "project_id": 2,
+      "permission": "add_documents",
+      "allowed": false
+    },
+    {
+      "login": "erin",
+      "project_id": 2,
+      "permission": "edit_documents",
+      "allowed": false
+    },
+    {
+      "login": "erin",
+      "project_id": 2,
+      "permission": "delete_documents",
+      "allowed": false
+    },
+    {
+      "login": "erin",
+      "project_id": 2,
+      "permission": "view_files",
+      "allowed": false
+    },
+    {
+      "login": "erin",
+      "project_id": 2,
+      "permission": "manage_files",
+      "allowed": false
+    },
+    {
+      "login": "finn",
+      "project_id": 1,
+      "permission": "view_news",
+      "allowed": false
+    },
+    {
+      "login": "finn",
+      "project_id": 1,
+      "permission": "manage_news",
+      "allowed": false
+    },
+    {
+      "login": "finn",
+      "project_id": 1,
+      "permission": "comment_news",
+      "allowed": false
+    },
+    {
+      "login": "finn",
+      "project_id": 1,
+      "permission": "view_documents",
+      "allowed": false
+    },
+    {
+      "login": "finn",
+      "project_id": 1,
+      "permission": "add_documents",
+      "allowed": false
+    },
+    {
+      "login": "finn",
+      "project_id": 1,
+      "permission": "edit_documents",
+      "allowed": false
+    },
+    {
+      "login": "finn",
+      "project_id": 1,
+      "permission": "delete_documents",
+      "allowed": false
+    },
+    {
+      "login": "finn",
+      "project_id": 1,
+      "permission": "view_files",
+      "allowed": false
+    },
+    {
+      "login": "finn",
+      "project_id": 1,
+      "permission": "manage_files",
+      "allowed": false
+    },
+    {
+      "login": "finn",
+      "project_id": 2,
+      "permission": "view_news",
+      "allowed": false
+    },
+    {
+      "login": "finn",
+      "project_id": 2,
+      "permission": "manage_news",
+      "allowed": false
+    },
+    {
+      "login": "finn",
+      "project_id": 2,
+      "permission": "comment_news",
+      "allowed": false
+    },
+    {
+      "login": "finn",
+      "project_id": 2,
+      "permission": "view_documents",
+      "allowed": false
+    },
+    {
+      "login": "finn",
+      "project_id": 2,
+      "permission": "add_documents",
+      "allowed": false
+    },
+    {
+      "login": "finn",
+      "project_id": 2,
+      "permission": "edit_documents",
+      "allowed": false
+    },
+    {
+      "login": "finn",
+      "project_id": 2,
+      "permission": "delete_documents",
+      "allowed": false
+    },
+    {
+      "login": "finn",
+      "project_id": 2,
+      "permission": "view_files",
+      "allowed": false
+    },
+    {
+      "login": "finn",
+      "project_id": 2,
+      "permission": "manage_files",
+      "allowed": false
+    },
+    {
+      "login": "admin",
+      "project_id": 1,
+      "permission": "view_news",
+      "allowed": true
+    },
+    {
+      "login": "admin",
+      "project_id": 1,
+      "permission": "manage_news",
+      "allowed": true
+    },
+    {
+      "login": "admin",
+      "project_id": 1,
+      "permission": "comment_news",
+      "allowed": true
+    },
+    {
+      "login": "admin",
+      "project_id": 1,
+      "permission": "view_documents",
+      "allowed": true
+    },
+    {
+      "login": "admin",
+      "project_id": 1,
+      "permission": "add_documents",
+      "allowed": true
+    },
+    {
+      "login": "admin",
+      "project_id": 1,
+      "permission": "edit_documents",
+      "allowed": true
+    },
+    {
+      "login": "admin",
+      "project_id": 1,
+      "permission": "delete_documents",
+      "allowed": true
+    },
+    {
+      "login": "admin",
+      "project_id": 1,
+      "permission": "view_files",
+      "allowed": true
+    },
+    {
+      "login": "admin",
+      "project_id": 1,
+      "permission": "manage_files",
+      "allowed": true
+    },
+    {
+      "login": "admin",
+      "project_id": 2,
+      "permission": "view_news",
+      "allowed": true
+    },
+    {
+      "login": "admin",
+      "project_id": 2,
+      "permission": "manage_news",
+      "allowed": true
+    },
+    {
+      "login": "admin",
+      "project_id": 2,
+      "permission": "comment_news",
+      "allowed": true
+    },
+    {
+      "login": "admin",
+      "project_id": 2,
+      "permission": "view_documents",
+      "allowed": true
+    },
+    {
+      "login": "admin",
+      "project_id": 2,
+      "permission": "add_documents",
+      "allowed": true
+    },
+    {
+      "login": "admin",
+      "project_id": 2,
+      "permission": "edit_documents",
+      "allowed": true
+    },
+    {
+      "login": "admin",
+      "project_id": 2,
+      "permission": "delete_documents",
+      "allowed": true
+    },
+    {
+      "login": "admin",
+      "project_id": 2,
+      "permission": "view_files",
+      "allowed": true
+    },
+    {
+      "login": "admin",
+      "project_id": 2,
+      "permission": "manage_files",
+      "allowed": true
+    },
+    {
+      "login": "lars",
+      "project_id": 1,
+      "permission": "view_news",
+      "allowed": true
+    },
+    {
+      "login": "lars",
+      "project_id": 1,
+      "permission": "manage_news",
+      "allowed": false
+    },
+    {
+      "login": "lars",
+      "project_id": 1,
+      "permission": "comment_news",
+      "allowed": false
+    },
+    {
+      "login": "lars",
+      "project_id": 1,
+      "permission": "view_documents",
+      "allowed": false
+    },
+    {
+      "login": "lars",
+      "project_id": 1,
+      "permission": "add_documents",
+      "allowed": false
+    },
+    {
+      "login": "lars",
+      "project_id": 1,
+      "permission": "edit_documents",
+      "allowed": false
+    },
+    {
+      "login": "lars",
+      "project_id": 1,
+      "permission": "delete_documents",
+      "allowed": false
+    },
+    {
+      "login": "lars",
+      "project_id": 1,
+      "permission": "view_files",
+      "allowed": true
+    },
+    {
+      "login": "lars",
+      "project_id": 1,
+      "permission": "manage_files",
+      "allowed": false
+    },
+    {
+      "login": "lars",
+      "project_id": 2,
+      "permission": "view_news",
+      "allowed": false
+    },
+    {
+      "login": "lars",
+      "project_id": 2,
+      "permission": "manage_news",
+      "allowed": false
+    },
+    {
+      "login": "lars",
+      "project_id": 2,
+      "permission": "comment_news",
+      "allowed": false
+    },
+    {
+      "login": "lars",
+      "project_id": 2,
+      "permission": "view_documents",
+      "allowed": false
+    },
+    {
+      "login": "lars",
+      "project_id": 2,
+      "permission": "add_documents",
+      "allowed": false
+    },
+    {
+      "login": "lars",
+      "project_id": 2,
+      "permission": "edit_documents",
+      "allowed": false
+    },
+    {
+      "login": "lars",
+      "project_id": 2,
+      "permission": "delete_documents",
+      "allowed": false
+    },
+    {
+      "login": "lars",
+      "project_id": 2,
+      "permission": "view_files",
+      "allowed": false
+    },
+    {
+      "login": "lars",
+      "project_id": 2,
+      "permission": "manage_files",
+      "allowed": false
+    },
+    {
+      "login": null,
+      "project_id": 1,
+      "permission": "view_news",
+      "allowed": true
+    },
+    {
+      "login": null,
+      "project_id": 1,
+      "permission": "manage_news",
+      "allowed": false
+    },
+    {
+      "login": null,
+      "project_id": 1,
+      "permission": "comment_news",
+      "allowed": false
+    },
+    {
+      "login": null,
+      "project_id": 1,
+      "permission": "view_documents",
+      "allowed": false
+    },
+    {
+      "login": null,
+      "project_id": 1,
+      "permission": "add_documents",
+      "allowed": false
+    },
+    {
+      "login": null,
+      "project_id": 1,
+      "permission": "edit_documents",
+      "allowed": false
+    },
+    {
+      "login": null,
+      "project_id": 1,
+      "permission": "delete_documents",
+      "allowed": false
+    },
+    {
+      "login": null,
+      "project_id": 1,
+      "permission": "view_files",
+      "allowed": true
+    },
+    {
+      "login": null,
+      "project_id": 1,
+      "permission": "manage_files",
+      "allowed": false
+    },
+    {
+      "login": null,
+      "project_id": 2,
+      "permission": "view_news",
+      "allowed": false
+    },
+    {
+      "login": null,
+      "project_id": 2,
+      "permission": "manage_news",
+      "allowed": false
+    },
+    {
+      "login": null,
+      "project_id": 2,
+      "permission": "comment_news",
+      "allowed": false
+    },
+    {
+      "login": null,
+      "project_id": 2,
+      "permission": "view_documents",
+      "allowed": false
+    },
+    {
+      "login": null,
+      "project_id": 2,
+      "permission": "add_documents",
+      "allowed": false
+    },
+    {
+      "login": null,
+      "project_id": 2,
+      "permission": "edit_documents",
+      "allowed": false
+    },
+    {
+      "login": null,
+      "project_id": 2,
+      "permission": "delete_documents",
+      "allowed": false
+    },
+    {
+      "login": null,
+      "project_id": 2,
+      "permission": "view_files",
+      "allowed": false
+    },
+    {
+      "login": null,
+      "project_id": 2,
+      "permission": "manage_files",
+      "allowed": false
+    }
+  ],
+  "closed_project_1": [
+    {
+      "login": "ada",
+      "permission": "view_news",
+      "allowed": true
+    },
+    {
+      "login": "ada",
+      "permission": "comment_news",
+      "allowed": false
+    },
+    {
+      "login": "ada",
+      "permission": "add_documents",
+      "allowed": false
+    },
+    {
+      "login": "ada",
+      "permission": "view_files",
+      "allowed": true
+    },
+    {
+      "login": "bea",
+      "permission": "manage_news",
+      "allowed": false
+    },
+    {
+      "login": "bea",
+      "permission": "view_news",
+      "allowed": true
+    },
+    {
+      "login": "bea",
+      "permission": "manage_files",
+      "allowed": false
+    },
+    {
+      "login": "bea",
+      "permission": "delete_documents",
+      "allowed": false
+    },
+    {
+      "login": "cleo",
+      "permission": "view_news",
+      "allowed": true
+    },
+    {
+      "login": "cleo",
+      "permission": "comment_news",
+      "allowed": false
+    },
+    {
+      "login": "admin",
+      "permission": "manage_news",
+      "allowed": false
+    },
+    {
+      "login": "admin",
+      "permission": "view_news",
+      "allowed": true
+    },
+    {
+      "login": "admin",
+      "permission": "manage_files",
+      "allowed": false
+    },
+    {
+      "login": "admin",
+      "permission": "comment_news",
+      "allowed": false
+    },
+    {
+      "login": null,
+      "permission": "view_news",
+      "allowed": true
+    },
+    {
+      "login": null,
+      "permission": "view_files",
+      "allowed": true
+    },
+    {
+      "login": null,
+      "permission": "view_documents",
+      "allowed": false
+    },
+    {
+      "login": "erin",
+      "permission": "view_news",
+      "allowed": false
+    },
+    {
+      "login": "dora",
+      "permission": "view_news",
+      "allowed": true
+    }
+  ],
+  "archived_project_1": [
+    {
+      "login": "admin",
+      "permission": "view_news",
+      "allowed": false
+    },
+    {
+      "login": "admin",
+      "permission": "view_files",
+      "allowed": false
+    },
+    {
+      "login": "ada",
+      "permission": "view_news",
+      "allowed": false
+    },
+    {
+      "login": null,
+      "permission": "view_news",
+      "allowed": false
+    },
+    {
+      "login": "bea",
+      "permission": "manage_news",
+      "allowed": false
+    }
+  ],
+  "version_dates": {
+    "1": "2026-01-15",
+    "5": "2026-06-01",
+    "8": "2026-06-01"
+  },
+  "rows": {
+    "enumerations": [
+      {
+        "id": 5,
+        "name": "Technical",
+        "type": "DocumentCategory",
+        "active": true,
+        "is_default": false,
+        "position": 2,
+        "parent_id": null,
+        "project_id": null,
+        "position_name": null
+      },
+      {
+        "id": 6,
+        "name": "Inactive",
+        "type": "DocumentCategory",
+        "active": false,
+        "is_default": false,
+        "position": 3,
+        "parent_id": null,
+        "project_id": null,
+        "position_name": null
+      }
+    ],
+    "news": [
+      {
+        "id": 1,
+        "author_id": 1,
+        "comments_count": 1,
+        "created_on": "2026-09-01 10:00:00",
+        "description": "Body A",
+        "project_id": 1,
+        "summary": "First",
+        "title": "Alpha release"
+      },
+      {
+        "id": 2,
+        "author_id": 4,
+        "comments_count": 0,
+        "created_on": "2026-09-02 10:00:00",
+        "description": "Body B",
+        "project_id": 1,
+        "summary": "",
+        "title": "Beta note"
+      },
+      {
+        "id": 3,
+        "author_id": 7,
+        "comments_count": 0,
+        "created_on": "2026-09-03 10:00:00",
+        "description": "Body C",
+        "project_id": 2,
+        "summary": "Sub",
+        "title": "Child bulletin"
+      },
+      {
+        "id": 4,
+        "author_id": 1,
+        "comments_count": 0,
+        "created_on": "2026-09-02 10:00:00",
+        "description": null,
+        "project_id": 1,
+        "summary": "",
+        "title": "Same stamp"
+      }
+    ],
+    "documents": [
+      {
+        "id": 1,
+        "category_id": 5,
+        "created_on": "2026-08-01 00:00:00",
+        "description": null,
+        "project_id": 1,
+        "title": "Zebra"
+      },
+      {
+        "id": 2,
+        "category_id": 4,
+        "created_on": "2026-08-02 00:00:00",
+        "description": null,
+        "project_id": 1,
+        "title": "alpha guide"
+      },
+      {
+        "id": 3,
+        "category_id": 4,
+        "created_on": "2026-08-03 00:00:00",
+        "description": null,
+        "project_id": 1,
+        "title": "Mid"
+      },
+      {
+        "id": 4,
+        "category_id": 5,
+        "created_on": "2026-08-04 00:00:00",
+        "description": null,
+        "project_id": 1,
+        "title": "API"
+      },
+      {
+        "id": 5,
+        "category_id": 4,
+        "created_on": "2026-08-05 00:00:00",
+        "description": null,
+        "project_id": 2,
+        "title": "Child doc"
+      }
+    ],
+    "comments": [
+      {
+        "id": 1,
+        "author_id": 4,
+        "commented_id": 1,
+        "commented_type": "News",
+        "content": "Looks good",
+        "created_on": "2026-09-01 11:00:00",
+        "updated_on": "2026-09-01 11:00:00"
+      }
+    ],
+    "attachments": [
+      {
+        "id": 3,
+        "author_id": 1,
+        "container_id": 1,
+        "container_type": "Project",
+        "content_type": "text/plain",
+        "created_on": "2026-08-02 00:00:00",
+        "description": null,
+        "digest": null,
+        "disk_directory": null,
+        "disk_filename": "archive.zip",
+        "downloads": 3,
+        "filename": "archive.zip",
+        "filesize": 200
+      },
+      {
+        "id": 4,
+        "author_id": 4,
+        "container_id": 1,
+        "container_type": "Project",
+        "content_type": "text/plain",
+        "created_on": "2026-08-03 00:00:00",
+        "description": null,
+        "digest": null,
+        "disk_directory": null,
+        "disk_filename": "Notes.txt",
+        "downloads": 3,
+        "filename": "Notes.txt",
+        "filesize": 50
+      },
+      {
+        "id": 5,
+        "author_id": 1,
+        "container_id": 1,
+        "container_type": "Project",
+        "content_type": "text/plain",
+        "created_on": "2026-08-01 00:00:00",
+        "description": null,
+        "digest": null,
+        "disk_directory": null,
+        "disk_filename": "readme.txt",
+        "downloads": 1,
+        "filename": "readme.txt",
+        "filesize": 100
+      },
+      {
+        "id": 6,
+        "author_id": 1,
+        "container_id": 5,
+        "container_type": "Version",
+        "content_type": "text/plain",
+        "created_on": "2026-08-01 00:00:00",
+        "description": null,
+        "digest": null,
+        "disk_directory": null,
+        "disk_filename": "changelog.txt",
+        "downloads": 0,
+        "filename": "changelog.txt",
+        "filesize": 20
+      },
+      {
+        "id": 7,
+        "author_id": 1,
+        "container_id": 1,
+        "container_type": "Version",
+        "content_type": "text/plain",
+        "created_on": "2026-07-01 00:00:00",
+        "description": null,
+        "digest": null,
+        "disk_directory": null,
+        "disk_filename": "old.txt",
+        "downloads": 0,
+        "filename": "old.txt",
+        "filesize": 10
+      },
+      {
+        "id": 9,
+        "author_id": 1,
+        "container_id": 2,
+        "container_type": "Document",
+        "content_type": "text/plain",
+        "created_on": "2026-08-20 12:00:00",
+        "description": null,
+        "digest": null,
+        "disk_directory": null,
+        "disk_filename": "guide.txt",
+        "downloads": 0,
+        "filename": "guide.txt",
+        "filesize": 12
+      },
+      {
+        "id": 10,
+        "author_id": 4,
+        "container_id": 3,
+        "container_type": "Document",
+        "content_type": "text/plain",
+        "created_on": "2026-08-05 00:00:00",
+        "description": null,
+        "digest": null,
+        "disk_directory": null,
+        "disk_filename": "mid-old.txt",
+        "downloads": 0,
+        "filename": "mid-old.txt",
+        "filesize": 8
+      },
+      {
+        "id": 11,
+        "author_id": 1,
+        "container_id": 3,
+        "container_type": "Document",
+        "content_type": "text/plain",
+        "created_on": "2026-08-12 00:00:00",
+        "description": null,
+        "digest": null,
+        "disk_directory": null,
+        "disk_filename": "mid-new.txt",
+        "downloads": 0,
+        "filename": "mid-new.txt",
+        "filesize": 9
+      },
+      {
+        "id": 12,
+        "author_id": 4,
+        "container_id": 4,
+        "container_type": "Document",
+        "content_type": "text/plain",
+        "created_on": "2026-08-20 12:00:00",
+        "description": null,
+        "digest": null,
+        "disk_directory": null,
+        "disk_filename": "api.txt",
+        "downloads": 0,
+        "filename": "api.txt",
+        "filesize": 11
+      }
+    ]
+  },
+  "news": {
+    "project_lists": [
+      {
+        "login": "ada",
+        "project_id": 1,
+        "ids": [
+          4,
+          2,
+          1
+        ]
+      },
+      {
+        "login": "bea",
+        "project_id": 1,
+        "ids": [
+          4,
+          2,
+          1
+        ]
+      },
+      {
+        "login": null,
+        "project_id": 1,
+        "ids": [
+          4,
+          2,
+          1
+        ]
+      },
+      {
+        "login": "erin",
+        "project_id": 1,
+        "error": "view_news"
+      },
+      {
+        "login": "dora",
+        "project_id": 2,
+        "ids": [
+          3
+        ]
+      },
+      {
+        "login": "admin",
+        "project_id": 2,
+        "ids": [
+          3
+        ]
+      },
+      {
+        "login": "cleo",
+        "project_id": 2,
+        "error": "view_news"
+      }
+    ],
+    "cross_lists": [
+      {
+        "login": "ada",
+        "ids": [
+          3,
+          4,
+          2,
+          1
+        ]
+      },
+      {
+        "login": "bea",
+        "ids": [
+          4,
+          2,
+          1
+        ]
+      },
+      {
+        "login": "cleo",
+        "ids": [
+          4,
+          2,
+          1
+        ]
+      },
+      {
+        "login": "dora",
+        "ids": [
+          3,
+          4,
+          2,
+          1
+        ]
+      },
+      {
+        "login": "erin",
+        "ids": []
+      },
+      {
+        "login": "finn",
+        "ids": []
+      },
+      {
+        "login": "admin",
+        "ids": [
+          3,
+          4,
+          2,
+          1
+        ]
+      },
+      {
+        "login": "lars",
+        "ids": [
+          4,
+          2,
+          1
+        ]
+      },
+      {
+        "login": null,
+        "ids": [
+          4,
+          2,
+          1
+        ]
+      }
+    ],
+    "after_news_disabled_on_project_2": {
+      "ada": [
+        4,
+        2,
+        1
+      ],
+      "admin": [
+        3,
+        4,
+        2,
+        1
+      ],
+      "dora": [
+        4,
+        2,
+        1
+      ],
+      "cleo": [
+        4,
+        2,
+        1
+      ],
+      "guest": [
+        4,
+        2,
+        1
+      ]
+    },
+    "after_project_1_archived": {
+      "ada": [
+        3
+      ],
+      "admin": [
+        3
+      ],
+      "dora": [
+        3
+      ],
+      "cleo": [],
+      "bea": [],
+      "guest": []
+    }
+  },
+  "documents": {
+    "inactive_category_id": 6,
+    "sorts": {
+      "category": [
+        {
+          "key": "category:5",
+          "document_ids": [
+            1,
+            4
+          ]
+        },
+        {
+          "key": "category:4",
+          "document_ids": [
+            2,
+            3
+          ]
+        }
+      ],
+      "date": [
+        {
+          "key": "date:2026-08-20",
+          "document_ids": [
+            4,
+            2
+          ]
+        },
+        {
+          "key": "date:2026-08-12",
+          "document_ids": [
+            3
+          ]
+        },
+        {
+          "key": "date:2026-08-01",
+          "document_ids": [
+            1
+          ]
+        }
+      ],
+      "title": [
+        {
+          "key": "title:Z",
+          "document_ids": [
+            1
+          ]
+        },
+        {
+          "key": "title:A",
+          "document_ids": [
+            2,
+            4
+          ]
+        },
+        {
+          "key": "title:M",
+          "document_ids": [
+            3
+          ]
+        }
+      ],
+      "author": [
+        {
+          "key": "author:1",
+          "document_ids": [
+            2,
+            3
+          ]
+        },
+        {
+          "key": "author:4",
+          "document_ids": [
+            4
+          ]
+        }
+      ]
+    },
+    "project_2_admin": [
+      {
+        "key": "category:4",
+        "document_ids": [
+          5
+        ]
+      }
+    ]
+  },
+  "files": {
+    "sorts": {
+      "filename": [
+        {
+          "container_type": "Project",
+          "container_id": 1,
+          "attachment_ids": [
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "container_type": "Version",
+          "container_id": 6,
+          "attachment_ids": []
+        },
+        {
+          "container_type": "Version",
+          "container_id": 2,
+          "attachment_ids": []
+        },
+        {
+          "container_type": "Version",
+          "container_id": 8,
+          "attachment_ids": []
+        },
+        {
+          "container_type": "Version",
+          "container_id": 5,
+          "attachment_ids": [
+            6
+          ]
+        },
+        {
+          "container_type": "Version",
+          "container_id": 1,
+          "attachment_ids": [
+            7
+          ]
+        }
+      ],
+      "created_on": [
+        {
+          "container_type": "Project",
+          "container_id": 1,
+          "attachment_ids": [
+            4,
+            3,
+            5
+          ]
+        },
+        {
+          "container_type": "Version",
+          "container_id": 6,
+          "attachment_ids": []
+        },
+        {
+          "container_type": "Version",
+          "container_id": 2,
+          "attachment_ids": []
+        },
+        {
+          "container_type": "Version",
+          "container_id": 8,
+          "attachment_ids": []
+        },
+        {
+          "container_type": "Version",
+          "container_id": 5,
+          "attachment_ids": [
+            6
+          ]
+        },
+        {
+          "container_type": "Version",
+          "container_id": 1,
+          "attachment_ids": [
+            7
+          ]
+        }
+      ],
+      "size": [
+        {
+          "container_type": "Project",
+          "container_id": 1,
+          "attachment_ids": [
+            3,
+            5,
+            4
+          ]
+        },
+        {
+          "container_type": "Version",
+          "container_id": 6,
+          "attachment_ids": []
+        },
+        {
+          "container_type": "Version",
+          "container_id": 2,
+          "attachment_ids": []
+        },
+        {
+          "container_type": "Version",
+          "container_id": 8,
+          "attachment_ids": []
+        },
+        {
+          "container_type": "Version",
+          "container_id": 5,
+          "attachment_ids": [
+            6
+          ]
+        },
+        {
+          "container_type": "Version",
+          "container_id": 1,
+          "attachment_ids": [
+            7
+          ]
+        }
+      ],
+      "downloads": [
+        {
+          "container_type": "Project",
+          "container_id": 1,
+          "attachment_ids": [
+            4,
+            3,
+            5
+          ]
+        },
+        {
+          "container_type": "Version",
+          "container_id": 6,
+          "attachment_ids": []
+        },
+        {
+          "container_type": "Version",
+          "container_id": 2,
+          "attachment_ids": []
+        },
+        {
+          "container_type": "Version",
+          "container_id": 8,
+          "attachment_ids": []
+        },
+        {
+          "container_type": "Version",
+          "container_id": 5,
+          "attachment_ids": [
+            6
+          ]
+        },
+        {
+          "container_type": "Version",
+          "container_id": 1,
+          "attachment_ids": [
+            7
+          ]
+        }
+      ]
+    },
+    "project_2": [
+      {
+        "container_type": "Project",
+        "container_id": 2,
+        "attachment_ids": []
+      },
+      {
+        "container_type": "Version",
+        "container_id": 3,
+        "attachment_ids": []
+      },
+      {
+        "container_type": "Version",
+        "container_id": 7,
+        "attachment_ids": []
+      },
+      {
+        "container_type": "Version",
+        "container_id": 4,
+        "attachment_ids": []
+      }
+    ]
+  }
+}

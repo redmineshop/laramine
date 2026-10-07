@@ -36,7 +36,7 @@ use Tests\TestCase;
  * document hosts to the shared pin.
  *
  * The server does not request a link URL. History lines for `cf` details are
- * not part of this comparison. The documents table is not migrated.
+ * not part of this comparison. A missing documents row is still a custom-field host.
  */
 class CustomFieldParityTest extends TestCase
 {

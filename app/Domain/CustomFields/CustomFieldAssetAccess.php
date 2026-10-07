@@ -33,7 +33,8 @@ use Illuminate\Support\Facades\DB;
  * `view_time_entries` and `time_entries_visibility`. A user host is visible to
  * that user and to an active admin. A group host is visible to an active
  * admin. An enumeration host is visible to an active admin. A document host
- * is not loaded here because the documents table is not migrated.
+ * is authorized with the document permissions on the supplied project. This
+ * class does not load the documents row.
  * `users_visibility` is not applied. A hidden field uses the denial
  * token `custom_field`, which is not a catalog permission name.
  *

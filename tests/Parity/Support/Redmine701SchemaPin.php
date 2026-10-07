@@ -23,7 +23,8 @@ final class Redmine701SchemaPin
      * Tables in the dump that are outside the P0 layout compare.
      *
      * Repository, git, and SCM tables stay out of the founder loop.
-     * Wiki, forums, news, documents, and webhooks are later layers.
+     * News and documents are migrated for the modules row and stay out of
+     * this P0 compare. Wiki, forums, and webhooks are later layers.
      *
      * @var list<string>
      */

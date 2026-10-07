@@ -13,6 +13,7 @@ Founder lock (2026-09-29): Inertia.js, React, TypeScript, Vite, Tailwind CSS, an
 | Client entry | `resources/js/app.tsx` (`pages: './pages'`) |
 | Smoke page | `resources/js/pages/Health.tsx`, `GET /` via `FrontendSmokeController` (`status` = `ok`). Links to sign-in. |
 | Sign-in page | `resources/js/pages/Auth/Login.tsx`, `GET /login` via `SessionController::create`. Posts login and password to the session action. Links to lost password and register are full page loads when those settings allow them. `GET /login?view=blade` still returns `resources/views/auth/login.blade.php`. Register, activation, lost password, and `GET /my/password` are Blade forms, not Inertia pages. |
+| News, documents, files | `resources/js/pages/News/Index.tsx`, `News/Show.tsx`, `Documents/Index.tsx`, and `Files/Index.tsx`. Minimal lists and forms. Not a Redmine screen. |
 | Theme tokens | `resources/css/app.css` (`:root`, `.dark`, Tailwind `@theme inline`) |
 | shadcn baseline | `components.json`. Pages use Card, Badge, Button, Input, and Label. These are scaffold controls, not a product shell. |
 
@@ -56,6 +57,6 @@ TODO: when the registry is specified, a Composer package should register Inertia
 
 ## Deferred
 
-- Issues, projects, and the rest of a Redmine-like UI.
+- Issues, projects, wiki, boards, calendar, gantt, and the rest of a Redmine-like UI.
 - The page registry itself.
 - Parity. Nothing in this file is **VERIFIED**. The sign-in page is a P0 screen on the Phase 1 session action. It is not UI-ready, not Redmine UX parity, and not a 0.1 release. See [ux-parity-notes.md](ux-parity-notes.md).
