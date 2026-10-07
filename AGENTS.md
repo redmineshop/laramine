@@ -1,6 +1,6 @@
 # Agent notes
 
-Start here, then read the doc that matches the change. Laramine is a clean-room MIT Laravel core aimed at Redmine 7.0.1 semantics. The implementation is the code, the domain docs, and the tests. It is early work. [QUALITY.md](QUALITY.md) still has an open v1 checklist. Every row in [docs/parity-checklist.md](docs/parity-checklist.md) is **NOT VERIFIED**.
+Start here, then read the doc that matches the change. Laramine is a clean-room MIT Laravel core aimed at Redmine 7.0.1 semantics. The implementation is the code, the domain docs, and the tests. It is early work. [QUALITY.md](QUALITY.md) still has an open v1 checklist. The P0 table and column layout row in [docs/parity-checklist.md](docs/parity-checklist.md) is **VERIFIED** by a MySQL 8 structure compare. Every other row is **NOT VERIFIED**.
 
 ## Read these
 
@@ -42,7 +42,7 @@ SQLite is a local migrate smoke only. PHPUnit is forced to MySQL in `phpunit.xml
 
 ## Status you must not upgrade in prose
 
-- Redmine parity is **NOT VERIFIED** for every P0 area. `tests/Parity` boots the application and loads `tests/Parity/fixtures/redmine-7.0.1/`. Passing that harness, or unit or feature tests, does not flip a checklist row.
+- The P0 table and column layout row is **VERIFIED** by `tests/Parity/SchemaLayoutParityTest.php` against `docs/sources/redmine-7.0.1-schema.rb`. Every other P0 area is **NOT VERIFIED**. `tests/Parity` also boots the application and loads `tests/Parity/fixtures/redmine-7.0.1/`. Passing that harness, or unit or feature tests, does not flip a checklist row.
 - The HTTP API is not implemented beyond the Inertia health smoke page at `GET /`, the Inertia sign-in page at `GET /login` (Blade form at `?view=blade`) on the Phase 1 session action, and two custom-field reads: attachment download and link URL resolution (`routes/web.php`). Those reads use the session user when one is present and do not sign anyone in. Those pages are not UI-ready, not Redmine UX parity, and not a 0.1 release (`docs/ux-parity-notes.md`). Custom fields stay **NOT VERIFIED**.
 - Journal rows are written on issue update (tracked attribute diffs, notes, private notes), on relation add, and by `JournalNoteService` for quote, edit, and delete of a note. Query code reads journals. The gate is [docs/journals-parity-gate.md](docs/journals-parity-gate.md). Parity for that gate is **NOT VERIFIED**.
 - Projects, membership, workflow, and issues have an MVP smoke gate in [docs/acl-workflow-parity-gate.md](docs/acl-workflow-parity-gate.md). A core checklist row marked **PASS** there is Laramine smoke evidence from `tests/Feature/CoreChecklistSmokeTest.php`. Passing it does not verify Redmine parity and does not authorize a 0.1 tag.

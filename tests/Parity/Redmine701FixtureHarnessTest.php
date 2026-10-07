@@ -115,6 +115,9 @@ class Redmine701FixtureHarnessTest extends TestCase
         $this->assertIsString($checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/', $checklist);
-        $this->assertDoesNotMatchRegularExpression('/^\|[^|\n]+\| VERIFIED \|/m', $checklist);
+        $this->assertDoesNotMatchRegularExpression(
+            '/^\| (?!P0 table and column layout \|)[^|\n]+\| VERIFIED \|/m',
+            $checklist,
+        );
     }
 }

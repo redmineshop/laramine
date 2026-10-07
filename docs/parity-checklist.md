@@ -2,11 +2,11 @@
 
 Structure pin: **Redmine 7.0.1**. Inventory: [schema-inventory.md](schema-inventory.md).
 
-No row below is VERIFIED. A row becomes VERIFIED only when a fixture-backed test in `tests/Parity` compares Laramine behavior to that pin and the evidence path is filled in. Path rules are under [Evidence paths](#evidence-paths). Loading the shared pin is not that comparison.
+The P0 table and column layout row is **VERIFIED** only by the test named in its Evidence cell. Every other row stays **NOT VERIFIED**. A behavior row becomes **VERIFIED** only when a fixture-backed test in `tests/Parity` compares Laramine behavior to the shared data pin and the evidence path is filled in. Path rules are under [Evidence paths](#evidence-paths). Loading the shared pin is not that comparison. This checklist is not a 0.1 tag.
 
 | Area | Status | Evidence |
 | --- | --- | --- |
-| P0 table and column layout | NOT VERIFIED | Migrations exist and a MySQL 8 migrate smoke test passes. No dump diff against a Redmine 7.0.1 database has been recorded. |
+| P0 table and column layout | VERIFIED | `tests/Parity/SchemaLayoutParityTest.php` loads `tests/Parity/fixtures/redmine-7.0.1/` through `Tests\Parity\Support\Redmine701Fixture` on MySQL 8 and compares the migrated tables, columns, nullability, defaults, types, dump indexes, and foreign keys to `docs/sources/redmine-7.0.1-schema.rb`. The compare is the 41 P0 tables plus `settings`. Repository, git, and SCM tables are excluded (`changes` and `changeset_parents` stay unmigrated). Adapter differences accepted by that test are the ones named in [schema-inventory.md](schema-inventory.md). This row does not verify any other area and is not a 0.1 tag. |
 | Identity, membership, and permissions | NOT VERIFIED | `tests/Feature/MembershipAclTest.php`, `tests/Unit/PermissionCatalogTest.php`, and `tests/Feature/AclWorkflowSmokeTest.php` exercise Laramine allow/deny rules. `tests/Feature/CoreChecklistSmokeTest.php` stores a custom-role membership and checks `add_issues` allow and deny. They do not compare rows with a Redmine 7.0.1 database. Open items are listed in [acl-workflow-parity-gate.md](acl-workflow-parity-gate.md). Authentication is a separate row. |
 | Users and authentication | NOT VERIFIED | Founder lock 2026-10-07 in [users-auth-spec.md](users-auth-spec.md). Phase 1 session sign-in is Laramine behavior (`tests/Unit/RedminePasswordTest.php`, `tests/Feature/SessionLoginTest.php`). The Inertia sign-in page posts to that same action (`tests/Feature/InertiaLoginPageTest.php`) and is not a Redmine screen comparison. LDAP, two-factor, OAuth, tokens, registration, and account admin are later phases. No `tests/Parity` comparison. This row is not a 0.1 tag. |
 | Projects and issue nested sets | NOT VERIFIED | `tests/Feature/ProjectTreeTest.php` and `tests/Feature/IssueWorkflowTest.php` check lft/rgt integrity after create and move. `tests/Feature/AclWorkflowSmokeTest.php` checks `inherit_members` on a child created after the membership. `tests/Feature/CoreChecklistSmokeTest.php` stores a child inside its parent and an issue root at `lft = 1`. No Redmine dump diff. |
@@ -32,7 +32,7 @@ This is a Laramine quality-bar re-run on that checkout (PHP 8.3, MySQL 8.0, Node
 
 Custom fields, queries, journals, users and authentication, and UX stay **NOT VERIFIED**. The Inertia pages are not UI-ready ([ux-parity-notes.md](ux-parity-notes.md)). `tests/Parity` still only boots the application. Checklist **PASS** is not Redmine parity **VERIFIED**.
 
-That paragraph describes tip `56b74184e38388ab0fb1cc527f06067593e6adac`. The data pin added later is under Evidence paths. It does not move any row to **VERIFIED**.
+That paragraph describes tip `56b74184e38388ab0fb1cc527f06067593e6adac`. The data pin added later is under Evidence paths. Loading that pin does not by itself move a row to **VERIFIED**. The schema layout row above is a later structure compare against the schema pin.
 
 ## Evidence paths
 
@@ -49,13 +49,15 @@ The pin is invented and labeled `redmine-7.0.1-shaped`. It is not a copy of Redm
 | `tests/Parity/Redmine701FixtureHarnessTest.php` | Proves the pin loads. Not a domain comparison. |
 | `tests/Parity/<Area>ParityTest.php` | Later comparison test. One area per class. |
 
-A later slice marks one row **VERIFIED** only when all of these are true:
+The P0 table and column layout row is **VERIFIED** by `tests/Parity/SchemaLayoutParityTest.php`. That test loads `tests/Parity/fixtures/redmine-7.0.1/` through `Tests\Parity\Support\Redmine701Fixture` on MySQL 8 and compares migrated structure to `docs/sources/redmine-7.0.1-schema.rb`. It does not compare issue, query, workflow, or permission behavior, and it does not verify any other row.
+
+A later slice marks one other row **VERIFIED** only when all of these are true:
 
 1. A test under `tests/Parity` loads `tests/Parity/fixtures/redmine-7.0.1/` through `Tests\Parity\Support\Redmine701Fixture` on MySQL 8.
 2. That test compares Laramine behavior to rows in the pin, or to a file under `tests/Parity/fixtures/redmine-7.0.1/expectations/`.
 3. The Evidence cell of that one row cites the test class and the fixture or expectation path.
 4. The pull request does not say the whole product matches Redmine.
 
-`Redmine701FixtureHarnessTest` does not satisfy those rules. Every row in the table above stays **NOT VERIFIED**.
+`Redmine701FixtureHarnessTest` does not satisfy those rules. Every row except P0 table and column layout stays **NOT VERIFIED**.
 
 **INCONCLUSIVE** is for a comparison that ran and did not decide. The Evidence cell still cites the test and the fixture path. Do not use it as a soft pass.
