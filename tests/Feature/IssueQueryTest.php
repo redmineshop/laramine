@@ -403,6 +403,15 @@ class IssueQueryTest extends TestCase
     public function test_totals_sum_the_visible_issue_set(): void
     {
         $world = $this->member();
+        $world->role->permissions = [
+            'view_issues',
+            'add_issues',
+            'edit_issues',
+            'save_queries',
+            'view_time_entries',
+        ];
+        $world->role->time_entries_visibility = 'all';
+        $world->role->save();
         $other = User::factory()->create();
         app(MembershipService::class)->assignRole($world->project, $other, $world->role);
         $activity = Enumeration::query()->create([

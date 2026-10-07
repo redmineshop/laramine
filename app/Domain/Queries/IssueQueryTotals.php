@@ -17,13 +17,15 @@ use Illuminate\Support\Facades\DB;
  * Built-in names are `estimated_hours` and `spent_hours`. `cf_{id}` is accepted
  * for an issue custom field the actor can see when the format supports totals
  * (int and float). A name does not have to appear in `column_names`, and
- * `is_filter` is not required. `display_type` is ignored here.
+ * `is_filter` is not required. `display_type` does not change the sums.
+ * `spent_hours` follows `time_entries_visibility` per issue project.
  */
 final class IssueQueryTotals
 {
     public function __construct(
         private readonly FieldFormatRegistry $formats,
         private readonly CustomFieldVisibility $visibility,
+        private readonly SpentHoursQuery $spentHours,
     ) {}
 
     /**
@@ -62,13 +64,13 @@ final class IssueQueryTotals
      * @param  list<QueryTotalColumn>  $columns
      * @return array<string, string>
      */
-    public function sum(Builder $issues, array $columns): array
+    public function sum(Builder $issues, array $columns, ?User $actor): array
     {
         $totals = [];
         foreach ($columns as $column) {
             $totals[$column->name] = match ($column->source) {
                 QueryTotalSource::EstimatedHours => $this->estimatedHours($issues),
-                QueryTotalSource::SpentHours => $this->spentHours($issues),
+                QueryTotalSource::SpentHours => $this->spentHours->total($issues, $actor),
                 QueryTotalSource::CustomInt => $this->customSum($issues, $column, true),
                 QueryTotalSource::CustomFloat => $this->customSum($issues, $column, false),
             };
@@ -121,29 +123,7 @@ final class IssueQueryTotals
             ->selectRaw('COALESCE(ROUND(SUM(CAST(issues.estimated_hours AS DECIMAL(30,4))), 2), 0) as total')
             ->value('total');
 
-        return $this->plainDecimal($total);
-    }
-
-    /**
-     * Each issue uses the same rounded sum as the `spent_time` filter.
-     * The query total adds those per-issue numbers.
-     *
-     * @param  Builder<Issue>  $issues
-     */
-    private function spentHours(Builder $issues): string
-    {
-        $perIssue = DB::table('issues')
-            ->whereIn('issues.id', $this->scopedIds($issues))
-            ->leftJoin('time_entries', 'time_entries.issue_id', '=', 'issues.id')
-            ->groupBy('issues.id')
-            ->selectRaw('COALESCE(ROUND(CAST(SUM(time_entries.hours) AS DECIMAL(30,3)), 2), 0) as per_issue');
-
-        $total = DB::query()
-            ->fromSub($perIssue, 'spent_totals')
-            ->selectRaw('COALESCE(SUM(per_issue), 0) as total')
-            ->value('total');
-
-        return $this->plainDecimal($total);
+        return PlainDecimal::text($total);
     }
 
     /**
@@ -171,7 +151,7 @@ final class IssueQueryTotals
             ->selectRaw($expression.' as total')
             ->value('total');
 
-        return $this->plainDecimal($total);
+        return PlainDecimal::text($total);
     }
 
     /**
@@ -183,48 +163,5 @@ final class IssueQueryTotals
         $scoped = clone $issues;
 
         return $scoped->reorder()->select('issues.id')->distinct();
-    }
-
-    private function plainDecimal(mixed $raw): string
-    {
-        if (is_int($raw)) {
-            return (string) $raw;
-        }
-
-        if (is_float($raw)) {
-            if (! is_finite($raw)) {
-                return '0';
-            }
-
-            $raw = rtrim(rtrim(sprintf('%.10F', $raw), '0'), '.');
-        }
-
-        if (! is_string($raw)) {
-            return '0';
-        }
-
-        $text = trim($raw);
-        if ($text === '' || preg_match('/^[+-]?(?:\d+(?:\.\d+)?|\.\d+)$/', $text) !== 1) {
-            return '0';
-        }
-
-        $negative = str_starts_with($text, '-');
-        $text = ltrim($text, '+-');
-        if (str_starts_with($text, '.')) {
-            $text = '0'.$text;
-        }
-
-        [$whole, $fraction] = array_pad(explode('.', $text, 2), 2, '');
-        $whole = ltrim($whole, '0');
-        if ($whole === '') {
-            $whole = '0';
-        }
-        $fraction = rtrim($fraction, '0');
-        $body = $fraction === '' ? $whole : $whole.'.'.$fraction;
-        if ($body === '0') {
-            return '0';
-        }
-
-        return $negative ? '-'.$body : $body;
     }
 }

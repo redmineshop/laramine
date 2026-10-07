@@ -110,7 +110,7 @@ No workflow matrix is seeded, because statuses and trackers are not created by t
 - Same-status saves do not require a workflow row that points at the current status.
 - Closing and reopening blockers (relations, open subtasks, a closed parent) are not applied.
 - `roles.settings` tracker masks are stored when they are JSON and are not applied.
-- `roles.time_entries_visibility` is applied on the issue history Spent time tab. Issue query `spent_hours` totals do not use it. There is no time-entry write service.
+- `roles.time_entries_visibility` is applied on the issue history Spent time tab and on IssueQuery `spent_hours` totals and the projected column. The `spent_time` filter does not use it. There is no time-entry write service.
 - `roles.users_visibility` is stored and is not applied. User administration is outside this slice. Users and authentication are a spec hole in [users-auth-spec.md](users-auth-spec.md): **NOT VERIFIED**, not a 0.1 tag, and not an invitation to add login.
 - `roles_managed_roles` is stored and is not checked when a role is assigned.
 - `MembershipService::assignRole` does not itself require `manage_members`.

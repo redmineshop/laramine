@@ -14,7 +14,8 @@ use Illuminate\Database\Eloquent\Builder;
  * Sort and group keys. Grouping orders rows; it does not collapse them.
  *
  * Priority, status, and tracker use position. Author and assignee use
- * firstname, then lastname. `cf_{id}` uses one minimum value per issue.
+ * firstname, then lastname. Project, category, and fixed version use the
+ * related name. `cf_{id}` uses one minimum value per issue.
  * There is no `user_format` setting. Attachment custom fields are rejected.
  */
 final class IssueQuerySort
@@ -22,13 +23,13 @@ final class IssueQuerySort
     /**
      * Keys that order by the issue column itself.
      *
-     * `project`, `category`, and `fixed_version` stay on the foreign key.
+     * `project`, `category`, and `fixed_version` order by the related name.
+     * The `_id` keys stay on the foreign key.
      *
      * @var array<string, string>
      */
     private const ISSUE_COLUMNS = [
         'id' => 'issues.id',
-        'project' => 'issues.project_id',
         'project_id' => 'issues.project_id',
         'subject' => 'issues.subject',
         'updated_on' => 'issues.updated_on',
@@ -37,9 +38,7 @@ final class IssueQuerySort
         'due_date' => 'issues.due_date',
         'done_ratio' => 'issues.done_ratio',
         'estimated_hours' => 'issues.estimated_hours',
-        'category' => 'issues.category_id',
         'category_id' => 'issues.category_id',
-        'fixed_version' => 'issues.fixed_version_id',
         'fixed_version_id' => 'issues.fixed_version_id',
         'parent' => 'issues.parent_id',
         'parent_id' => 'issues.parent_id',
@@ -94,6 +93,11 @@ final class IssueQuerySort
      */
     private function expressions(string $name, string $type, ?User $actor, ?Project $project): array
     {
+        $named = $this->nameExpression($name);
+        if ($named !== null) {
+            return [$named];
+        }
+
         if (isset(self::ISSUE_COLUMNS[$name])) {
             return [[self::ISSUE_COLUMNS[$name], []]];
         }
@@ -117,6 +121,24 @@ final class IssueQuerySort
         }
 
         return $this->customFieldExpressions($name, (int) $matches[1], $actor, $project);
+    }
+
+    /**
+     * @return array{0: string, 1: list<int|string>}|null
+     */
+    private function nameExpression(string $name): ?array
+    {
+        $sql = match ($name) {
+            'project' => '(SELECT projects.name FROM projects WHERE projects.id = issues.project_id)',
+            'category' => '(SELECT issue_categories.name FROM issue_categories WHERE issue_categories.id = issues.category_id)',
+            'fixed_version' => '(SELECT versions.name FROM versions WHERE versions.id = issues.fixed_version_id)',
+            default => null,
+        };
+        if ($sql === null) {
+            return null;
+        }
+
+        return [$sql, []];
     }
 
     /**

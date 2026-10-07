@@ -13,13 +13,15 @@ use Illuminate\Database\Eloquent\Builder;
  * Only roles that grant `view_time_entries` count. `all` shows every row.
  * `own` keeps rows whose `user_id` is the actor. Several roles use the most
  * open value. Any other stored value contributes nothing. Active admins are
- * not filtered. Query totals do not use this scope.
+ * not filtered. Issue query `spent_hours` uses {@see self::mode}.
  */
 final class TimeEntryVisibility
 {
     public const ALL = 'all';
 
     public const OWN = 'own';
+
+    public const NONE = 'none';
 
     public function __construct(private readonly PermissionService $permissions) {}
 
@@ -29,8 +31,21 @@ final class TimeEntryVisibility
      */
     public function apply(Builder $query, User $actor, Project $project): Builder
     {
-        if ($actor->admin && $actor->isActive()) {
+        $mode = $this->mode($actor, $project);
+        if ($mode === self::ALL) {
             return $query;
+        }
+        if ($mode === self::OWN) {
+            return $query->where('user_id', (int) $actor->id);
+        }
+
+        return $query->whereRaw('1 = 0');
+    }
+
+    public function mode(User $actor, Project $project): string
+    {
+        if ($actor->admin && $actor->isActive()) {
+            return self::ALL;
         }
 
         $seesAll = false;
@@ -48,12 +63,12 @@ final class TimeEntryVisibility
         }
 
         if ($seesAll) {
-            return $query;
+            return self::ALL;
         }
         if ($seesOwn) {
-            return $query->where('user_id', (int) $actor->id);
+            return self::OWN;
         }
 
-        return $query->whereRaw('1 = 0');
+        return self::NONE;
     }
 }
