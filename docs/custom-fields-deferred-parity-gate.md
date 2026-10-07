@@ -12,7 +12,7 @@ This is the Laramine checklist for `link`, `enumeration`, `attachment`, and `pro
 | Link, enumeration, attachment, progress bar | `App\Domain\CustomFields\Formats` |
 | Definition save (`multiple`, `searchable`, regexp, lengths) | `App\Domain\CustomFields\CustomFieldService` |
 | Value sync, read shape, and attachment bind | `App\Domain\CustomFields\CustomValueService` |
-| Enumeration option insert, reorder, activate | `App\Domain\CustomFields\CustomFieldEnumerationService` |
+| Enumeration option insert, reorder, activate, delete | `App\Domain\CustomFields\CustomFieldEnumerationService` |
 | Attachment bytes, digest, disk directory | `App\Domain\Attachments\AttachmentService` |
 | `cf_{id}` filters | `App\Domain\Queries\CustomFieldFilterSql` |
 
@@ -33,6 +33,7 @@ Domain behavior is described in [custom-fields.md](custom-fields.md). Filter typ
 | Query totals sum int and float custom fields. Progress bar is rejected. A hidden field is an error for a user who cannot see it | `tests/Feature/IssueQueryTest.php` `test_totals_sum_the_visible_issue_set` and `test_totals_reject_unknown_hidden_and_non_totalable_columns` |
 | Attachment upload writes the file, SHA-256 `digest`, and `YYYY/MM` `disk_directory`, then binds an unbound row when the custom value is saved. Extension rules stay in `AttachmentFormat`. Clearing the value leaves the file and the container | `tests/Feature/CustomFieldAttachmentUploadTest.php` `test_upload_writes_digest_and_binds_when_the_custom_value_is_set` and `test_upload_rejects_a_bad_extension_and_a_foreign_container` |
 | Enumeration options can be inserted, renamed, reordered, and activated or deactivated. Stored custom values keep the same ids. The current default cannot be deactivated | `tests/Feature/CustomFieldEnumerationOptionTest.php` `test_enumeration_options_reorder_and_values_stay_on_the_same_ids` |
+| Enumeration option deletion removes an unused option. An option that custom values still store is rewritten to another option of the same field, including an inactive one, or left in place when no replacement is given. The current default cannot be deleted. A record that already stores the replacement keeps one row. Positions of the remaining options stay as stored | `tests/Feature/CustomFieldEnumerationOptionTest.php` `test_enumeration_option_delete_rewrites_values_or_refuses` |
 
 MySQL 8 is the database (`phpunit.xml`). These tests do not live under `tests/Parity`.
 
@@ -41,7 +42,6 @@ MySQL 8 is the database (`phpunit.xml`). These tests do not live under `tests/Pa
 | Item | Status |
 | --- | --- |
 | Link HTTP view and live fetch | **Open.** `formattedUrl` builds an encoded URL and does not request it. There is no HTTP view. |
-| Enumeration option deletion | **Open.** Insert, rename, reorder, and activate/deactivate are implemented. Destroying an option and rewriting values that pointed at it are not. |
 | Attachment download | **Open.** Bytes are stored on the local `attachments` disk. Nothing serves or deletes that file over HTTP. |
 | Version sharing | **Open.** Unchanged. A version value must belong to the record's project. |
 | Custom-field journal diffs | **Open.** Unchanged. Issue journals do not record custom-value edits. |
