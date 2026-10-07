@@ -1,0 +1,43 @@
+{
+    "issue_id": 1,
+    "empty_message": "Attachment archive is empty.",
+    "missing_id": 999999,
+    "missing_message": "Attachment container does not exist.",
+    "one": {"filename": "solo.txt", "body": "SOLO"},
+    "duplicates": [
+        {"filename": "note.txt", "body": "ALPHA"},
+        {"filename": "note.txt", "body": "BETA"}
+    ],
+    "entries": {
+        "solo.txt": "SOLO",
+        "note.txt": "ALPHA",
+        "note(1).txt": "BETA"
+    },
+    "zip_type": "application/zip",
+    "guest_status": 403,
+    "guest_permission": "view_issues",
+    "outsider_login": "cleo",
+    "outsider_permission": "view_issues",
+    "private_journal_id": 2,
+    "private_login": "ada",
+    "journal_file": {"filename": "hidden.txt", "body": "HIDDEN"},
+    "removed_filename": "gone.txt",
+    "project_id": 1,
+    "project_file": {"filename": "tree.txt", "body": "TREE"},
+    "project_denied_login": "ada",
+    "project_denied_permission": "view_files",
+    "project_allowed_login": "admin",
+    "version_id": 1,
+    "version_denied_permission": "view_issues",
+    "version_file": {"filename": "build.txt", "body": "BUILD"},
+    "module": "files",
+    "member_login": "parity-files",
+    "limit": {
+        "kilobytes": "1",
+        "body_bytes": 600,
+        "status": 422,
+        "message": "Attachment archive is larger than the maximum size."
+    },
+    "default_kilobytes": 102400,
+    "downloads": 0
+}

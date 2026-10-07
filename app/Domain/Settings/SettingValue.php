@@ -59,6 +59,8 @@ final class SettingValue
 
     public const MAIL_FROM = 'mail_from';
 
+    public const BULK_DOWNLOAD_MAX_SIZE = 'bulk_download_max_size';
+
     /**
      * Redmine `display_subprojects_issues` defaults to 1.
      */
@@ -218,6 +220,20 @@ final class SettingValue
     public function attachmentExtensionsDenied(): array
     {
         return $this->extensions(self::ATTACHMENT_EXTENSIONS_DENIED);
+    }
+
+    /**
+     * `bulk_download_max_size` is kilobytes. A missing or non-numeric value is 102400.
+     */
+    public function bulkDownloadMaxBytes(): int
+    {
+        $kilobytes = 102400;
+        $stored = $this->string(self::BULK_DOWNLOAD_MAX_SIZE);
+        if ($stored !== null && preg_match('/^\d+$/', $stored) === 1) {
+            $kilobytes = (int) $stored;
+        }
+
+        return $kilobytes * 1024;
     }
 
     /**

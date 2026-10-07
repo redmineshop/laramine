@@ -67,6 +67,10 @@ Route::post('/projects/{project}/documents/{document}/custom-fields', [CustomFie
 
 Route::post('/attachments/upload', [AttachmentController::class, 'upload'])->name('attachments.upload');
 Route::post('/attachments/claim', [AttachmentController::class, 'claim'])->name('attachments.claim');
+Route::get('/attachments/{objectType}/{objectId}/download', [AttachmentController::class, 'downloadAll'])
+    ->where('objectType', 'issues|journals|projects|versions')
+    ->whereNumber('objectId')
+    ->name('attachments.download-all');
 Route::get('/attachments/{attachment}/thumbnail', [AttachmentController::class, 'thumbnail'])
     ->whereNumber('attachment')
     ->name('attachments.thumbnail');

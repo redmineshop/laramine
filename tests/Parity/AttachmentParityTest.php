@@ -2,17 +2,23 @@
 
 namespace Tests\Parity;
 
+use App\Domain\Acl\MembershipService;
+use App\Domain\Attachments\AbsentThumbnailDecoder;
 use App\Domain\Attachments\AttachmentService;
 use App\Domain\Attachments\AttachmentThumbnailRenderer;
 use App\Domain\Attachments\PngImage;
+use App\Domain\Attachments\ThumbnailDecoder;
 use App\Domain\Issues\IssueRelationService;
 use App\Domain\PermissionDeniedException;
+use App\Domain\Projects\ProjectService;
+use App\Domain\Settings\SettingValue;
 use App\Models\Attachment;
 use App\Models\Issue;
 use App\Models\IssueRelation;
 use App\Models\Journal;
 use App\Models\JournalDetail;
 use App\Models\Project;
+use App\Models\Role;
 use App\Models\Setting;
 use App\Models\User;
 use App\Models\Version;
@@ -20,6 +26,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\TestResponse;
 use Tests\Parity\Support\Redmine701Fixture;
 use Tests\TestCase;
+use ZipArchive;
 
 /**
  * Compares attachment HTTP, thumbnail cache, and relation-delete journals to the shared pin.
@@ -27,6 +34,24 @@ use Tests\TestCase;
 class AttachmentParityTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $directory = storage_path('app/attachments/thumbnails');
+        if (! is_dir($directory)) {
+            return;
+        }
+        $matches = glob($directory.'/*');
+        if ($matches === false) {
+            return;
+        }
+        foreach ($matches as $path) {
+            if (is_file($path)) {
+                unlink($path);
+            }
+        }
+    }
 
     public function test_http_download_thumbnail_and_journals_match_the_pin(): void
     {
@@ -294,6 +319,231 @@ class AttachmentParityTest extends TestCase
         }
     }
 
+    public function test_image_thumbnails_match_the_pin(): void
+    {
+        Redmine701Fixture::load();
+        $expected = $this->expectation('attachments/thumbnails.json');
+        $ada = $this->user('ada');
+        $decoder = app(ThumbnailDecoder::class);
+        $this->setting('thumbnails_enabled', $this->stringField($expected, 'enabled'));
+        $edge = $this->intField($expected, 'edge');
+        $issueId = $this->intField($expected, 'issue_id');
+        $poisoned = false;
+
+        foreach ($this->stringList($expected, 'required') as $kind) {
+            $this->assertTrue($decoder->supports($kind), $kind);
+        }
+
+        foreach ($this->listField($expected, 'formats') as $format) {
+            $kind = $this->stringField($format, 'kind');
+            $filename = $this->stringField($format, 'filename');
+            if (! $decoder->supports($kind)) {
+                $id = $this->claimFile($ada, $filename, 'not-an-image', 'application/octet-stream', $issueId);
+                $this->actingAs($ada)->getJson('/attachments/'.$id.'/thumbnail?size='.$edge)
+                    ->assertNotFound()
+                    ->assertJsonPath('message', $this->stringField($expected, 'unreadable_message'));
+
+                continue;
+            }
+            $bytes = $this->raster($kind, $this->intField($expected, 'width'), $this->intField($expected, 'height'));
+            $id = $this->claimFile($ada, $filename, $bytes, 'application/octet-stream', $issueId);
+            $response = $this->actingAs($ada)->get('/attachments/'.$id.'/thumbnail?size='.$edge);
+            $response->assertOk();
+            $this->assertStringContainsString($this->stringField($expected, 'content_type'), (string) $response->headers->get('content-type'));
+            $fitted = $response->streamedContent();
+            $this->assertSame(
+                [$this->intField($expected, 'thumb_width'), $this->intField($expected, 'thumb_height')],
+                PngImage::size($fitted),
+                $kind,
+            );
+            if (! $poisoned) {
+                $attachment = Attachment::query()->findOrFail($id);
+                $cache = app(AttachmentThumbnailRenderer::class)->cachePath($attachment, $edge);
+                $this->assertTrue(is_file($cache));
+                file_put_contents($cache, $this->stringField($expected, 'cache_poison'));
+                $this->assertSame(
+                    $this->stringField($expected, 'cache_poison'),
+                    $this->actingAs($ada)->get('/attachments/'.$id.'/thumbnail?size='.$edge)->streamedContent(),
+                );
+                $poisoned = true;
+            }
+        }
+
+        $pdf = $expected['pdf'];
+        $this->assertIsArray($pdf);
+        $pdfId = $this->claimFile(
+            $ada,
+            $this->stringField($pdf, 'filename'),
+            $this->stringField($pdf, 'body'),
+            'application/pdf',
+            $issueId,
+        );
+        $this->actingAs($ada)->getJson('/attachments/'.$pdfId.'/thumbnail?size='.$edge)
+            ->assertNotFound()
+            ->assertJsonPath('message', $this->stringField($expected, 'not_image_message'));
+
+        $this->app->instance(ThumbnailDecoder::class, new AbsentThumbnailDecoder);
+        foreach ($this->app->make('router')->getRoutes() as $route) {
+            $route->flushController();
+        }
+        $jpeg = $this->raster('jpeg', $this->intField($expected, 'width'), $this->intField($expected, 'height'));
+        $jpegId = $this->claimFile($ada, 'again.jpg', $jpeg, 'image/jpeg', $issueId);
+        $this->actingAs($ada)->getJson('/attachments/'.$jpegId.'/thumbnail?size='.$edge)
+            ->assertNotFound()
+            ->assertJsonPath('message', $this->stringField($expected, 'unreadable_message'));
+        $pngId = $this->claimFile($ada, 'still.png', $this->png(), 'image/png', $issueId);
+        $this->actingAs($ada)->get('/attachments/'.$pngId.'/thumbnail?size='.$edge)->assertOk();
+    }
+
+    public function test_bulk_download_matches_the_pin(): void
+    {
+        Redmine701Fixture::load();
+        $expected = $this->expectation('attachments/bulk.json');
+        $ada = $this->user('ada');
+        $admin = $this->user('admin');
+        $issueId = $this->intField($expected, 'issue_id');
+        $files = app(AttachmentService::class);
+        $issue = Issue::query()->findOrFail($issueId);
+
+        $this->assertSame(
+            $this->intField($expected, 'default_kilobytes'),
+            intdiv(app(SettingValue::class)->bulkDownloadMaxBytes(), 1024),
+        );
+
+        $this->actingAs($ada)->getJson('/attachments/issues/'.$issueId.'/download')
+            ->assertNotFound()
+            ->assertJsonPath('message', $this->stringField($expected, 'empty_message'));
+        $this->actingAs($ada)->getJson('/attachments/issues/'.$this->intField($expected, 'missing_id').'/download')
+            ->assertNotFound()
+            ->assertJsonPath('message', $this->stringField($expected, 'missing_message'));
+        $this->app['auth']->logout();
+        $this->getJson('/attachments/issues/'.$issueId.'/download')
+            ->assertStatus($this->intField($expected, 'guest_status'))
+            ->assertJsonPath('message', 'Permission denied: '.$this->stringField($expected, 'guest_permission'));
+        $this->get('/attachments/wiki_pages/1/download')->assertNotFound();
+
+        $one = $expected['one'];
+        $this->assertIsArray($one);
+        $files->store($ada, $this->stringField($one, 'filename'), $this->stringField($one, 'body'), 'text/plain', null, $issue);
+        $single = $this->actingAs($ada)->get('/attachments/issues/'.$issueId.'/download');
+        $single->assertOk();
+        $this->assertStringContainsString($this->stringField($expected, 'zip_type'), (string) $single->headers->get('content-type'));
+        $this->assertStringContainsString('issue-'.$issueId.'-attachments.zip', (string) $single->headers->get('content-disposition'));
+        $this->assertSame(
+            [$this->stringField($one, 'filename') => $this->stringField($one, 'body')],
+            $this->zipEntries($single->getContent()),
+        );
+
+        foreach ($this->listField($expected, 'duplicates') as $file) {
+            $files->store($ada, $this->stringField($file, 'filename'), $this->stringField($file, 'body'), 'text/plain', null, $issue);
+        }
+        $skipped = $files->store($ada, 'missing.bin', 'SKIP', 'application/octet-stream', null, $issue);
+        unlink($files->absolutePath($skipped));
+        $zip = $this->actingAs($ada)->get('/attachments/issues/'.$issueId.'/download');
+        $zip->assertOk();
+        $entries = $expected['entries'];
+        $this->assertIsArray($entries);
+        $this->assertSame($entries, $this->zipEntries($zip->getContent()));
+        $this->assertSame(
+            $this->intField($expected, 'downloads'),
+            (int) Attachment::query()->where('container_type', 'Issue')->where('container_id', $issueId)->max('downloads'),
+        );
+
+        $this->actingAs($this->user($this->stringField($expected, 'outsider_login')))
+            ->getJson('/attachments/issues/'.$issueId.'/download')
+            ->assertForbidden()
+            ->assertJsonPath('message', 'Permission denied: '.$this->stringField($expected, 'outsider_permission'));
+
+        $journalFile = $expected['journal_file'];
+        $this->assertIsArray($journalFile);
+        $hidden = $files->store($ada, $this->stringField($journalFile, 'filename'), $this->stringField($journalFile, 'body'), 'text/plain', null, $issue);
+        $journalId = $this->intField($expected, 'private_journal_id');
+        JournalDetail::query()->create([
+            'journal_id' => $journalId,
+            'property' => 'attachment',
+            'prop_key' => (string) $hidden->id,
+            'old_value' => null,
+            'value' => $hidden->filename,
+        ]);
+        JournalDetail::query()->create([
+            'journal_id' => $journalId,
+            'property' => 'attachment',
+            'prop_key' => '0',
+            'old_value' => $this->stringField($expected, 'removed_filename'),
+            'value' => null,
+        ]);
+        $journalZip = $this->actingAs($this->user($this->stringField($expected, 'private_login')))
+            ->get('/attachments/journals/'.$journalId.'/download');
+        $journalZip->assertOk();
+        $this->assertStringContainsString('journal-'.$journalId.'-attachments.zip', (string) $journalZip->headers->get('content-disposition'));
+        $this->assertSame(
+            [$this->stringField($journalFile, 'filename') => $this->stringField($journalFile, 'body')],
+            $this->zipEntries($journalZip->getContent()),
+        );
+
+        $project = Project::query()->findOrFail($this->intField($expected, 'project_id'));
+        $projectFile = $expected['project_file'];
+        $this->assertIsArray($projectFile);
+        $stored = $files->store($admin, $this->stringField($projectFile, 'filename'), $this->stringField($projectFile, 'body'), 'text/plain', null, $project);
+        $this->actingAs($this->user($this->stringField($expected, 'project_denied_login')))
+            ->getJson('/attachments/projects/'.$project->id.'/download')
+            ->assertForbidden()
+            ->assertJsonPath('message', 'Permission denied: '.$this->stringField($expected, 'project_denied_permission'));
+        $projectZip = $this->actingAs($this->user($this->stringField($expected, 'project_allowed_login')))
+            ->get('/attachments/projects/'.$project->id.'/download');
+        $projectZip->assertOk();
+        $this->assertStringContainsString('project-'.$project->id.'-attachments.zip', (string) $projectZip->headers->get('content-disposition'));
+        $this->assertSame(
+            [$this->stringField($projectFile, 'filename') => $this->stringField($projectFile, 'body')],
+            $this->zipEntries($projectZip->getContent()),
+        );
+        $this->assertSame($this->intField($expected, 'downloads'), (int) $stored->refresh()->downloads);
+
+        $member = User::factory()->create(['login' => $this->stringField($expected, 'member_login')]);
+        $role = Role::query()->create([
+            'name' => 'parity-files',
+            'builtin' => 0,
+            'position' => 15,
+            'assignable' => true,
+            'permissions' => ['view_files'],
+            'issues_visibility' => 'default',
+            'time_entries_visibility' => 'all',
+        ]);
+        app(MembershipService::class)->assignRole($project, $member, $role);
+        $this->actingAs($member)->getJson('/attachments/projects/'.$project->id.'/download')
+            ->assertForbidden()
+            ->assertJsonPath('message', 'Permission denied: '.$this->stringField($expected, 'project_denied_permission'));
+        app(ProjectService::class)->enableModule($project, $this->stringField($expected, 'module'));
+        $this->actingAs($member)->get('/attachments/projects/'.$project->id.'/download')->assertOk();
+
+        $version = Version::query()->findOrFail($this->intField($expected, 'version_id'));
+        $versionFile = $expected['version_file'];
+        $this->assertIsArray($versionFile);
+        $files->store($admin, $this->stringField($versionFile, 'filename'), $this->stringField($versionFile, 'body'), 'text/plain', null, $version);
+        $this->actingAs($member)->getJson('/attachments/versions/'.$version->id.'/download')
+            ->assertForbidden()
+            ->assertJsonPath('message', 'Permission denied: '.$this->stringField($expected, 'version_denied_permission'));
+        $role->permissions = ['view_files', 'view_issues'];
+        $role->save();
+        $versionZip = $this->actingAs($member)->get('/attachments/versions/'.$version->id.'/download');
+        $versionZip->assertOk();
+        $this->assertStringContainsString('version-'.$version->id.'-attachments.zip', (string) $versionZip->headers->get('content-disposition'));
+        $this->assertSame(
+            [$this->stringField($versionFile, 'filename') => $this->stringField($versionFile, 'body')],
+            $this->zipEntries($versionZip->getContent()),
+        );
+
+        $limit = $expected['limit'];
+        $this->assertIsArray($limit);
+        $this->setting('bulk_download_max_size', $this->stringField($limit, 'kilobytes'));
+        $payload = str_repeat('x', $this->intField($limit, 'body_bytes'));
+        $files->store($ada, 'wide-a.bin', $payload, 'application/octet-stream', null, $issue);
+        $files->store($ada, 'wide-b.bin', $payload, 'application/octet-stream', null, $issue);
+        $this->actingAs($ada)->getJson('/attachments/issues/'.$issueId.'/download')
+            ->assertStatus($this->intField($limit, 'status'))
+            ->assertJsonPath('message', $this->stringField($limit, 'message'));
+    }
+
     public function test_checklist_evidence_cites_this_comparison(): void
     {
         $checklist = file_get_contents(base_path('docs/parity-checklist.md'));
@@ -302,7 +552,76 @@ class AttachmentParityTest extends TestCase
         $this->assertStringContainsString('tests/Parity/AttachmentParityTest.php', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/attachments/http.json', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/attachments/journals.json', $checklist);
+        $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/attachments/thumbnails.json', $checklist);
+        $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/attachments/bulk.json', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/', $checklist);
+    }
+
+    private function claimFile(User $actor, string $filename, string $body, string $contentType, int $issueId): int
+    {
+        $token = $this->token($actor, $filename, $body, $contentType);
+        $claimed = $this->actingAs($actor)->postJson('/attachments/claim', [
+            'token' => $token,
+            'issue_id' => $issueId,
+        ])->assertOk();
+        $id = $claimed->json('id');
+        $this->assertIsInt($id);
+
+        return $id;
+    }
+
+    private function raster(string $kind, int $width, int $height): string
+    {
+        $image = imagecreatetruecolor($width, $height);
+        $this->assertNotFalse($image);
+        $color = imagecolorallocate($image, 255, 0, 0);
+        $this->assertNotFalse($color);
+        imagefilledrectangle($image, 0, 0, $width, $height, $color);
+        ob_start();
+        $written = match ($kind) {
+            'gif' => imagegif($image),
+            'jpeg' => imagejpeg($image),
+            'bmp' => imagebmp($image),
+            'webp' => imagewebp($image),
+            'avif' => function_exists('imageavif') ? imageavif($image) : false,
+            default => false,
+        };
+        $bytes = ob_get_clean();
+        imagedestroy($image);
+        $this->assertTrue($written);
+        $this->assertIsString($bytes);
+
+        return $bytes;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function zipEntries(string|false $contents): array
+    {
+        $this->assertIsString($contents);
+        $path = tempnam(sys_get_temp_dir(), 'assert-zip');
+        $this->assertNotFalse($path);
+        file_put_contents($path, $contents);
+        $zip = new ZipArchive;
+        try {
+            $this->assertTrue($zip->open($path) === true);
+            $entries = [];
+            for ($index = 0; $index < $zip->numFiles; $index++) {
+                $name = $zip->getNameIndex($index);
+                $this->assertIsString($name);
+                $bytes = $zip->getFromIndex($index);
+                $this->assertIsString($bytes);
+                $entries[$name] = $bytes;
+            }
+
+            return $entries;
+        } finally {
+            $zip->close();
+            if (is_file($path)) {
+                unlink($path);
+            }
+        }
     }
 
     private function png(): string
@@ -396,6 +715,21 @@ class AttachmentParityTest extends TestCase
 
         /** @var array<string, mixed> $decoded */
         return $decoded;
+    }
+
+    /**
+     * @param  array<mixed>  $row
+     * @return list<string>
+     */
+    private function stringList(array $row, string $key): array
+    {
+        $items = [];
+        foreach ($this->listField($row, $key) as $item) {
+            $this->assertIsString($item);
+            $items[] = $item;
+        }
+
+        return $items;
     }
 
     /**

@@ -18,6 +18,7 @@ class AttachmentThumbnailTest extends TestCase
         $this->assertTrue($thumbnails->isImage('anim.gif'));
         $this->assertTrue($thumbnails->isImage('legacy.bmp'));
         $this->assertTrue($thumbnails->isImage('photo.jpe'));
+        $this->assertTrue($thumbnails->isImage('frame.avif'));
         $this->assertFalse($thumbnails->isImage('notes.txt'));
         $this->assertFalse($thumbnails->isImage('picture.svg'));
         $this->assertFalse($thumbnails->isImage('photo.png.txt'));
