@@ -269,6 +269,12 @@ class IdentityAclParityTest extends TestCase
     {
         Redmine701Fixture::load();
         $expected = $this->recorded('expectations/identity-acl/managed-roles.json');
+        $manager = Role::query()->find($this->intField($expected, 'grant_manage_members_role_id'));
+        $this->assertInstanceOf(Role::class, $manager);
+        $names = $manager->permissions;
+        $names[] = 'manage_members';
+        $manager->permissions = array_values(array_unique($names));
+        $manager->save();
         $setup = $expected['coordinator'];
         $this->assertIsArray($setup);
         $coordinator = Role::query()->create([

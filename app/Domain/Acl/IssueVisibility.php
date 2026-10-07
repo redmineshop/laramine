@@ -78,17 +78,26 @@ final class IssueVisibility
             : [];
 
         return $query->where(function (Builder $outer) use ($clauses, $principalIds): void {
-            /** @var Builder<Issue> $outer */
-            foreach ($clauses as [$role, $trackerIds]) {
-                $outer->orWhere(function (Builder $inner) use ($role, $trackerIds, $principalIds): void {
-                    /** @var Builder<Issue> $inner */
-                    $this->visibilityPredicate($inner, (string) $role->issues_visibility, $principalIds);
-                    if (is_array($trackerIds)) {
-                        $inner->whereIn('issues.tracker_id', $trackerIds);
-                    }
-                });
-            }
+            $this->orRoleClauses($outer, $clauses, $principalIds);
         });
+    }
+
+    /**
+     * @param  Builder<Issue>  $query
+     * @param  list<array{0: Role, 1: list<int>|null}>  $clauses
+     * @param  list<int>  $principalIds
+     */
+    private function orRoleClauses(Builder $query, array $clauses, array $principalIds): void
+    {
+        foreach ($clauses as [$role, $trackerIds]) {
+            $query->orWhere(function (Builder $inner) use ($role, $trackerIds, $principalIds): void {
+                /** @var Builder<Issue> $inner */
+                $this->visibilityPredicate($inner, (string) $role->issues_visibility, $principalIds);
+                if (is_array($trackerIds)) {
+                    $inner->whereIn('issues.tracker_id', $trackerIds);
+                }
+            });
+        }
     }
 
     public function canSee(?User $user, Issue $issue): bool

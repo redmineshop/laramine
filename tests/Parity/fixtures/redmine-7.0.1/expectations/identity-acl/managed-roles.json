@@ -1,5 +1,6 @@
 {
     "pin": "7.0.1",
+    "grant_manage_members_role_id": 2,
     "coordinator": {
         "name": "Coordinator",
         "project_id": 1,

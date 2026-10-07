@@ -52,7 +52,7 @@ final class TrackerPermissionMask
             return null;
         }
 
-        $settings = $role->settings;
+        $settings = $this->settings($role);
         if ($settings === null) {
             return null;
         }
@@ -85,5 +85,15 @@ final class TrackerPermissionMask
         }
 
         return array_values(array_unique($ids));
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function settings(Role $role): ?array
+    {
+        $raw = $role->getAttributes()['settings'] ?? null;
+
+        return (new JsonObjectCast)->get($role, 'settings', $raw, []);
     }
 }

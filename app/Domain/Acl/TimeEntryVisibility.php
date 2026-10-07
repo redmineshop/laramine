@@ -10,12 +10,14 @@ use Illuminate\Database\Eloquent\Builder;
 /**
  * Time-entry list scope for `roles.time_entries_visibility`.
  *
- * `view_time_entries` is required first, so a closed project's read access
- * still lists rows and an archived project lists none. `all` shows every
- * row. `own` keeps rows whose `user_id` is the actor. Several roles use the
- * most open value. Any other stored value contributes nothing. Active
- * admins see every row when that permission is allowed. Issue query
- * `spent_hours` and the `spent_time` filter use {@see self::mode}.
+ * Archived projects and any status other than active or closed list no
+ * rows, including for an active admin. Active and closed projects
+ * continue. `all` shows every row. `own` keeps rows whose `user_id` is
+ * the actor. Only roles that grant `view_time_entries` count, and several
+ * of those roles use the most open value. Any other stored value
+ * contributes nothing. Active admins then see every row. This list does
+ * not also require the `time_tracking` module. Issue query `spent_hours`
+ * and the `spent_time` filter use {@see self::mode}.
  */
 final class TimeEntryVisibility
 {
@@ -46,7 +48,8 @@ final class TimeEntryVisibility
 
     public function mode(User $actor, Project $project): string
     {
-        if (! $this->permissions->allowed($actor, 'view_time_entries', $project)) {
+        $status = (int) $project->status;
+        if ($status !== Project::STATUS_ACTIVE && $status !== Project::STATUS_CLOSED) {
             return self::NONE;
         }
 

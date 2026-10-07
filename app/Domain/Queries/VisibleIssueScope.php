@@ -102,13 +102,21 @@ final class VisibleIssueScope
         }
 
         return $query->where(function (Builder $outer) use ($user, $visible): void {
-            /** @var Builder<Issue> $outer */
-            foreach ($visible as $candidate) {
-                $outer->orWhere(function (Builder $inner) use ($user, $candidate): void {
-                    /** @var Builder<Issue> $inner */
-                    $this->visibility->apply($inner, $user, $candidate);
-                });
-            }
+            $this->orProjects($outer, $user, $visible);
         });
+    }
+
+    /**
+     * @param  Builder<Issue>  $query
+     * @param  list<Project>  $projects
+     */
+    private function orProjects(Builder $query, ?User $user, array $projects): void
+    {
+        foreach ($projects as $candidate) {
+            $query->orWhere(function (Builder $inner) use ($user, $candidate): void {
+                /** @var Builder<Issue> $inner */
+                $this->visibility->apply($inner, $user, $candidate);
+            });
+        }
     }
 }
