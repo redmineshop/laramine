@@ -4,8 +4,10 @@ namespace Tests\Parity;
 
 use App\Domain\Activity\ActivityEvent;
 use App\Domain\Activity\ActivityProvider;
+use App\Domain\Attachments\AttachmentContainerService;
 use App\Domain\Auth\ActionToken;
 use App\Domain\Settings\SettingValue;
+use App\Models\JournalDetail;
 use App\Models\Project;
 use App\Models\Setting;
 use App\Models\Token;
@@ -129,6 +131,35 @@ class ActivityParityTest extends TestCase
         $scoped->assertOk();
         $scoped->assertSee('<name>ada</name>', false);
         $scoped->assertSee('tag:parity.test,2026-08-27:time_entry/5', false);
+    }
+
+    public function test_attachment_journal_uses_the_container_row_and_time_titles_use_hour_value(): void
+    {
+        Redmine701Fixture::load();
+        Carbon::setTestNow('2026-10-07 12:00:00');
+        $ada = $this->user('ada');
+        $container = app(AttachmentContainerService::class);
+        $uploaded = $container->upload($ada, 'pin.txt', 'pin-bytes', 'text/plain');
+        $attachment = $container->claim($ada, $uploaded['token'], 1, null, null, null);
+        $events = app(ActivityProvider::class)->events($ada, null, '2026-10-07', 0);
+        $this->assertCount(1, $events);
+        $event = $events[0];
+        $this->assertSame('journal', $event->kind);
+        $this->assertSame('ada', $event->author);
+        $this->assertSame('Bug #1 (New): Parity pin parent', $event->title);
+        $detail = JournalDetail::query()->where('journal_id', $event->id)->first();
+        $this->assertInstanceOf(JournalDetail::class, $detail);
+        $this->assertSame((string) $attachment->id, (string) $detail->prop_key);
+
+        $window = app(ActivityProvider::class)->events($ada, null, '2026-08-27', 2);
+        $time = null;
+        foreach ($window as $row) {
+            if ($row->kind === 'time_entry' && $row->id === 1) {
+                $time = $row;
+            }
+        }
+        $this->assertInstanceOf(ActivityEvent::class, $time);
+        $this->assertSame('1.50 hours (Development) on #1', $time->title);
     }
 
     public function test_checklist_evidence_cites_this_comparison(): void

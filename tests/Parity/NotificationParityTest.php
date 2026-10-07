@@ -2,6 +2,7 @@
 
 namespace Tests\Parity;
 
+use App\Domain\Attachments\AttachmentContainerService;
 use App\Domain\Auth\AccountAdminService;
 use App\Domain\Auth\AccountRecovery;
 use App\Domain\Auth\RegistrationService;
@@ -14,9 +15,11 @@ use App\Domain\Notifications\NotifiedEventCatalog;
 use App\Domain\Notifications\NotifiedEventSetting;
 use App\Domain\Settings\SettingValue;
 use App\Mail\RedmineNotificationMail;
+use App\Models\Attachment;
 use App\Models\EmailAddress;
 use App\Models\Issue;
 use App\Models\Journal;
+use App\Models\JournalDetail;
 use App\Models\Member;
 use App\Models\Project;
 use App\Models\Setting;
@@ -241,6 +244,33 @@ class NotificationParityTest extends TestCase
             'notify' => false,
         ]);
         $this->assertCount($this->intField($expected, 'notify_false_count'), $this->queued());
+    }
+
+    public function test_attachment_claim_reuses_the_container_journal(): void
+    {
+        $this->bootPin();
+        $this->setting(SettingValue::NOTIFIED_EVENTS, '["issue_attachment_added"]');
+        $ada = $this->user('ada');
+        $container = app(AttachmentContainerService::class);
+        $uploaded = $container->upload($ada, 'pin.txt', 'pin-bytes', 'text/plain');
+        $before = (int) Journal::query()->max('id');
+        $attachment = $container->claim($ada, $uploaded['token'], 1, null, null, null);
+        $this->assertInstanceOf(Attachment::class, $attachment);
+        $journals = Journal::query()->where('id', '>', $before)->orderBy('id')->get();
+        $this->assertCount(1, $journals);
+        $journal = $journals->first();
+        $this->assertInstanceOf(Journal::class, $journal);
+        $detail = JournalDetail::query()->where('journal_id', $journal->id)->first();
+        $this->assertInstanceOf(JournalDetail::class, $detail);
+        $this->assertSame('attachment', (string) $detail->property);
+        $this->assertSame((string) $attachment->id, (string) $detail->prop_key);
+        $this->assertSame('pin.txt', (string) $detail->value);
+        $this->assertMails($this->section('attachment_claim'), ['journal' => (string) $journal->id, 'stamp' => self::STAMP]);
+
+        Mail::fake();
+        $container->delete($ada, $attachment);
+        $removal = $this->section('attachment_claim');
+        $this->assertCount($this->intField($removal, 'removal_count'), $this->queued());
     }
 
     public function test_quote_and_relation_add_queue_issue_edit_mail(): void

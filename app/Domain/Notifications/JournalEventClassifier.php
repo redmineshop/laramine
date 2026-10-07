@@ -93,7 +93,9 @@ final class JournalEventClassifier
     {
         $property = (string) $detail->property;
         if ($property === IssueJournalWriter::PROPERTY_ATTACHMENT) {
-            return NotifiedEventCatalog::ISSUE_ATTACHMENT_ADDED;
+            $value = $detail->value;
+
+            return is_string($value) && $value !== '' ? NotifiedEventCatalog::ISSUE_ATTACHMENT_ADDED : null;
         }
         if ($property !== IssueJournalWriter::PROPERTY_ATTR) {
             return null;

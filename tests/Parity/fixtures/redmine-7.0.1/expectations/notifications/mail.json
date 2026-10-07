@@ -163,6 +163,24 @@
       "X-Redmine-Sender": "admin"
     }
   },
+  "attachment_claim": {
+    "mails": [
+      {
+        "to": "ada@parity.test",
+        "subject": "[Parity Core - Bug #1] Parity pin parent",
+        "message_id": "redmine.journal-{journal}.{stamp}@parity.test",
+        "references": ["redmine.issue-1.20260826120000@parity.test"],
+        "body_contains": ["Journal: {journal}"]
+      },
+      {
+        "to": "admin@parity.test",
+        "subject": "[Parity Core - Bug #1] Parity pin parent",
+        "message_id": "redmine.journal-{journal}.{stamp}@parity.test",
+        "references": ["redmine.issue-1.20260826120000@parity.test"]
+      }
+    ],
+    "removal_count": 0
+  },
   "news_only_count": 0,
   "notify_false_count": 0,
   "quote": {

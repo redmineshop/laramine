@@ -7,6 +7,7 @@ use App\Domain\Acl\PermissionService;
 use App\Domain\Acl\TimeEntryVisibility;
 use App\Domain\Issues\IssueJournalWriter;
 use App\Domain\Settings\SettingValue;
+use App\Domain\TimeEntries\HourValue;
 use App\Models\EnabledModule;
 use App\Models\Enumeration;
 use App\Models\Issue;
@@ -284,7 +285,7 @@ final class ActivityProvider
         }
         $activity = $entry->activity;
         $activityName = $activity instanceof Enumeration ? (string) $activity->name : '';
-        $hours = number_format((float) $entry->hours, 2, '.', '');
+        $hours = HourValue::format((float) $entry->hours, 'decimal');
         $title = $hours.' hours ('.$activityName.')';
         if ($entry->issue_id !== null) {
             $title .= ' on #'.$entry->issue_id;
