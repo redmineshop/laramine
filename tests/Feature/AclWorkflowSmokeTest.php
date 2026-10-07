@@ -530,6 +530,72 @@ class AclWorkflowSmokeTest extends TestCase
         }
     }
 
+    public function test_mvp_view_only_role_does_not_change_workflow_merge(): void
+    {
+        $world = DomainFixture::boot('view-only-merge');
+        $world->join();
+        $viewer = Role::query()->create([
+            'name' => 'Observer',
+            'builtin' => BuiltinRole::CUSTOM,
+            'permissions' => ['view_issues'],
+            'issues_visibility' => 'default',
+        ]);
+        app(MembershipService::class)->assignRole($world->project, $world->user, $viewer);
+        $this->fieldRule($world, $world->role->id, 'due_date', WorkflowService::RULE_REQUIRED);
+        $this->fieldRule($world, $world->role->id, 'start_date', WorkflowService::RULE_READONLY);
+        $this->fieldRule($world, $world->role->id, 'estimated_hours', WorkflowService::RULE_READONLY);
+        $this->fieldRule($world, $world->role->id, 'estimated_hours', WorkflowService::RULE_REQUIRED);
+        Workflow::query()->create([
+            'type' => WorkflowService::TYPE_TRANSITION,
+            'tracker_id' => $world->tracker->id,
+            'role_id' => $viewer->id,
+            'old_status_id' => $world->newStatus->id,
+            'new_status_id' => $world->closed->id,
+            'author' => false,
+            'assignee' => false,
+        ]);
+
+        $workflows = app(WorkflowService::class);
+        $probe = $world->project->issues()->make([
+            'tracker_id' => $world->tracker->id,
+            'status_id' => $world->newStatus->id,
+            'project_id' => $world->project->id,
+        ]);
+        $probe->setRelation('project', $world->project);
+        $this->assertSame(WorkflowService::RULE_REQUIRED, $workflows->fieldRule($world->user, $probe, 'estimated_hours'));
+
+        $issues = app(IssueService::class);
+        try {
+            $issues->create($world->user, $world->project, [
+                'tracker_id' => $world->tracker->id,
+                'subject' => 'Missing due date',
+            ]);
+            $this->fail('A view-only role with no row must not loosen a required field.');
+        } catch (WorkflowDeniedException $exception) {
+            $this->assertStringContainsString('due_date', $exception->getMessage());
+            $this->assertSame(0, $world->project->issues()->count());
+        }
+
+        $issue = $issues->create($world->user, $world->project, [
+            'tracker_id' => $world->tracker->id,
+            'subject' => 'Dated',
+            'due_date' => '2026-10-07',
+            'estimated_hours' => 1,
+        ]);
+        try {
+            $issues->update($world->user, $issue->fresh(), ['start_date' => '2026-10-01']);
+            $this->fail('A view-only role with no row must not loosen a readonly field.');
+        } catch (WorkflowDeniedException) {
+            $this->assertNull($issue->fresh()->start_date);
+        }
+        try {
+            $issues->update($world->user, $issue->fresh(), ['status_id' => $world->closed->id]);
+            $this->fail('A view-only role must not add a transition.');
+        } catch (WorkflowDeniedException) {
+            $this->assertSame($world->newStatus->id, $issue->fresh()->status_id);
+        }
+    }
+
     private function fieldRule(DomainFixture $world, int $roleId, string $field, string $rule): void
     {
         Workflow::query()->create([

@@ -9,6 +9,8 @@ use App\Domain\Acl\PermissionService;
 use App\Domain\Issues\IssueService;
 use App\Domain\PermissionDeniedException;
 use App\Domain\Projects\ProjectService;
+use App\Models\MemberRole;
+use App\Models\Project;
 use App\Models\Role;
 use App\Models\User;
 use Database\Seeders\DefaultAccessSeeder;
@@ -249,5 +251,65 @@ class MembershipAclTest extends TestCase
         $stored = $manager->getRawOriginal('permissions');
         $this->assertIsString($stored);
         $this->assertStringStartsWith('[', $stored);
+    }
+
+    public function test_move_rewalks_inherited_members_through_descendants(): void
+    {
+        $world = DomainFixture::boot('move-inherit');
+        $world->join();
+        $projects = app(ProjectService::class);
+        $memberships = app(MembershipService::class);
+
+        $child = $projects->create([
+            'name' => 'Child',
+            'identifier' => 'move-child',
+            'inherit_members' => true,
+        ], $world->project);
+        $grandchild = $projects->create([
+            'name' => 'Grand',
+            'identifier' => 'move-grand',
+            'inherit_members' => true,
+        ], $child);
+        $this->assertNotNull($this->membership($child, $world->user, $world->role));
+        $this->assertNotNull($this->membership($grandchild, $world->user, $world->role));
+
+        $side = $projects->create([
+            'name' => 'Side',
+            'identifier' => 'move-side',
+        ]);
+        $other = User::factory()->create();
+        $otherRole = Role::query()->create([
+            'name' => 'Side role',
+            'builtin' => BuiltinRole::CUSTOM,
+            'permissions' => ['view_issues', 'add_issues'],
+        ]);
+        $source = $memberships->assignRole($side, $other, $otherRole);
+
+        $projects->move($child->fresh(), $side->fresh());
+        $projects->assertConsistent();
+
+        $this->assertNull($this->membership($child->fresh(), $world->user, $world->role));
+        $this->assertNull($this->membership($grandchild->fresh(), $world->user, $world->role));
+
+        $onChild = $this->membership($child->fresh(), $other, $otherRole);
+        $this->assertNotNull($onChild);
+        $this->assertSame($source->id, (int) $onChild->inherited_from);
+
+        $onGrand = $this->membership($grandchild->fresh(), $other, $otherRole);
+        $this->assertNotNull($onGrand);
+        $this->assertSame((int) $onChild->id, (int) $onGrand->inherited_from);
+    }
+
+    private function membership(Project $project, User $user, Role $role): ?MemberRole
+    {
+        $row = MemberRole::query()
+            ->select('member_roles.*')
+            ->join('members', 'members.id', '=', 'member_roles.member_id')
+            ->where('members.project_id', $project->id)
+            ->where('members.user_id', $user->id)
+            ->where('member_roles.role_id', $role->id)
+            ->first();
+
+        return $row instanceof MemberRole ? $row : null;
     }
 }

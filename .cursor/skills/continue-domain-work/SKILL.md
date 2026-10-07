@@ -13,7 +13,7 @@ Use this when extending issues, issue queries, or custom fields. The source of t
    - Issues, workflow, permissions, project tree: `docs/domain.md`
    - Custom fields: `docs/custom-fields.md`
    - Queries and operators: `docs/queries.md`
-2. Read `docs/parity-checklist.md`. The P0 table and column layout row is **VERIFIED** by `tests/Parity/SchemaLayoutParityTest.php`. The users and authentication row is **VERIFIED** by `tests/Parity/UsersAuthParityTest.php`. Every other P0 row is **NOT VERIFIED**. Leave those rows that way unless you add a real comparison (see below). The schema row does not verify issues, queries, or custom fields.
+2. Read `docs/parity-checklist.md`. The P0 table and column layout row is **VERIFIED** by `tests/Parity/SchemaLayoutParityTest.php`. The users and authentication row is **VERIFIED** by `tests/Parity/UsersAuthParityTest.php`. The identity row is **VERIFIED** by `tests/Parity/IdentityAclParityTest.php`. The projects and issue nested sets row is **VERIFIED** by `tests/Parity/ProjectNestedSetParityTest.php`. The workflows row is **VERIFIED** by `tests/Parity/WorkflowParityTest.php`. Every other P0 row is **NOT VERIFIED**. Leave those rows that way unless you add a real comparison (see below). The schema row does not verify issues, queries, or custom fields.
 3. Read the service you will change and one existing test that already covers a neighbor behavior.
 4. Do not copy Redmine Ruby or other GPLv2 source. Reimplement from the semantic notes already in `docs/`. If you need a new semantic detail, write it in your own words in the doc.
 

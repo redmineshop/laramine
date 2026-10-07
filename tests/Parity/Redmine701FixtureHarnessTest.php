@@ -73,7 +73,7 @@ class Redmine701FixtureHarnessTest extends TestCase
         $this->assertSame(1, (int) $root->tracker_id);
 
         $this->assertSame(1, DB::table('members')->where('user_id', 1)->where('project_id', 1)->count());
-        $this->assertSame(4, DB::table('workflows')->where('type', 'WorkflowTransition')->count());
+        $this->assertSame(5, DB::table('workflows')->where('type', 'WorkflowTransition')->count());
         $this->assertSame(1, DB::table('workflows')->where('type', 'WorkflowPermission')->where('rule', 'required')->count());
         $this->assertSame(1, DB::table('time_entries')->where('tweek', 35)->count());
 
@@ -116,7 +116,7 @@ class Redmine701FixtureHarnessTest extends TestCase
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/', $checklist);
         $this->assertDoesNotMatchRegularExpression(
-            '/^\| (?!P0 table and column layout \|)(?!Users and authentication \|)[^|\n]+\| VERIFIED \|/m',
+            '/^\| (?!P0 table and column layout \|)(?!Users and authentication \|)(?!Identity, membership, and permissions \|)(?!Projects and issue nested sets \|)(?!Workflows \|)[^|\n]+\| VERIFIED \|/m',
             $checklist,
         );
     }

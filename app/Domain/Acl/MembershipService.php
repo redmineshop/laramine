@@ -155,6 +155,22 @@ final class MembershipService
         });
     }
 
+    /**
+     * Rebuild cross-project inheritance after the parent changes.
+     *
+     * Roles inherited from another project are removed, including the chain
+     * on descendants. When this project still inherits and has a parent, the
+     * parent's roles are copied again and that copy walks descendants.
+     */
+    public function resyncInheritedMembers(Project $project): void
+    {
+        $this->forgetCrossProjectInheritance($project);
+        $project->refresh();
+        if ($project->inherit_members && $project->parent_id !== null) {
+            $this->copyInheritedFromParent($project);
+        }
+    }
+
     public function forgetCrossProjectInheritance(Project $project): void
     {
         DB::transaction(function () use ($project): void {
@@ -274,6 +290,8 @@ final class MembershipService
                 ->where('inherit_members', true)
                 ->orderBy('lft')
                 ->get();
+            // Descendants are copied before group users on this project, so a
+            // user's row on a child inherits from the group's row on that child.
             foreach ($children as $child) {
                 $this->grantInherited($child, $principal, $role, $memberRole, $visited);
             }

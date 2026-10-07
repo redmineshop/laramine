@@ -3,6 +3,7 @@
 namespace App\Domain\Issues;
 
 use App\Domain\Acl\PermissionService;
+use App\Domain\Acl\UserVisibility;
 use App\Domain\CustomFields\CustomValueService;
 use App\Domain\DomainException;
 use App\Domain\PermissionDeniedException;
@@ -25,6 +26,7 @@ final class IssueService
 {
     public function __construct(
         private readonly PermissionService $permissions,
+        private readonly UserVisibility $userVisibility,
         private readonly WorkflowService $workflows,
         private readonly IssueTree $trees,
         private readonly CustomValueService $customValues,
@@ -42,7 +44,7 @@ final class IssueService
 
         $tracker = $this->tracker($project, $attributes);
         $subject = $this->subject($attributes);
-        $assignee = $this->optionalUser($attributes['assigned_to_id'] ?? null, 'Assignee');
+        $assignee = $this->optionalAssignee($actor, $attributes['assigned_to_id'] ?? null, null);
         $status = $this->resolveCreateStatus($actor, $project, $tracker, $this->optionalInt($attributes, 'status_id'), $assignee);
         $priority = $this->priority($attributes);
         $parent = $this->optionalParent($attributes, $project, $actor, true);
@@ -175,7 +177,7 @@ final class IssueService
             $issue->priority_id = $this->priority($attributes)->id;
         }
         if (array_key_exists('assigned_to_id', $attributes)) {
-            $assignee = $this->optionalUser($attributes['assigned_to_id'], 'Assignee');
+            $assignee = $this->optionalAssignee($actor, $attributes['assigned_to_id'], $issue->assignee);
             $issue->assigned_to_id = $assignee?->id;
         }
         if (array_key_exists('is_private', $attributes) && (bool) $attributes['is_private'] !== (bool) $issue->is_private) {
@@ -506,17 +508,23 @@ final class IssueService
         return null;
     }
 
-    private function optionalUser(mixed $id, string $label): ?User
+    private function optionalAssignee(User $actor, mixed $id, ?User $already): ?User
     {
         if ($id === null) {
             return null;
         }
         if (! is_numeric($id)) {
-            throw new DomainException($label.' does not exist.');
+            throw new DomainException('Assignee does not exist.');
         }
         $user = User::query()->find((int) $id);
         if ($user === null) {
-            throw new DomainException($label.' does not exist.');
+            throw new DomainException('Assignee does not exist.');
+        }
+        if ($already !== null && (int) $already->id === (int) $user->id) {
+            return $user;
+        }
+        if (! $this->userVisibility->canSee($actor, $user)) {
+            throw new DomainException('Assignee is not visible.');
         }
 
         return $user;

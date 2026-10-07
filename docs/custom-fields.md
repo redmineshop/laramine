@@ -68,7 +68,7 @@ Validation failures raise `CustomFieldValidationException` (a `DomainException`)
 
 `editable = false` blocks value changes for non-admins. Admins can still write the field. A null `editable` column is treated as editable (the column default is true).
 
-For an issue field with `visible = false`, workflow merge treats roles that are not in `custom_fields_roles` as `readonly`. If any visible role has no workflow row, the field stays unconstrained. If every role has a rule and one of them is `required`, the field is required. Active admins skip workflow rules. Required checks (`is_required` or a workflow `required` rule) apply only to actors who can see the field. Workflow rules use the issue status already stored, including the initial status on create.
+For an issue field with `visible = false`, workflow merge treats roles that are not in `custom_fields_roles` as `readonly`. Roles that do not grant `add_issues`, `edit_issues`, or `edit_own_issues` are left out. If any remaining role has no workflow row, the field stays unconstrained. If every remaining role has a rule and one of them is `required`, the field is required. Two rows for one role resolve to `required` when either row is `required`. Active admins skip workflow rules. Required checks (`is_required` or a workflow `required` rule) apply only to actors who can see the field. Workflow rules use the issue status already stored, including the initial status on create.
 
 ## HTTP reads
 
@@ -102,7 +102,7 @@ A hidden field is refused with `PermissionDeniedException` and the token `custom
 - Custom-field journal diffs are not written. Issue journals still ignore custom-value edits.
 - Int and float are totalable. Progress bar is not. IssueQuery sums the totalable formats; see [queries.md](queries.md).
 - Version fields ignore version sharing.
-- User fields do not offer groups as selectable values. User and group custom-field files follow the host table above. `users_visibility` is not applied.
+- User fields do not offer groups as selectable values. User and group custom-field files follow the host table above. `users_visibility` is not applied to these values. Issue assignees use `UserVisibility`.
 - Text formatting and full-width layout keys are stored and not rendered.
 - Custom field workflow errors are `CustomFieldValidationException`, not `WorkflowDeniedException`.
 - `CustomValueService` does not authorize the host record. `IssueService` still requires `add_issues` or `edit_issues` / `edit_own_issues` before it writes issue values.

@@ -1,0 +1,68 @@
+{
+    "pin": "7.0.1",
+    "permissions": [
+        {"login": "ada", "project_id": 1, "permission": "add_issues", "allowed": true},
+        {"login": "ada", "project_id": 1, "permission": "delete_issues", "allowed": false},
+        {"login": "ada", "project_id": 2, "permission": "add_issues", "allowed": true},
+        {"login": "bea", "project_id": 1, "permission": "delete_issues", "allowed": true},
+        {"login": "bea", "project_id": 2, "permission": "view_project", "allowed": false},
+        {"login": "cleo", "project_id": 1, "permission": "view_project", "allowed": true},
+        {"login": "cleo", "project_id": 1, "permission": "add_issues", "allowed": false},
+        {"login": "cleo", "project_id": 2, "permission": "view_project", "allowed": false},
+        {"login": "dora", "project_id": 1, "permission": "view_project", "allowed": true},
+        {"login": "dora", "project_id": 1, "permission": "add_issues", "allowed": false},
+        {"login": "dora", "project_id": 2, "permission": "add_issues", "allowed": true},
+        {"login": "erin", "project_id": 1, "permission": "view_issues", "allowed": true},
+        {"login": "erin", "project_id": 1, "permission": "add_issues", "allowed": false},
+        {"login": null, "project_id": 1, "permission": "view_project", "allowed": true},
+        {"login": null, "project_id": 1, "permission": "add_issues", "allowed": false},
+        {"login": null, "project_id": 2, "permission": "view_project", "allowed": false},
+        {"login": "admin", "project_id": 2, "permission": "delete_issues", "allowed": true}
+    ],
+    "users_visibility": [
+        {"viewer": "ada", "subject": "cleo", "visible": false},
+        {"viewer": "ada", "subject": "dora", "visible": true},
+        {"viewer": "ada", "subject": "lars", "visible": false},
+        {"viewer": "ada", "subject": "platform", "visible": true},
+        {"viewer": "bea", "subject": "dora", "visible": false},
+        {"viewer": "bea", "subject": "cleo", "visible": false},
+        {"viewer": "erin", "subject": "cleo", "visible": true},
+        {"viewer": "erin", "subject": "dora", "visible": true},
+        {"viewer": "erin", "subject": "lars", "visible": false},
+        {"viewer": "admin", "subject": "lars", "visible": true},
+        {"viewer": "admin", "subject": "cleo", "visible": true},
+        {"viewer": null, "subject": "ada", "visible": true},
+        {"viewer": null, "subject": "dora", "visible": false},
+        {"viewer": null, "subject": "cleo", "visible": false},
+        {"viewer": null, "subject": "platform", "visible": true},
+        {"viewer": "cleo", "subject": "cleo", "visible": true},
+        {"viewer": "cleo", "subject": "dora", "visible": false}
+    ],
+    "assignees": [
+        {"login": "ada", "issue_id": 1, "assignee_login": "cleo", "error": "not visible", "stored_login": "ada"},
+        {"login": "admin", "issue_id": 1, "assignee_login": "lars", "error": null, "stored_login": "lars"}
+    ],
+    "inherit_members_walk": {
+        "assign": {"project_id": 1, "login": "platform", "role_id": 2},
+        "copies": [
+            {
+                "project_id": 2,
+                "login": "platform",
+                "role_id": 2,
+                "inherited_from": {"project_id": 1, "login": "platform", "role_id": 2}
+            },
+            {
+                "project_id": 1,
+                "login": "ada",
+                "role_id": 2,
+                "inherited_from": {"project_id": 1, "login": "platform", "role_id": 2}
+            },
+            {
+                "project_id": 2,
+                "login": "ada",
+                "role_id": 2,
+                "inherited_from": {"project_id": 2, "login": "platform", "role_id": 2}
+            }
+        ]
+    }
+}
