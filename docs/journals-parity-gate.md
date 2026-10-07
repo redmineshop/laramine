@@ -102,7 +102,7 @@ These rows used to be open after Block C and the note writes. A green test here 
 | --- | --- |
 | Journal note writes compared with Redmine 7.0.1 | **Open.** Laramine stores the rows. No parity comparison has been recorded. |
 | HTTP download, thumbnail bytes, and the issue page | **Open.** The zip and the copy-link string exist. Nothing serves them over HTTP, and thumbnail images are not rendered. |
-| Time-entry writes | **Open.** The Spent time tab reads rows. There is no write service for `log_time` or `edit_time_entries`. |
+| Time-entry writes | **Open for a Redmine comparison.** `TimeEntryService` creates, updates, and deletes rows (`tests/Feature/TimeEntryWriteTest.php`). There is no dump diff. |
 | Changeset sync and repository browse | **Open.** The tab reads `repositories`, `changesets`, and `changesets_issues`. `changes` and `changeset_parents` are not migrated. Commits are not fetched. |
 | Redmine parity VERIFIED, tag 0.1 | **Open.** Not claimed. |
 
