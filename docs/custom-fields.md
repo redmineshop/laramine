@@ -36,7 +36,7 @@ Multiple values are one `custom_values` row per entry. A blank value deletes the
 | `attachment` | One `attachments.id` | `format_store.extensions_allowed` is a comma-separated string or a list of extensions such as `pdf` or `.PNG`. The last filename segment is compared, case-insensitive. `AttachmentService::store` writes the bytes on the local `attachments` disk, sets `digest` to SHA-256 hex, and sets `disk_directory` to `YYYY/MM`. `disk_filename` is `yymmddHHMMSS_` plus the original name when that name is at most 50 characters of ASCII letters, digits, `_`, `.`, and `-`. Otherwise the suffix is the SHA-256 hex of the filename. A trailing `.ext` of ASCII alphanumerics is kept only when that suffix is still at most 50 characters. A colliding name increments the timestamp. A row with an empty container is accepted by validation. `CustomValueService` binds that row to the customized record when the value is saved. A row that already names another container is rejected. Clearing the value does not delete the file or clear the container. Not searchable and not multiple. |
 | `progressbar` | Integer `0`–`100` | `format_store.ratio_interval`, when set, is a positive integer that divides 100. The value must be a multiple of that step. Not searchable, not multiple, and not totalable. |
 
-`multiple` is rejected on formats that do not support it. `searchable` is rejected the same way. `is_filter` marks an issue custom field as usable in an IssueQuery. Every registered format compiles `cf_{id}` filters. See [queries.md](queries.md). Int and float report `supportsTotal`. The other formats, including progress bar, do not. IssueQuery does not sum custom fields.
+`multiple` is rejected on formats that do not support it. `searchable` is rejected the same way. `is_filter` marks an issue custom field as usable in an IssueQuery filter. Every registered format compiles `cf_{id}` filters. See [queries.md](queries.md). Int and float report `supportsTotal`, and IssueQuery sums `cf_{id}` when `options.totalable_names` lists that field. The other formats, including progress bar, do not. A total does not require `is_filter`.
 
 Enumeration option rows are written by `CustomFieldEnumerationService`, not by `CustomFieldService::save`. Attachment bytes are written by `AttachmentService` on the `attachments` filesystem disk (`storage/app/attachments`). The caller of either service is responsible for authorization. What is still open is listed in [custom-fields-deferred-parity-gate.md](custom-fields-deferred-parity-gate.md).
 
@@ -78,7 +78,7 @@ For an issue field with `visible = false`, workflow merge treats roles that are 
 - `ratio_interval` must divide 100 so `0` and `100` stay on the scale.
 - Attachment files use the local `attachments` disk. `disk_directory` is `YYYY/MM`. A non-ASCII or over-long disk token is SHA-256 hex. This slice does not serve the file over HTTP. Clearing the custom value leaves the row and the file in place. Filename search stays on the core `attachment` filter, which reads `attachments.filename`, not this custom value.
 - Custom-field journal diffs are not written. Issue journals still ignore custom-value edits.
-- Int and float expose a totalable flag. Query totals are not computed. Progress bar is not totalable.
+- Int and float are totalable. Progress bar is not. IssueQuery sums the totalable formats; see [queries.md](queries.md).
 - Version fields ignore version sharing.
 - User fields do not offer groups as selectable values.
 - Text formatting and full-width layout keys are stored and not rendered.

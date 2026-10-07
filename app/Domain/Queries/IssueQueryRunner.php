@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
  *
  * Rows stay inside the actor's issue visibility. Column names are not projected;
  * callers read full issue rows and use `column_names` only as a display list.
+ * `totals` sums `options.totalable_names` over that same set. `display_type` is not applied.
  */
 final class IssueQueryRunner
 {
@@ -21,6 +22,7 @@ final class IssueQueryRunner
         private readonly VisibleIssueScope $scope,
         private readonly IssueQueryCompiler $compiler,
         private readonly IssueQuerySort $sort,
+        private readonly IssueQueryTotals $totals,
         private readonly SavedQueryService $saved,
     ) {}
 
@@ -37,13 +39,9 @@ final class IssueQueryRunner
             throw new DomainException('Saved query is not visible.');
         }
 
-        $project = null;
-        if ($query->project_id !== null) {
-            $loaded = $query->project;
-            if (! $loaded instanceof Project) {
-                return Issue::query()->whereRaw('1 = 0');
-            }
-            $project = $loaded;
+        $project = $this->boundProject($query);
+        if ($query->project_id !== null && $project === null) {
+            return Issue::query()->whereRaw('1 = 0');
         }
 
         $sort = QueryPayload::sort($query->sort_criteria);
@@ -54,6 +52,35 @@ final class IssueQueryRunner
             QueryPayload::filters($query->filters),
             $sort ?? [],
             is_string($query->group_by) ? $query->group_by : null,
+        );
+    }
+
+    /**
+     * Sums the query's `totalable_names` over the same issues `execute` would return.
+     *
+     * An omitted or empty list returns an empty map. Sort does not change the sums.
+     *
+     * @return array<string, string>
+     */
+    public function totals(?User $actor, Query $query): array
+    {
+        if ($query->type !== QueryType::ISSUE) {
+            throw new QueryValidationException('Only IssueQuery can be executed.');
+        }
+
+        if (! $this->saved->canView($actor, $query)) {
+            throw new DomainException('Saved query is not visible.');
+        }
+
+        $project = $this->boundProject($query);
+        $columns = $this->totals->columns(QueryPayload::options($query->options), $actor, $project);
+        if ($query->project_id !== null && $project === null) {
+            return $this->totals->sum(Issue::query()->whereRaw('1 = 0'), $columns);
+        }
+
+        return $this->totals->sum(
+            $this->filtered($actor, $project, QueryPayload::filters($query->filters)),
+            $columns,
         );
     }
 
@@ -75,15 +102,7 @@ final class IssueQueryRunner
             $this->sort->column($group);
         }
 
-        $filters = QueryFilter::listFromMap($map);
-        $builder = $this->scope->apply(Issue::query(), $actor, $project, $filters);
-        $this->compiler->apply(
-            $builder,
-            $filters,
-            $actor,
-            $project,
-            DateWindow::forUser($actor),
-        );
+        $builder = $this->filtered($actor, $project, $map);
         $this->sort->apply($builder, $group, $pairs);
 
         return $builder;
@@ -100,5 +119,35 @@ final class IssueQueryRunner
         }
 
         return $names;
+    }
+
+    /**
+     * @param  array<mixed>  $filters
+     * @return Builder<Issue>
+     */
+    private function filtered(?User $actor, ?Project $project, array $filters): Builder
+    {
+        $list = QueryFilter::listFromMap(QueryPayload::filters($filters));
+        $builder = $this->scope->apply(Issue::query(), $actor, $project, $list);
+        $this->compiler->apply(
+            $builder,
+            $list,
+            $actor,
+            $project,
+            DateWindow::forUser($actor),
+        );
+
+        return $builder;
+    }
+
+    private function boundProject(Query $query): ?Project
+    {
+        if ($query->project_id === null) {
+            return null;
+        }
+
+        $loaded = $query->project;
+
+        return $loaded instanceof Project ? $loaded : null;
     }
 }

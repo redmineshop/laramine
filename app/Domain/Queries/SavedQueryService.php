@@ -29,6 +29,7 @@ final class SavedQueryService
         private readonly MembershipService $memberships,
         private readonly IssueQueryCompiler $compiler,
         private readonly IssueQuerySort $sort,
+        private readonly IssueQueryTotals $totals,
     ) {}
 
     /**
@@ -62,6 +63,7 @@ final class SavedQueryService
         $options = array_key_exists('options', $attributes)
             ? QueryPayload::options($attributes['options'])
             : null;
+        $this->assertTotals($type, $options, $actor, $project);
 
         return DB::transaction(function () use ($actor, $attributes, $type, $project, $visibility, $roleIds, $filters, $columns, $sort, $groupBy, $options): Query {
             $query = Query::query()->create([
@@ -130,6 +132,7 @@ final class SavedQueryService
         $options = array_key_exists('options', $attributes)
             ? QueryPayload::options($attributes['options'])
             : QueryPayload::options($query->options);
+        $this->assertTotals($type, $options, $actor, $project);
 
         return DB::transaction(function () use ($attributes, $query, $type, $project, $visibility, $roleIds, $filters, $columns, $sort, $groupBy, $options): Query {
             $query->fill([
@@ -289,6 +292,18 @@ final class SavedQueryService
             $project,
             DateWindow::forUser($actor),
         );
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $options
+     */
+    private function assertTotals(string $type, ?array $options, User $actor, ?Project $project): void
+    {
+        if ($type !== QueryType::ISSUE) {
+            return;
+        }
+
+        $this->totals->columns($options, $actor, $project);
     }
 
     /**
