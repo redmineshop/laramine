@@ -11,7 +11,9 @@ This is the Laramine checklist for `link`, `enumeration`, `attachment`, and `pro
 | Format keys | `App\Domain\CustomFields\FieldFormatKey` |
 | Link, enumeration, attachment, progress bar | `App\Domain\CustomFields\Formats` |
 | Definition save (`multiple`, `searchable`, regexp, lengths) | `App\Domain\CustomFields\CustomFieldService` |
-| Value sync and read shape | `App\Domain\CustomFields\CustomValueService` |
+| Value sync, read shape, and attachment bind | `App\Domain\CustomFields\CustomValueService` |
+| Enumeration option insert, reorder, activate | `App\Domain\CustomFields\CustomFieldEnumerationService` |
+| Attachment bytes, digest, disk directory | `App\Domain\Attachments\AttachmentService` |
 | `cf_{id}` filters | `App\Domain\Queries\CustomFieldFilterSql` |
 
 Domain behavior is described in [custom-fields.md](custom-fields.md). Filter types are described in [queries.md](queries.md). The parity row stays **NOT VERIFIED** in [parity-checklist.md](parity-checklist.md).
@@ -21,13 +23,15 @@ Domain behavior is described in [custom-fields.md](custom-fields.md). Filter typ
 | Check | Automated by |
 | --- | --- |
 | All 13 format keys are implemented | `tests/Unit/CustomFieldFormatTest.php` `test_registry_recognizes_every_redmine_format_key` |
-| Link uses regexp, min length, and max length; `url_pattern` substitutes `%value%` and `%id%`; not searchable or multiple | `test_link_uses_string_rules_and_stores_a_url_pattern` |
+| Link uses regexp, min length, and max length; `url_pattern` encodes `%value%`, `%id%`, `%project_id%`, `%project_identifier%`, and `%mN%`; the pattern text outside tokens is copied; not searchable or multiple | `tests/Unit/CustomFieldFormatTest.php` `test_link_uses_string_rules_and_stores_a_url_pattern` and `test_link_formatted_url_encodes_tokens_and_keeps_the_pattern` |
 | Progress bar is an integer 0–100 on `ratio_interval`; not totalable | `test_progressbar_is_an_integer_percent_on_a_step` |
 | Enumeration stores active ids of this field, including multiple | `tests/Unit/CustomFieldRecordFormatTest.php` `test_enumeration_format_stores_active_ids_for_this_field` |
 | Attachment stores an id, checks the extension, and checks a bound container | `test_attachment_format_stores_an_id_and_checks_extension` |
 | Issue create/update writes the four formats, reads the cast shape, and rejects a bad value | `tests/Feature/CustomFieldValueTest.php` `test_link_enumeration_progressbar_and_attachment_round_trip` |
 | `cf_{id}` filters: link `string`, enumeration `list_optional`, attachment id `string`, progress bar `integer` | `tests/Unit/IssueQueryOperatorTest.php` `test_link_enumeration_attachment_and_progressbar_filters` |
 | `any_searchable` skips a link field even when `searchable` is set on the row | `tests/Unit/IssueQueryFieldTest.php` `test_any_searchable_uses_subject_description_and_visible_custom_fields` |
+| Attachment upload writes the file, SHA-256 `digest`, and `YYYY/MM` `disk_directory`, then binds an unbound row when the custom value is saved. Extension rules stay in `AttachmentFormat`. Clearing the value leaves the file and the container | `tests/Feature/CustomFieldAttachmentUploadTest.php` `test_upload_writes_digest_and_binds_when_the_custom_value_is_set` and `test_upload_rejects_a_bad_extension_and_a_foreign_container` |
+| Enumeration options can be inserted, renamed, reordered, and activated or deactivated. Stored custom values keep the same ids. The current default cannot be deactivated | `tests/Feature/CustomFieldEnumerationOptionTest.php` `test_enumeration_options_reorder_and_values_stay_on_the_same_ids` |
 
 MySQL 8 is the database (`phpunit.xml`). These tests do not live under `tests/Parity`.
 
@@ -35,9 +39,9 @@ MySQL 8 is the database (`phpunit.xml`). These tests do not live under `tests/Pa
 
 | Item | Status |
 | --- | --- |
-| Attachment upload pipeline | **Open.** No disk file, `digest`, or `disk_directory` is written. An existing `attachments` row is validated by id. A row with an empty container is accepted and is not bound by this slice. |
-| Enumeration option editing | **Open.** Rows in `custom_field_enumerations` are read. Nothing in this slice inserts, reorders, or deactivates them except a test. |
-| Link display | **Open.** `formattedUrl` substitutes two tokens. It does not encode the value or request the URL. There is no HTTP view. |
+| Link HTTP view and live fetch | **Open.** `formattedUrl` builds an encoded URL and does not request it. There is no HTTP view. |
+| Enumeration option deletion | **Open.** Insert, rename, reorder, and activate/deactivate are implemented. Destroying an option and rewriting values that pointed at it are not. |
+| Attachment download | **Open.** Bytes are stored on the local `attachments` disk. Nothing serves or deletes that file over HTTP. |
 | Query totals | **Open.** Int and float report `supportsTotal`. Progress bar reports false. IssueQuery does not sum custom fields. |
 | Version sharing | **Open.** Unchanged. A version value must belong to the record's project. |
 | Custom-field journal diffs | **Open.** Unchanged. Issue journals do not record custom-value edits. |

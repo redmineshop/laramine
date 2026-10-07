@@ -13,8 +13,8 @@ use Illuminate\Database\Eloquent\Model;
  *
  * `format_store.extensions_allowed` limits the filename extension when set.
  * A row with no container is accepted. A row that already names a container
- * must name this record. Disk files, digests, and the upload pipeline are not
- * written here.
+ * must name this record. Bytes are written by AttachmentService. CustomValueService
+ * binds an unbound row when this value is saved.
  */
 final class AttachmentFormat extends AbstractFormat
 {

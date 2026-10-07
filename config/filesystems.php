@@ -47,6 +47,14 @@ return [
             'report' => false,
         ],
 
+        // Local attachment bytes. `disk_directory` on the row is YYYY/MM under this root.
+        'attachments' => [
+            'driver' => 'local',
+            'root' => storage_path('app/attachments'),
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

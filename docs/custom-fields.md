@@ -27,18 +27,18 @@ Multiple values are one `custom_values` row per entry. A blank value deletes the
 | `int` | `/^[+-]?\d+$/`, stored without a leading `+` | Must fit in a PHP integer. |
 | `float` | Decimal text, no exponent | The trimmed text is stored. |
 | `date` | `YYYY-MM-DD` | `format_store.default_value_mode` is `fixed_date` or `date_offset` (days from today). |
-| `link` | One string | Same regexp, min length, and max length as `string`. `format_store.url_pattern` is optional. `%value%` and `%id%` are substituted literally by `LinkFormat::formattedUrl`. The URL is not requested. Not searchable and not multiple. |
+| `link` | One string | Same regexp, min length, and max length as `string`. `format_store.url_pattern` is optional. `LinkFormat::formattedUrl` replaces `%value%`, `%id%`, `%project_id%`, `%project_identifier%`, and `%mN%` (regexp capture `N`; `%m0%` is the whole match). Each replacement is percent-encoded: bytes outside the RFC 3986 unreserved and reserved sets become `%HH`, so a space is `%20` and `:` `/` stay. The rest of the pattern is copied. The URL is not requested. Not searchable and not multiple. |
 | `list` | One or many entries from `possible_values` | `multiple` is allowed, together with `user`, `version`, and `enumeration`. |
 | `bool` | `1` or `0` | `true` / `false` / `1` / `0` are accepted. `yes` and `true` text are rejected. |
-| `enumeration` | One or many active ids from `custom_field_enumerations` | The id belongs to this field and `active` is true. `possible_values` is not the option list. Not searchable. |
+| `enumeration` | One or many active ids from `custom_field_enumerations` | The id belongs to this field and `active` is true. `possible_values` is not the option list. `CustomFieldEnumerationService` inserts options, renames them, reorders them, and activates or deactivates them. Names are unique per field. Reorder must list every option. Deactivating the option stored in `default_value` is rejected. Rename and reorder do not rewrite `custom_values`. Not searchable. |
 | `user` | Active user id | On a project record (issue, time entry, version, project) the user must be a member. `format_store.user_role` limits roles. |
 | `version` | Version id on the same project | `format_store.version_status` may list `open`, `locked`, `closed`. Sharing across projects is not applied. |
-| `attachment` | One `attachments.id` | `format_store.extensions_allowed` is a comma-separated string or a list of extensions such as `pdf` or `.PNG`. The last filename segment is compared, case-insensitive. A row with an empty container is accepted. A row that already names a container must name this record. Not searchable and not multiple. |
+| `attachment` | One `attachments.id` | `format_store.extensions_allowed` is a comma-separated string or a list of extensions such as `pdf` or `.PNG`. The last filename segment is compared, case-insensitive. `AttachmentService::store` writes the bytes on the local `attachments` disk, sets `digest` to SHA-256 hex, and sets `disk_directory` to `YYYY/MM`. `disk_filename` is `yymmddHHMMSS_` plus the original name when that name is at most 50 characters of ASCII letters, digits, `_`, `.`, and `-`. Otherwise the suffix is the SHA-256 hex of the filename. A trailing `.ext` of ASCII alphanumerics is kept only when that suffix is still at most 50 characters. A colliding name increments the timestamp. A row with an empty container is accepted by validation. `CustomValueService` binds that row to the customized record when the value is saved. A row that already names another container is rejected. Clearing the value does not delete the file or clear the container. Not searchable and not multiple. |
 | `progressbar` | Integer `0`–`100` | `format_store.ratio_interval`, when set, is a positive integer that divides 100. The value must be a multiple of that step. Not searchable, not multiple, and not totalable. |
 
 `multiple` is rejected on formats that do not support it. `searchable` is rejected the same way. `is_filter` marks an issue custom field as usable in an IssueQuery. Every registered format compiles `cf_{id}` filters. See [queries.md](queries.md). Int and float report `supportsTotal`. The other formats, including progress bar, do not. IssueQuery does not sum custom fields.
 
-Enumeration option rows are not created by `CustomFieldService`. The caller inserts `custom_field_enumerations`. Attachment bytes, digests, and disk paths are not written. A stored id is enough for this slice. What those two paths still leave open is listed in [custom-fields-deferred-parity-gate.md](custom-fields-deferred-parity-gate.md).
+Enumeration option rows are written by `CustomFieldEnumerationService`, not by `CustomFieldService::save`. Attachment bytes are written by `AttachmentService` on the `attachments` filesystem disk (`storage/app/attachments`). The caller of either service is responsible for authorization. What is still open is listed in [custom-fields-deferred-parity-gate.md](custom-fields-deferred-parity-gate.md).
 
 `CustomFieldService::save` writes the definition and the tracker, project, and role links. Issue fields need at least one tracker, and either `is_for_all` or one project. `is_for_all` is rejected on other types. Names are unique per STI type and at most 30 characters.
 
@@ -73,10 +73,11 @@ For an issue field with `visible = false`, workflow merge treats roles that are 
 ## Intentional differences from Redmine 7.0.1
 
 - `possible_values` and `format_store` are JSON, not a YAML or PHP serialization dump.
-- Link filters compare the stored string. `formattedUrl` substitutes `%value%` and `%id%` and does not encode or fetch the URL.
-- Enumeration filters compare ids, not option names. Inactive ids are rejected on write. An omitted field keeps a previously stored inactive id.
+- Link filters compare the stored string. `formattedUrl` encodes substituted tokens and does not fetch the URL. There is no HTTP view.
+- Enumeration filters compare ids, not option names. Inactive ids are rejected on write. An omitted field keeps a previously stored inactive id. Option deletion is not implemented. Deactivating the current default is rejected.
 - `ratio_interval` must divide 100 so `0` and `100` stay on the scale.
-- Attachment custom fields store an id. They do not copy bytes onto disk, fill `digest`, or assign a container. An attachment row with an empty container is a valid value. Filename search stays on the core `attachment` filter, which reads `attachments.filename`, not this custom value.
+- Attachment files use the local `attachments` disk. `disk_directory` is `YYYY/MM`. A non-ASCII or over-long disk token is SHA-256 hex. This slice does not serve the file over HTTP. Clearing the custom value leaves the row and the file in place. Filename search stays on the core `attachment` filter, which reads `attachments.filename`, not this custom value.
+- Custom-field journal diffs are not written. Issue journals still ignore custom-value edits.
 - Int and float expose a totalable flag. Query totals are not computed. Progress bar is not totalable.
 - Version fields ignore version sharing.
 - User fields do not offer groups as selectable values.
