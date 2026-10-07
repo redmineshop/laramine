@@ -5,13 +5,16 @@ namespace App\Domain\CustomFields;
 use App\Domain\DomainException;
 use App\Models\CustomField;
 use App\Models\CustomFieldEnumeration;
+use App\Models\CustomValue;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Inserts, renames, reorders, and activates enumeration options for one field.
+ * Inserts, renames, reorders, activates, and deletes enumeration options.
  *
  * Stored `custom_values` keep the option id. Renaming or reordering does not
- * rewrite them. Deleting an option is not implemented.
+ * rewrite them. Deleting an option that those rows still store requires
+ * another option of the same field; the stored ids are then rewritten.
  */
 final class CustomFieldEnumerationService
 {
@@ -60,7 +63,7 @@ final class CustomFieldEnumerationService
             if ((bool) $option->active === $active) {
                 return $option;
             }
-            if (! $active && (string) $field->default_value === (string) $option->id) {
+            if (! $active && $this->isCurrentDefault($field, $option)) {
                 throw new DomainException('Enumeration is the default value.');
             }
             $option->active = $active;
@@ -112,6 +115,55 @@ final class CustomFieldEnumerationService
         });
     }
 
+    /**
+     * Remove one option.
+     *
+     * An unused option can be removed with no replacement. When `custom_values`
+     * for this field still store the id, `$reassignTo` must be a different
+     * option of the same field. Those rows are rewritten to that id. If the
+     * same record already stores the replacement, the old row is removed so
+     * the id is not stored twice. The option named by `default_value` cannot
+     * be removed. Positions of the options that remain are left as stored.
+     * The caller authorizes this change.
+     */
+    public function delete(CustomFieldEnumeration $option, ?CustomFieldEnumeration $reassignTo = null): void
+    {
+        DB::transaction(function () use ($option, $reassignTo): void {
+            $field = $this->lockedField($option);
+            /** @var Collection<int, CustomFieldEnumeration> $options */
+            $options = CustomFieldEnumeration::query()
+                ->where('custom_field_id', $field->id)
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get();
+
+            $locked = $this->optionIn($options, (int) $option->id);
+            if (! $locked instanceof CustomFieldEnumeration) {
+                throw new DomainException('Enumeration does not exist.');
+            }
+            if ($this->isCurrentDefault($field, $locked)) {
+                throw new DomainException('Enumeration is the default value.');
+            }
+
+            $targetId = $this->replacementId($options, $locked, $reassignTo);
+            /** @var Collection<int, CustomValue> $values */
+            $values = CustomValue::query()
+                ->where('custom_field_id', $field->id)
+                ->where('value', (string) $locked->id)
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get();
+            if ($values->isNotEmpty() && $targetId === null) {
+                throw new DomainException('Enumeration is in use.');
+            }
+            if ($targetId !== null) {
+                $this->rewriteValues($values, (int) $field->id, $targetId);
+            }
+
+            $locked->delete();
+        });
+    }
+
     private function assertEnumerationField(CustomField $field): void
     {
         if (! $field->exists || (string) $field->field_format !== 'enumeration') {
@@ -128,6 +180,18 @@ final class CustomFieldEnumerationService
         $this->assertEnumerationField($field);
 
         return $field;
+    }
+
+    private function lockedField(CustomFieldEnumeration $option): CustomField
+    {
+        $field = $this->fieldFor($option);
+        $locked = CustomField::query()->whereKey($field->id)->lockForUpdate()->first();
+        if (! $locked instanceof CustomField) {
+            throw new DomainException('Enumeration does not belong to a custom field.');
+        }
+        $this->assertEnumerationField($locked);
+
+        return $locked;
     }
 
     private function name(string $name): string
@@ -159,5 +223,76 @@ final class CustomFieldEnumerationService
     private function requireSaved(CustomFieldEnumeration $option): CustomFieldEnumeration
     {
         return $option->refresh();
+    }
+
+    private function isCurrentDefault(CustomField $field, CustomFieldEnumeration $option): bool
+    {
+        $default = $field->default_value;
+
+        return is_string($default) && $default !== '' && $default === (string) $option->id;
+    }
+
+    /**
+     * @param  Collection<int, CustomFieldEnumeration>  $options
+     */
+    private function optionIn(Collection $options, int $id): ?CustomFieldEnumeration
+    {
+        foreach ($options as $row) {
+            if ((int) $row->id === $id) {
+                return $row;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  Collection<int, CustomFieldEnumeration>  $options
+     */
+    private function replacementId(Collection $options, CustomFieldEnumeration $option, ?CustomFieldEnumeration $reassignTo): ?int
+    {
+        if ($reassignTo === null) {
+            return null;
+        }
+        if ((int) $reassignTo->id === (int) $option->id) {
+            throw new DomainException('Replacement enumeration must be a different option.');
+        }
+
+        $target = $this->optionIn($options, (int) $reassignTo->id);
+        if (! $target instanceof CustomFieldEnumeration) {
+            throw new DomainException('Replacement enumeration does not belong to this field.');
+        }
+
+        return (int) $target->id;
+    }
+
+    /**
+     * @param  Collection<int, CustomValue>  $rows
+     */
+    private function rewriteValues(Collection $rows, int $fieldId, int $toId): void
+    {
+        $target = (string) $toId;
+        /** @var array<string, true> $kept */
+        $kept = [];
+        foreach ($rows as $row) {
+            $type = (string) $row->customized_type;
+            $recordId = (int) $row->customized_id;
+            $key = $type."\0".$recordId;
+            $already = isset($kept[$key]) || CustomValue::query()
+                ->where('custom_field_id', $fieldId)
+                ->where('customized_type', $type)
+                ->where('customized_id', $recordId)
+                ->where('value', $target)
+                ->lockForUpdate()
+                ->exists();
+            if ($already) {
+                $row->delete();
+
+                continue;
+            }
+            $row->value = $target;
+            $row->save();
+            $kept[$key] = true;
+        }
     }
 }

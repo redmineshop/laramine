@@ -226,7 +226,7 @@ Generated via `rake db:migrate db:schema:dump` on image `redmine:7.0.1` (SQLite 
 ### `custom_fields` (STI via `type`)
 - **PK:** `id`
 - **Critical:** `type`, `name`, `field_format`, `possible_values`, `regexp`, `min_length`, `max_length`, `is_required`, `is_for_all`, `is_filter`, `searchable`, `editable`, `visible`, `multiple`, `default_value`, `format_store`, `description`, `position`
-- Formats (app-layer): string, text, link, int, float, date, list, bool, enumeration, user, version, attachment, and progressbar validate and store values. Attachment bytes are written on the local `attachments` disk (`digest` SHA-256, `disk_directory` `YYYY/MM`). Enumeration options are inserted, reordered, and activated by `CustomFieldEnumerationService`. Custom-field journal diffs stay outside this slice. See [custom-fields.md](custom-fields.md) and [custom-fields-deferred-parity-gate.md](custom-fields-deferred-parity-gate.md).
+- Formats (app-layer): string, text, link, int, float, date, list, bool, enumeration, user, version, attachment, and progressbar validate and store values. Attachment bytes are written on the local `attachments` disk (`digest` SHA-256, `disk_directory` `YYYY/MM`). Enumeration options are inserted, reordered, activated, and deleted by `CustomFieldEnumerationService`. Deleting an option that values still store rewrites those ids. Custom-field journal diffs stay outside this slice. See [custom-fields.md](custom-fields.md) and [custom-fields-deferred-parity-gate.md](custom-fields-deferred-parity-gate.md).
 - **No migration for the engine.** `possible_values` and `format_store` stay text columns. Laramine reads and writes JSON in those columns. Non-JSON legacy text decodes as null until an ETL rewrite.
 
 ### Join scopes
