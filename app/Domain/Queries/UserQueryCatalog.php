@@ -5,7 +5,7 @@ namespace App\Domain\Queries;
 /**
  * Filters and sort columns for a running `UserQuery`.
  *
- * `ProjectQuery` and `ProjectAdminQuery` stay unimplemented. `TimeEntryQuery` runs in `TimeEntryQueryRunner`.
+ * `ProjectQuery` and `ProjectAdminQuery` run in `ProjectQueryRunner`. `TimeEntryQuery` runs in `TimeEntryQueryRunner`.
  */
 final class UserQueryCatalog
 {

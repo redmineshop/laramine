@@ -291,7 +291,7 @@ class ModulesNewsDocumentsFilesParityTest extends TestCase
         $this->assertNull(Attachment::query()->find(7));
     }
 
-    public function test_checklist_keeps_calendar_unverified(): void
+    public function test_checklist_marks_neighbor_rows(): void
     {
         $checklist = file_get_contents(base_path('docs/parity-checklist.md'));
         $this->assertIsString($checklist);
@@ -301,7 +301,8 @@ class ModulesNewsDocumentsFilesParityTest extends TestCase
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/', $checklist);
         $this->assertMatchesRegularExpression('/^\| Wiki \| VERIFIED \|/m', $checklist);
         $this->assertMatchesRegularExpression('/^\| Boards and forums \| VERIFIED \|/m', $checklist);
-        $this->assertMatchesRegularExpression('/^\| Calendar and Gantt \| NOT VERIFIED \|/m', $checklist);
+        $this->assertMatchesRegularExpression('/^\| Calendar and Gantt \| VERIFIED \|/m', $checklist);
+        $this->assertStringContainsString('tests/Parity/CalendarGanttQueryParityTest.php', $checklist);
     }
 
     /**

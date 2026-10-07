@@ -1,6 +1,6 @@
 # Saved queries and issue filters
 
-Laramine stores saved queries in the Redmine 7.0.1 `queries` and `queries_roles` tables. The queries checklist row is **VERIFIED** only by `tests/Parity/IssueQueryParityTest.php` against the shared pin and `tests/Parity/fixtures/redmine-7.0.1/expectations/queries/results.json`. That comparison is not a 0.1 tag. Gantt, calendar, other query types, descendant hour columns, and repository or SCM data stay outside it. Journal presentation of custom-field history stays on the journals row. The HTTP API and the filter form are not part of this slice. `IssueQuery` is the type compared on the queries checklist row. `UserQuery` runs a limited catalog inside `UserVisibility` and is compared on the users and authentication user-directory row. `TimeEntryQuery` runs, and its list, report, and CSV comparison is the time entries row (`tests/Parity/TimeEntryParityTest.php`), not this queries row. `ProjectQuery` and `ProjectAdminQuery` can be stored with empty filters and are not executed.
+Laramine stores saved queries in the Redmine 7.0.1 `queries` and `queries_roles` tables. The queries checklist row is **VERIFIED** only by `tests/Parity/IssueQueryParityTest.php` against the shared pin and `tests/Parity/fixtures/redmine-7.0.1/expectations/queries/results.json`. That comparison is not a 0.1 tag. `ProjectQuery`, `ProjectAdminQuery`, and the descendant hour columns are compared by `tests/Parity/CalendarGanttQueryParityTest.php`. Repository or SCM data stays outside it. Journal presentation of custom-field history stays on the journals row. The HTTP API and the filter form are not part of this slice. `IssueQuery` is the type compared on the queries checklist row. `UserQuery` runs a limited catalog inside `UserVisibility` and is compared on the users and authentication user-directory row. `TimeEntryQuery` runs, and its list, report, and CSV comparison is the time entries row (`tests/Parity/TimeEntryParityTest.php`), not this queries row. `ProjectQuery` and `ProjectAdminQuery` run through `ProjectQueryRunner`.
 
 ## JSON instead of YAML
 
@@ -218,7 +218,7 @@ An unknown operator or an unknown field is rejected.
 
 - Filter, column, sort, and option payloads are JSON. YAML is read-only compatibility.
 - Text `~` tokenizes like Redmine search: a double-quoted phrase is one token, other whitespace splits tokens, tokens are AND-ed as `LOWER(column) LIKE`. A token shorter than two characters is dropped unless it contains a Han character, and at most five tokens are used. `*~` ORs those tokens. `^` and `$` do not split on spaces. `=` on subject and description is exact equality under the database collation (MySQL's default collation is case-insensitive).
-- Day-offset windows follow Redmine `relative_date_clause` (inclusive T±N, `>t-` open into the future). Weeks stay Monday–Sunday because there is no `start_of_week` setting.
+- Day-offset windows follow Redmine `relative_date_clause` (inclusive T±N, `>t-` open into the future). Issue-query weeks stay Monday–Sunday. `start_of_week` is read by the calendar, not by these date windows.
 - Relation rows are matched from either end using the canonical type on `issue_from_id`. Related issues are not passed through `IssueVisibility`.
 - Core `ev` / `cf` compare decimal id strings on `journal_details.old_value` and `value` for `property = attr`. Custom-field `ev` / `cf` compare the stored `property = cf` strings, including a comma-joined multi-value as one string. A private journal is hidden without `view_private_notes`, including from its author. Redmine also lets that author read their own private note.
 - `any_searchable` does not search attachment filenames. Those have their own filter. It uses the same quoted-phrase tokens as text `~`.
@@ -231,6 +231,7 @@ An unknown operator or an unknown field is rejected.
 - `execute` returns full issue rows. `present` projects the available columns. `totalable_names` is summed even when those names are absent from `column_names`.
 - `display_type` accepts `list` and `board` only. Board columns are statuses. `group_by` does not pick the board axis.
 - `spent_hours` totals, the projected column, and the `spent_time` filter count time entries on the issue's own project after `time_entries_visibility`. They do not roll descendant time into a parent that is outside the result. A stored visibility other than `all` or `own` contributes nothing.
+- `total_estimated_hours` sums `estimated_hours` for the issue and the visible descendants in its nested set. A missing sum is `0`. `total_spent_hours` sums visible time entries on that nested set, including a descendant issue the actor cannot see. The spent column is omitted unless the actor can view time entries on the query project, or on any project when the query is global.
 - A hidden custom field is an error for sort and totals. The same name in `column_names` is omitted from the projection for an actor who cannot see the field.
 - Global queries OR `IssueVisibility` per project, including tracker masks. Archived projects drop out because `view_issues` is denied. Closed projects stay when that read permission is allowed. Spent hours use each issue's project, not the query project alone. The queries checklist row does not newly verify archived projects; that gate is the projects row.
 
@@ -240,9 +241,9 @@ These are Laramine gaps. They stay outside the pin comparison above. They are no
 
 | Item | Why it stays open |
 | --- | --- |
-| Gantt, calendar, and other display types | Only `list` and `board` run. Any other `display_type` is rejected for IssueQuery. |
+| Gantt and calendar screens | The data layer is compared on the calendar and Gantt row. The Inertia pages are not that screen. |
 | Board grouped by a field other than status | Board columns are statuses. `group_by` only sorts. |
 | `cf_N.*` other than `.due_date` and `.status` | Listed under deferred fields. |
-| Descendant hour and estimate columns | `total_estimated_hours` and `total_spent_hours` are not totalable names and are not projected. |
+| `estimated_remaining_hours` | Not a column and not a total. |
 | Column layout | Inline versus block columns, tracker-limited column lists, attachment filenames, and bool labels are not applied. Unknown stored names are omitted. |
-| Other query types | `ProjectQuery` and `ProjectAdminQuery` still do not run. `UserQuery` runs the catalog in `UserQueryCatalog` and is compared on the users and authentication row. `TimeEntryQuery` runs and is compared on the time entries row. |
+| Project activity sources and custom fields | `last_activity_date` uses the latest visible issue, journal, or time-entry timestamp. News, documents, files, wiki, messages, and changesets are not included. Project custom fields are not filters or columns. `UserQuery` stays on the users and authentication row. `TimeEntryQuery` stays on the time entries row. |

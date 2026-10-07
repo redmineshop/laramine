@@ -6,7 +6,7 @@ use App\Domain\Queries\QueryType;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * Stub STI row. Project admin query filters are not executed.
+ * Administrator project list, including archived rows. `ProjectQueryRunner` executes it.
  */
 class ProjectAdminQuery extends Query
 {

@@ -24,7 +24,10 @@ final class IssueQueryColumns
     ];
 
     /**
-     * Built-in names the projection can fill. Descendant hour columns are absent.
+     * Built-in names the projection can fill.
+     *
+     * `total_estimated_hours` sums visible descendant estimates. `total_spent_hours`
+     * is omitted unless the actor can view time entries.
      *
      * @var list<string>
      */
@@ -44,7 +47,9 @@ final class IssueQueryColumns
         'start_date',
         'due_date',
         'estimated_hours',
+        'total_estimated_hours',
         'spent_hours',
+        'total_spent_hours',
         'done_ratio',
         'created_on',
         'closed_on',

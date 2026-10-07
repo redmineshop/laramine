@@ -155,7 +155,7 @@ Laravel `sessions` is the Phase 1 web session store. `sessions.user_id` referenc
 
 - The web session row is Laravel `sessions`. A `tokens.action = session` row can revoke that session. Autologin is a cookie holding an `autologin` token, not a remember column.
 - A user with `auth_source_id` is checked against that LDAP source. The local digest is not the credential. A blank host fails closed before the directory is contacted. On-the-fly creation stores a random sealed digest so the directory password is not kept.
-- `user_preferences.others` is JSON. A Ruby YAML document in that column is ignored on read.
+- `user_preferences.others` is JSON. A Ruby YAML document in that column is ignored on read. `gantt_zoom` (`1` through `4`) and `gantt_months` (a positive integer) are stored as strings when a signed-in user changes the gantt window. Those two keys are compared on the calendar and Gantt row. The preferences comparison itself stays `expectations/users-auth/gap.json`.
 - `settings.notified_events` is JSON. Message ids have no random suffix. A blank `mail_notification` does not receive mail. Lock and unlock queue an informational message. The HTTP notice still does not include the token value; the mail body does. News, document, and file mail, and message and wiki mail, are compared on their notification rows.
 - `users_visibility` is applied by `UserVisibility` on the ACL path and on the user directory. The Phase 2 sign-in comparison does not read it.
 - OpenID Connect, a live LDAP directory, and the rest of the REST API are not implemented. Activity Atom feeds cover issues, journals, time entries, news, documents, files, wiki edits, and messages. Changesets have no activity provider.

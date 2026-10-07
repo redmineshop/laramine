@@ -1,0 +1,151 @@
+{
+    "ada_denied_before_grant": "Permission denied: view_calendar",
+    "admin_cross_project": {
+        "year": 2026,
+        "month": 9,
+        "start": "2026-08-30",
+        "end": "2026-10-03",
+        "first_wday": 7,
+        "event_days": [
+            {
+                "date": "2026-09-01",
+                "in_month": true,
+                "non_working": false,
+                "week": 36,
+                "events": [
+                    {
+                        "kind": "issue",
+                        "id": 6
+                    },
+                    {
+                        "kind": "issue",
+                        "id": 4
+                    }
+                ]
+            },
+            {
+                "date": "2026-09-02",
+                "in_month": true,
+                "non_working": false,
+                "week": 36,
+                "events": [
+                    {
+                        "kind": "issue",
+                        "id": 1
+                    }
+                ]
+            },
+            {
+                "date": "2026-09-10",
+                "in_month": true,
+                "non_working": false,
+                "week": 37,
+                "events": [
+                    {
+                        "kind": "issue",
+                        "id": 4
+                    }
+                ]
+            }
+        ]
+    },
+    "admin_project": {
+        "year": 2026,
+        "month": 9,
+        "start": "2026-08-30",
+        "end": "2026-10-03",
+        "first_wday": 7,
+        "event_days": [
+            {
+                "date": "2026-09-01",
+                "in_month": true,
+                "non_working": false,
+                "week": 36,
+                "events": [
+                    {
+                        "kind": "issue",
+                        "id": 6
+                    },
+                    {
+                        "kind": "issue",
+                        "id": 4
+                    }
+                ]
+            },
+            {
+                "date": "2026-09-02",
+                "in_month": true,
+                "non_working": false,
+                "week": 36,
+                "events": [
+                    {
+                        "kind": "issue",
+                        "id": 1
+                    }
+                ]
+            },
+            {
+                "date": "2026-09-10",
+                "in_month": true,
+                "non_working": false,
+                "week": 37,
+                "events": [
+                    {
+                        "kind": "issue",
+                        "id": 4
+                    }
+                ]
+            }
+        ]
+    },
+    "ada_cross_project": {
+        "year": 2026,
+        "month": 9,
+        "start": "2026-08-30",
+        "end": "2026-10-03",
+        "first_wday": 7,
+        "event_days": [
+            {
+                "date": "2026-09-01",
+                "in_month": true,
+                "non_working": false,
+                "week": 36,
+                "events": [
+                    {
+                        "kind": "issue",
+                        "id": 6
+                    }
+                ]
+            },
+            {
+                "date": "2026-09-02",
+                "in_month": true,
+                "non_working": false,
+                "week": 36,
+                "events": [
+                    {
+                        "kind": "issue",
+                        "id": 1
+                    }
+                ]
+            }
+        ]
+    },
+    "monday_window": {
+        "start": "2026-08-31",
+        "end": "2026-10-04",
+        "first_wday": 1
+    },
+    "version_day": {
+        "date": "2026-09-15",
+        "in_month": true,
+        "non_working": false,
+        "week": 38,
+        "events": [
+            {
+                "kind": "version",
+                "id": 1
+            }
+        ]
+    }
+}

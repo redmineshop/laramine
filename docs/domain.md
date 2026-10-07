@@ -253,4 +253,12 @@ Document custom-field routes still accept an id that has no `documents` row. A r
 
 ## Queries
 
-Saved issue queries and the shipped filter operators live in `app/Domain/Queries`. Storage, visibility, and the operator table are described in [queries.md](queries.md). `TimeEntryQuery` runs through `TimeEntryQueryRunner` and is compared on the time entries row. Project and user queries are stubs. The HTTP API is not part of this slice.
+Saved issue queries and the shipped filter operators live in `app/Domain/Queries`. Storage, visibility, and the operator table are described in [queries.md](queries.md). `TimeEntryQuery` runs through `TimeEntryQueryRunner` and is compared on the time entries row. `UserQuery` runs the catalog in `UserQueryCatalog`. `ProjectQuery` and `ProjectAdminQuery` run through `ProjectQueryRunner`.
+
+## Calendar and Gantt
+
+`CalendarService` builds one month, padded to `start_of_week`. A missing or blank setting uses Sunday. Issues are the open IssueQuery, ordered by id descending, and kept when `start_date` or `due_date` falls in that padded window. Versions with `effective_date` in the window are added, and also sit on the earliest start date of their issues. `view_calendar` is required, and the `calendar` module must be enabled except for an active administrator.
+
+`GanttChart` loads that same open IssueQuery, ordered by project `lft` then issue id, and stops at `gantt_items_limit` (500 when the setting is missing, unlimited when it is blank). The month count defaults to 6 and cannot exceed `gantt_months_limit` (24 when missing). Zoom is 1 through 4 and defaults to 2. A signed-in user stores `gantt_zoom` and `gantt_months` on `user_preferences.others`. Under each visible project, unversioned issues come first, then versions of the loaded issues (including a closed version), then those issues. A missing start date sorts before a real date. Bars need both ends and overlap the window. `blocks` and `precedes` are listed when both issues were loaded. The text PDF repeats the row labels. PNG is not produced. `view_gantt` and the `gantt` module follow the same administrator exception as the calendar.
+
+The comparison is `tests/Parity/CalendarGanttQueryParityTest.php`. The pages are not a Redmine screen and not a 0.1 tag.

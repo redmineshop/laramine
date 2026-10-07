@@ -61,6 +61,14 @@ final class SettingValue
 
     public const BULK_DOWNLOAD_MAX_SIZE = 'bulk_download_max_size';
 
+    public const START_OF_WEEK = 'start_of_week';
+
+    public const NON_WORKING_WEEK_DAYS = 'non_working_week_days';
+
+    public const GANTT_ITEMS_LIMIT = 'gantt_items_limit';
+
+    public const GANTT_MONTHS_LIMIT = 'gantt_months_limit';
+
     /**
      * Redmine `display_subprojects_issues` defaults to 1.
      */
@@ -317,6 +325,77 @@ final class SettingValue
     public function mailFrom(): string
     {
         return $this->string(self::MAIL_FROM) ?? '';
+    }
+
+    /**
+     * First weekday for the calendar. 1 is Monday, 6 is Saturday, 7 is Sunday.
+     * A missing row, a blank value, or any other token uses Sunday, the English
+     * first day of the week. Locale switching is not applied.
+     */
+    public function startOfWeek(): int
+    {
+        $stored = $this->string(self::START_OF_WEEK);
+        if ($stored !== null && in_array($stored, ['1', '6', '7'], true)) {
+            return (int) $stored;
+        }
+
+        return 7;
+    }
+
+    /**
+     * Weekdays with no work, 1 Monday through 7 Sunday. A missing row is Saturday and Sunday.
+     * An explicit empty list means every day is a working day.
+     *
+     * @return list<int>
+     */
+    public function nonWorkingWeekDays(): array
+    {
+        $stored = Setting::query()->where('name', self::NON_WORKING_WEEK_DAYS)->value('value');
+        if (! is_string($stored)) {
+            return [6, 7];
+        }
+
+        $days = [];
+        foreach ($this->stringList(self::NON_WORKING_WEEK_DAYS) as $token) {
+            if (preg_match('/^[1-7]$/', $token) !== 1) {
+                continue;
+            }
+            $day = (int) $token;
+            if (! in_array($day, $days, true)) {
+                $days[] = $day;
+            }
+        }
+
+        return $days;
+    }
+
+    /**
+     * How many gantt rows to draw. A missing row is 500. A blank value is unlimited.
+     * A non-numeric token is 0.
+     */
+    public function ganttItemsLimit(): ?int
+    {
+        $stored = Setting::query()->where('name', self::GANTT_ITEMS_LIMIT)->value('value');
+        if (! is_string($stored)) {
+            return 500;
+        }
+        if (trim($stored) === '') {
+            return null;
+        }
+        if (preg_match('/^\d+$/', trim($stored)) === 1) {
+            return (int) trim($stored);
+        }
+
+        return 0;
+    }
+
+    /**
+     * Largest month count the gantt will accept from the request or the preference.
+     * A missing or non-numeric row is 24.
+     */
+    public function ganttMonthsLimit(): int
+    {
+        return $this->integer(self::GANTT_MONTHS_LIMIT, 24);
     }
 
     /**
