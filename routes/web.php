@@ -12,6 +12,7 @@ use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\Auth\UserAdminController;
 use App\Http\Controllers\Auth\UserDirectoryController;
 use App\Http\Controllers\CustomFieldAssetController;
+use App\Http\Controllers\CustomFieldHostController;
 use App\Http\Controllers\FrontendSmokeController;
 use Illuminate\Support\Facades\Route;
 
@@ -28,6 +29,38 @@ Route::delete('/custom-fields/attachments/{attachment}', [CustomFieldAssetContro
 Route::get('/custom-fields/links/{customValue}', [CustomFieldAssetController::class, 'show'])
     ->whereNumber('customValue')
     ->name('custom-fields.links.show');
+
+Route::get('/custom-fields/{customField}/users', [CustomFieldHostController::class, 'users'])
+    ->whereNumber('customField')
+    ->name('custom-fields.users');
+
+Route::get('/enumerations/{type}', [CustomFieldHostController::class, 'index'])
+    ->where('type', 'issue_priorities|time_entry_activities|document_categories')
+    ->name('enumerations.index');
+
+Route::get('/enumerations/{enumeration}/custom-fields', [CustomFieldHostController::class, 'editEnumeration'])
+    ->whereNumber('enumeration')
+    ->name('enumerations.custom-fields.edit');
+
+Route::put('/enumerations/{enumeration}/custom-fields', [CustomFieldHostController::class, 'updateEnumeration'])
+    ->whereNumber('enumeration')
+    ->name('enumerations.custom-fields.update');
+
+Route::post('/enumerations/{enumeration}/custom-fields', [CustomFieldHostController::class, 'storeEnumeration'])
+    ->whereNumber('enumeration')
+    ->name('enumerations.custom-fields.store');
+
+Route::get('/projects/{project}/documents/{document}/custom-fields', [CustomFieldHostController::class, 'showDocument'])
+    ->whereNumber('document')
+    ->name('documents.custom-fields.show');
+
+Route::put('/projects/{project}/documents/{document}/custom-fields', [CustomFieldHostController::class, 'updateDocument'])
+    ->whereNumber('document')
+    ->name('documents.custom-fields.update');
+
+Route::post('/projects/{project}/documents/{document}/custom-fields', [CustomFieldHostController::class, 'storeDocument'])
+    ->whereNumber('document')
+    ->name('documents.custom-fields.store');
 
 Route::get('/users/current.json', RestUserController::class)->name('rest.current-user');
 Route::get('/my.atom', FeedController::class)->name('feed.account');

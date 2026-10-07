@@ -1,5 +1,6 @@
 [
     {"id": 1, "name": "Normal", "type": "IssuePriority", "active": true, "is_default": true, "position": 1, "parent_id": null, "project_id": null, "position_name": null},
     {"id": 2, "name": "High", "type": "IssuePriority", "active": true, "is_default": false, "position": 2, "parent_id": null, "project_id": null, "position_name": null},
-    {"id": 3, "name": "Development", "type": "TimeEntryActivity", "active": true, "is_default": true, "position": 1, "parent_id": null, "project_id": null, "position_name": null}
+    {"id": 3, "name": "Development", "type": "TimeEntryActivity", "active": true, "is_default": true, "position": 1, "parent_id": null, "project_id": null, "position_name": null},
+    {"id": 4, "name": "User guide", "type": "DocumentCategory", "active": true, "is_default": true, "position": 1, "parent_id": null, "project_id": null, "position_name": null}
 ]

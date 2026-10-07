@@ -14,6 +14,10 @@ Laramine stores custom fields in the Redmine 7.0.1 tables (`custom_fields`, `cus
 | `GroupCustomField` | `Group` | Users with `type = Group` |
 | `TimeEntryCustomField` | `TimeEntry` | The time entry; visibility uses its project |
 | `VersionCustomField` | `Version` | The version; visibility uses its project |
+| `DocumentCustomField` | `Document` | A document id. The `documents` table is not migrated, so the caller supplies the project |
+| `IssuePriorityCustomField` | `IssuePriority` | An `enumerations` row whose `type` is `IssuePriority` |
+| `TimeEntryActivityCustomField` | `TimeEntryActivity` | An `enumerations` row whose `type` is `TimeEntryActivity`. This does not change which activities a time entry may use |
+| `DocumentCategoryCustomField` | `DocumentCategory` | An `enumerations` row whose `type` is `DocumentCategory` |
 
 `possible_values` and `format_store` are JSON text in the existing columns. A non-JSON legacy value decodes as null. No migration was added for that codec.
 
@@ -31,7 +35,7 @@ Multiple values are one `custom_values` row per entry. A blank value deletes the
 | `list` | One or many entries from `possible_values` | `multiple` is allowed, together with `user`, `version`, and `enumeration`. |
 | `bool` | `1` or `0` | `true` / `false` / `1` / `0` are accepted. `yes` and `true` text are rejected. |
 | `enumeration` | One or many active ids from `custom_field_enumerations` | The id belongs to this field and `active` is true. `possible_values` is not the option list. `CustomFieldEnumerationService` inserts options, renames them, reorders them, activates or deactivates them, and deletes them. Names are unique per field. Reorder must list every option. Deactivating or deleting the option stored in `default_value` is rejected. Rename and reorder do not rewrite `custom_values`. Deleting an unused option removes that row and leaves the other positions as stored. Deleting an option that `custom_values` for this field still store requires a different option of the same field, which may be inactive. Those rows are rewritten to the replacement id. If that record already stores the replacement, the old row is removed so the id is not stored twice. A value on another custom field is left unchanged. The caller authorizes the delete. Not searchable. |
-| `user` | Active user id | On a project record (issue, time entry, version, project) the user must be a member. `format_store.user_role` limits roles. |
+| `user` | Active user id | On a project record (issue, time entry, version, project, or a document whose project was supplied) the user must be a member. `format_store.user_role` limits roles. `UserFieldOptions` is the list offered to a viewer. |
 | `version` | Version id available on the record's project | The version's own project can always select it. `sharing = descendants` also allows descendant projects. `hierarchy` also allows ancestors and descendants. `tree` also allows projects under the same root. `system` allows every project. An unknown sharing value is not shared. `format_store.version_status` may list `open`, `locked`, `closed`. |
 | `attachment` | One `attachments.id` | `format_store.extensions_allowed` is a comma-separated string or a list of extensions such as `pdf` or `.PNG`. The last filename segment is compared, case-insensitive. `AttachmentService::store` writes the bytes on the local `attachments` disk, sets `digest` to SHA-256 hex, and sets `disk_directory` to `YYYY/MM`. `disk_filename` is `yymmddHHMMSS_` plus the original name when that name is at most 50 characters of ASCII letters, digits, `_`, `.`, and `-`. Otherwise the suffix is the SHA-256 hex of the filename. A trailing `.ext` of ASCII alphanumerics is kept only when that suffix is still at most 50 characters. A colliding name increments the timestamp. A row with an empty container is accepted by validation. `CustomValueService` binds that row to the customized record when the value is saved. A row that already names another container is rejected. Clearing the value through a custom-value write does not delete the file or clear the container, and the file is no longer served. `GET /custom-fields/attachments/{attachments.id}` sends the bytes when a current attachment value points at that row, the container matches, and the actor can see the host and the field. Each successful download increments `downloads`. `DELETE /custom-fields/attachments/{attachments.id}` removes that custom value, the attachment row, and the file when the actor can edit the host and the field. An issue host also writes a `cf` journal detail. A missing file is not served. Journal and issue attachments that are not a current custom value are not deleted by this route. Not searchable and not multiple. |
 | `progressbar` | Integer `0`–`100` | `format_store.ratio_interval`, when set, is a positive integer that divides 100. The value must be a multiple of that step. Not searchable, not multiple, and not totalable. |
@@ -58,7 +62,7 @@ Enumeration option rows are written by `CustomFieldEnumerationService`, not by `
 { "custom_fields": [{ "id": 1, "value": "A" }, { "id": 2, "value": ["10", "11"] }] }
 ```
 
-Project, user, group, time entry, and version values use `CustomValueService` directly. That call checks field rules only. It does not repeat `edit_project`, user administration, or time-entry permissions; the caller does.
+Project, user, group, time entry, version, document, issue-priority, time-entry activity, and document-category values use `CustomValueService` directly. That call checks field rules only. It does not repeat `edit_project`, user administration, document permissions, or time-entry permissions; the caller does. Enumeration and document HTTP routes do check those host permissions before they call the service.
 
 Validation failures raise `CustomFieldValidationException` (a `DomainException`). The message is `Name: first error`. `errors` lists every field that failed.
 
@@ -79,6 +83,14 @@ For an issue field with `visible = false`, workflow merge treats roles that are 
 | `GET /custom-fields/attachments/{id}` | Sends the file when `{id}` is the current value of an applicable attachment field and the attachment container is that record. |
 | `DELETE /custom-fields/attachments/{id}` | Removes that custom value, the attachment row, and the file when the actor can edit the host and the field. An issue host writes one `cf` journal detail. A view-only actor is refused. |
 | `GET /custom-fields/links/{id}` | JSON `value` and `url` for a link custom value. `url` is the outbound URL: the formatted pattern, the stored `scheme://` value, or `http://` plus a value that has no such prefix. |
+| `GET /custom-fields/{id}/users` | JSON user ids offered for a user-format field. `project_id` selects the edit list. `list=filter` selects the query-filter author list. A field that is not `user` is HTTP 404. |
+| `GET /enumerations/{type}` | JSON shared enumerations for `issue_priorities`, `time_entry_activities`, or `document_categories`. An active admin only. Each row includes custom fields whose `visible` column is true. |
+| `GET /enumerations/{id}/custom-fields` | HTML form, or JSON when the request expects JSON. Active admin. Role visibility applies, so a `visible = false` field is included for the admin. |
+| `PUT /enumerations/{id}/custom-fields` | Replaces submitted values. Active admin. Does not apply defaults. |
+| `POST /enumerations/{id}/custom-fields` | Same write with defaults for empty fields. The enumeration row must already exist. |
+| `GET /projects/{project}/documents/{id}/custom-fields` | HTML form or JSON. Requires `view_documents` on that project. |
+| `PUT /projects/{project}/documents/{id}/custom-fields` | Requires `edit_documents`. Does not apply defaults. |
+| `POST /projects/{project}/documents/{id}/custom-fields` | Requires `add_documents`. Applies defaults for empty fields. |
 
 The host check matches the record:
 
@@ -90,8 +102,28 @@ The host check matches the record:
 | Time entry | `view_time_entries` and `time_entries_visibility` |
 | User | That user, or an active admin |
 | Group | An active admin |
+| Issue priority, time-entry activity, document category | An active admin |
+| Document | Not loaded by these routes. The documents table is not migrated |
 
-A hidden field is refused with `PermissionDeniedException` and the token `custom_field`. That token is not a name in `PermissionCatalog`. Active admins still see the field. `users_visibility` is not read. A denial is HTTP 403 JSON. A value that is not an attachment or link, a cleared attachment value, and a missing file are HTTP 404 JSON.
+A hidden field is refused with `PermissionDeniedException` and the token `custom_field`. That token is not a name in `PermissionCatalog`. Active admins still see the field. `users_visibility` is not read on attachment or link routes. A denial is HTTP 403 JSON. A value that is not an attachment or link, a cleared attachment value, and a missing file are HTTP 404 JSON.
+
+## User-format options
+
+`UserFieldOptions` answers which users a viewer is offered.
+
+The edit list is active users who are members of the record's project. `format_store.user_role`, when non-empty, keeps only members who have one of those roles on that project. The viewer's `users_visibility` then drops anyone that viewer cannot see. Groups are omitted. A record with no project, including a user or group host and an enumeration whose `project_id` is null, offers nobody. Several records offer the intersection of the projects that those records have. The edit response sets `me_label` when the viewer is already in that list.
+
+The filter list is the issue-query author list. It does not read `user_role`. With a project, it is members of that project plus members of visible descendants. With no project, it is members of every project the viewer can see. Locked users remain for an active admin. Other viewers see active users only, under `users_visibility`. An `AnonymousUser` id is appended when that row exists. `me` is true for an active user viewer and is not an extra id. IssueQuery still accepts an id that is not in this list.
+
+A new stored id must be on the edit list for that actor. An id that is already stored may be submitted again, including when that user is no longer a member of the project. `UserFormat::validate` still checks that a newly assigned project value is an active member, before that list is applied.
+
+## Enumeration and document hosts
+
+Issue priority, time-entry activity, and document category fields apply to every enumeration of that `type`. They do not use trackers or `is_for_all`. Required and default values follow the same write rules as other types. Defaults are applied only when the caller asks for them and the field has no stored row.
+
+The enumeration index matches the shared-row list: `project_id` null, ordered by position then id. Custom fields on that list are those with `visible` true, including an empty value. The edit form uses role visibility, so an active admin still sees `visible = false`. A non-admin receives HTTP 403. API-token access to the index is not implemented.
+
+Document values use `customized_type` Document and the id in the URL. There is no `documents` row. Visibility and edits use `view_documents`, `add_documents`, and `edit_documents` on the project in the URL, and the documents module must be enabled for a non-admin. The HTML form is a plain field list, not a Redmine screen.
 
 ## Intentional differences from Redmine 7.0.1
 
@@ -103,9 +135,9 @@ A hidden field is refused with `PermissionDeniedException` and the token `custom
 - Issue update writes one `journal_details` row per changed custom field, after the tracked attribute rows. `property` is `cf`. `prop_key` is the custom field id. Multiple stored values are joined with a comma in `custom_values.id` order, and a value that itself contains a comma is not escaped. A cleared field stores `value` null. Create does not write these rows. History lines label each `cf` detail with the custom field name and format the old and new values. A hidden or missing field is omitted. List-like issue query filters still read the stored `cf` strings for `ev`, `!ev`, and `cf`. See [domain.md](domain.md) and [queries.md](queries.md).
 - Int and float are totalable. Progress bar is not. IssueQuery sums the totalable formats; see [queries.md](queries.md).
 - Version custom fields follow `versions.sharing` as described above. Issue `fixed_version_id` is unchanged by that rule.
-- User fields do not offer groups as selectable values. User and group custom-field files follow the host table above. `users_visibility` is not applied to these values. Issue assignees use `UserVisibility`.
+- User fields do not offer groups as selectable values. The edit list is active project members limited by `user_role` and by the viewer's `users_visibility`. A host with no project offers nobody, so a new user id on a user or group record is rejected. An id that is already stored may stay, including a user who is no longer a member. The filter list is the author list described above and does not change which ids IssueQuery accepts. Issue assignees use `UserVisibility`.
+- Document, issue-priority, time-entry activity, and document-category values are stored in `custom_values`. The `documents` table is not migrated. Enumeration index JSON shows only `visible = true` fields. The edit routes use role visibility. Time-entry activity values do not change which activities `TimeEntryService` accepts.
 - Text formatting and full-width layout keys are stored and not rendered.
 - Custom field workflow errors are `CustomFieldValidationException`, not `WorkflowDeniedException`.
 - `CustomValueService` does not authorize the host record. `IssueService` still requires `add_issues` or `edit_issues` / `edit_own_issues` before it writes issue values.
 - The issue search controller is not implemented. `any_searchable` does a SQL `LIKE` over subject, description, visible journal notes, and visible custom values whose format supports `searchable`. Link, enumeration, attachment, and progress bar do not. A `searchable` flag written outside `CustomFieldService::save` is still skipped for those formats. `is_filter` compiles `cf_{id}` for every registered format. A version field also accepts `cf_N.due_date` and `cf_N.status`. Other chained suffixes are rejected. See [queries.md](queries.md).
-- Document, issue-priority, time-entry activity, and document-category custom field types are not writable targets.

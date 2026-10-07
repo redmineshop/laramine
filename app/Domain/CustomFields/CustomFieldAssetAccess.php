@@ -13,6 +13,7 @@ use App\Domain\PermissionDeniedException;
 use App\Models\Attachment;
 use App\Models\CustomField;
 use App\Models\CustomValue;
+use App\Models\Enumeration;
 use App\Models\Issue;
 use App\Models\Project;
 use App\Models\TimeEntry;
@@ -31,7 +32,9 @@ use Illuminate\Support\Facades\DB;
  * Project and version hosts use `view_project`. Time entries use
  * `view_time_entries` and `time_entries_visibility`. A user host is visible to
  * that user and to an active admin. A group host is visible to an active
- * admin. `users_visibility` is not applied. A hidden field uses the denial
+ * admin. An enumeration host is visible to an active admin. A document host
+ * is not loaded here because the documents table is not migrated.
+ * `users_visibility` is not applied. A hidden field uses the denial
  * token `custom_field`, which is not a catalog permission name.
  *
  * Download increments `attachments.downloads`. Clearing the custom value
@@ -241,6 +244,9 @@ final class CustomFieldAssetAccess
             CustomFieldTypes::TIME_ENTRY => TimeEntry::query()->find($id),
             CustomFieldTypes::VERSION => Version::query()->find($id),
             CustomFieldTypes::USER, CustomFieldTypes::GROUP => User::query()->find($id),
+            CustomFieldTypes::ISSUE_PRIORITY,
+            CustomFieldTypes::TIME_ENTRY_ACTIVITY,
+            CustomFieldTypes::DOCUMENT_CATEGORY => Enumeration::query()->find($id),
             default => null,
         };
         if (! $record instanceof Model) {
@@ -317,6 +323,13 @@ final class CustomFieldAssetAccess
                 return;
             }
             throw new PermissionDeniedException(self::HIDDEN_FIELD);
+        }
+
+        if ($record instanceof Enumeration) {
+            if ($actor !== null && $actor->admin && $actor->isActive()) {
+                return;
+            }
+            throw new PermissionDeniedException('admin');
         }
 
         throw new DomainException('This record does not support custom fields.');
@@ -458,6 +471,13 @@ final class CustomFieldAssetAccess
             throw new PermissionDeniedException(self::NOT_EDITABLE);
         }
 
+        if ($record instanceof Enumeration) {
+            if ($actor->admin && $actor->isActive()) {
+                return;
+            }
+            throw new PermissionDeniedException('admin');
+        }
+
         throw new DomainException('This record does not support custom fields.');
     }
 
@@ -491,6 +511,9 @@ final class CustomFieldAssetAccess
         }
         if ($record instanceof User) {
             return self::NOT_EDITABLE;
+        }
+        if ($record instanceof Enumeration) {
+            return 'admin';
         }
 
         return 'edit_issues';
