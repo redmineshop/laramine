@@ -54,7 +54,7 @@ php artisan test --filter=IssueQuery
 4. Full PHPUnit (Unit, Feature, Parity) against MySQL 8.0 on PHP 8.3
 5. Frontend job: `npm ci`, `npm run typecheck`, `npm run build` on Node 22
 
-The frontend job checks the Inertia scaffold. It does not make the UI ready and it is not a 0.1 tag. See [docs/ux-parity-notes.md](docs/ux-parity-notes.md).
+The frontend job checks the Inertia pages, including the sign-in screen. It does not make the UI ready and it is not a 0.1 tag. See [docs/ux-parity-notes.md](docs/ux-parity-notes.md).
 
 Green CI is required. Do not merge with a red check. Do not tag a release from a red commit. Do not lower the PHPStan level, skip a suite, switch CI to SQLite, or add a PHPStan baseline to hide errors. `phpstan.neon` has no baseline. A baseline would need an explicit debt note in [QUALITY.md](QUALITY.md) first, and this project is not adding one.
 

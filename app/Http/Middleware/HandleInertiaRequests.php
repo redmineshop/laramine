@@ -29,8 +29,9 @@ class HandleInertiaRequests extends Middleware
     /**
      * Define the props that are shared by default.
      *
-     * Shared props stay empty of the signed-in user. Phase 1 sign-in
-     * stays the Blade form. Do not add a second sign-in screen here.
+     * Shared props stay empty of the signed-in user. The sign-in page
+     * is Auth/Login and reads the shared errors bag. Do not add a
+     * second session stack here.
      *
      * @see https://inertiajs.com/shared-data
      *

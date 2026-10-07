@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { Badge } from '@/components/ui/badge';
 import {
     Card,
@@ -31,6 +31,12 @@ export default function Health({ status }: HealthPageProps) {
                             entry. Redmine UX parity is not claimed. This is not
                             a 0.1 release.
                         </p>
+                        <Link
+                            href="/login"
+                            className="text-sm font-medium underline-offset-4 hover:underline"
+                        >
+                            Sign in
+                        </Link>
                     </CardContent>
                 </Card>
             </main>

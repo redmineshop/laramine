@@ -17,8 +17,8 @@ Early MIT Laravel core. Domain goal is Redmine 7.0.1 semantics, reimplemented in
 - `app/Domain/Projects` — project nested set and modules.
 - `app/Models` — Eloquent over Redmine 7.0.1 table and column names. Timestamp columns are `created_on` / `updated_on` where the schema says so. STI `type` values are Redmine class names.
 - `app/Policies` — project and issue view/update/delete only.
-- `routes/web.php` — Inertia health smoke page at `GET /`, Phase 1 session sign-in and sign-out, and authorized custom-field attachment download plus link URL resolution. There is no general HTTP API. The scaffold is not UI-ready and not a 0.1 tag (`docs/ux-parity-notes.md`). Custom fields stay **NOT VERIFIED**.
-- Users and authentication — founder lock in `docs/users-auth-spec.md` (2026-10-07). Phase 1 is the Laravel session guard and the Redmine-shaped digest. Do not add LDAP, two-factor, OAuth, tokens, account administration, or a second sign-in screen. Parity stays **NOT VERIFIED**. Not a 0.1 tag.
+- `routes/web.php` — Inertia health smoke page at `GET /`, Phase 1 session sign-in and sign-out (`GET /login` is the Inertia sign-in page; `?view=blade` keeps the Blade form), and authorized custom-field attachment download plus link URL resolution. There is no general HTTP API. The pages are not UI-ready and not a 0.1 tag (`docs/ux-parity-notes.md`). Custom fields stay **NOT VERIFIED**.
+- Users and authentication — founder lock in `docs/users-auth-spec.md` (2026-10-07). Phase 1 is the Laravel session guard and the Redmine-shaped digest. The Inertia sign-in page uses that guard. Do not add LDAP, two-factor, OAuth, tokens, account administration, or a second auth stack. Parity stays **NOT VERIFIED**. Not a 0.1 tag.
 - Schema pin: `docs/schema-inventory.md` and `docs/sources/redmine-7.0.1-schema.rb` (structure dump only).
 
 Intentional differences belong in the matching doc. Do not silently “correct” them toward an unverified reading of Redmine.

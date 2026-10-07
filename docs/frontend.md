@@ -11,13 +11,14 @@ Founder lock (2026-09-29): Inertia.js, React, TypeScript, Vite, Tailwind CSS, an
 | Laravel adapter | `inertiajs/inertia-laravel` on the `web` middleware group |
 | Root template | `resources/views/app.blade.php` |
 | Client entry | `resources/js/app.tsx` (`pages: './pages'`) |
-| Smoke page | `resources/js/pages/Health.tsx`, `GET /` via `FrontendSmokeController` (`status` = `ok`) |
+| Smoke page | `resources/js/pages/Health.tsx`, `GET /` via `FrontendSmokeController` (`status` = `ok`). Links to sign-in. |
+| Sign-in page | `resources/js/pages/Auth/Login.tsx`, `GET /login` via `SessionController::create`. Posts login and password to the Phase 1 session action. `GET /login?view=blade` still returns `resources/views/auth/login.blade.php`. |
 | Theme tokens | `resources/css/app.css` (`:root`, `.dark`, Tailwind `@theme inline`) |
-| shadcn baseline | `components.json`. Smoke page uses Card and Badge. `Button` is the CLI baseline primitive and is not a product control. |
+| shadcn baseline | `components.json`. Pages use Card, Badge, Button, Input, and Label. These are scaffold controls, not a product shell. |
 
 `@inertiajs/vite` turns `pages: './pages'` into a Vite glob of `resources/js/pages/**/*.tsx` (and `.jsx`). On `vite build --ssr` it wraps the same entry so the bundle can render that page on the server. `npm run dev` exposes the dev SSR endpoint on the Vite server.
 
-Shared Inertia props do not include a signed-in user. Do not add a sign-in screen here. Phase 1 sign-in stays the Blade form at `resources/views/auth/login.blade.php`.
+Shared Inertia props do not include a signed-in user. The sign-in page reads validation errors from the shared `errors` bag. It uses the existing session guard. It does not add a second auth stack.
 
 ## Theme tokens
 
@@ -55,7 +56,6 @@ TODO: when the registry is specified, a Composer package should register Inertia
 
 ## Deferred
 
-- An Inertia sign-in screen. Phase 1 Blade sign-in stays as already landed.
 - Issues, projects, and the rest of a Redmine-like UI.
 - The page registry itself.
-- Parity. Nothing in this file is **VERIFIED**.
+- Parity. Nothing in this file is **VERIFIED**. The sign-in page is a P0 screen on the Phase 1 session action. It is not UI-ready, not Redmine UX parity, and not a 0.1 release. See [ux-parity-notes.md](ux-parity-notes.md).
