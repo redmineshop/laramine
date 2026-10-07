@@ -234,7 +234,12 @@ class SessionLoginTest extends TestCase
 
     public function test_login_form_renders(): void
     {
-        $this->get('/login')->assertOk()->assertSee('Sign in');
+        $this->get('/login?view=blade')
+            ->assertOk()
+            ->assertSee('Sign in')
+            ->assertSee('name="login"', false)
+            ->assertSee('name="password"', false)
+            ->assertDontSee('Auth/Login', false);
     }
 
     /**

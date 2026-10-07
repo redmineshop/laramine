@@ -93,11 +93,12 @@ The sixteen decisions below are closed. A later slice follows them. If a new pro
 
 `App\Domain\Auth\RedminePassword` seals and checks the digest. `App\Domain\Auth\CredentialChecker` resolves the identifier and returns a decision. `App\Auth\RedmineUserProvider` is the `redmine` user provider. It does not ask Laravel’s hasher to replace `hashed_password`.
 
-HTTP, session middleware. Sign-in does not use Inertia. `GET /` is the Inertia health smoke page and is not a sign-in screen.
+HTTP, session middleware. `GET /login` renders the Inertia page `Auth/Login`. That page posts to the same session action as the Blade form. `GET /login?view=blade` still renders the Phase 1 Blade form. `GET /` is the Inertia health smoke page and is not a sign-in screen.
 
 | Method and path | Behavior |
 | --- | --- |
-| `GET /login` | Blade sign-in form |
+| `GET /login` | Inertia sign-in page `Auth/Login`. Fields are login and password. The form posts to `POST /login`. |
+| `GET /login?view=blade` | Phase 1 Blade sign-in form. Same fields and the same post. |
 | `POST /login` | Session sign-in. JSON returns the id and login. A form posts back to `/` on success. |
 | `POST /logout` | Invalidates the session |
 | `GET /custom-fields/attachments/{id}` | Authorized download of a custom-field attachment. Uses the session user when one is present. A guest is allowed only when the host is visible to Anonymous. Does not sign anyone in. |
@@ -132,6 +133,7 @@ Laravel `sessions` is the Phase 1 web session store. `sessions.user_id` referenc
 - The forty-zero placeholder never verifies, even if a digest collided with it.
 - Posted passwords are not trimmed. Identifiers are trimmed.
 - HTTP failures use one message so the response does not reveal which gate failed.
+- The sign-in screen is an Inertia page. It is not a Redmine login view. The Blade form remains at `?view=blade`. Credential checks are unchanged.
 
 ## What would mark the parity row verified
 

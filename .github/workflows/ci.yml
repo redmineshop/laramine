@@ -63,7 +63,7 @@ jobs:
         run: composer test
 
   # Client typecheck and Vite build. Does not replace the PHP gates above.
-  # The smoke page is not a product UI. See docs/ux-parity-notes.md.
+  # Inertia pages are not a product UI. See docs/ux-parity-notes.md.
   frontend:
     runs-on: ubuntu-latest
 

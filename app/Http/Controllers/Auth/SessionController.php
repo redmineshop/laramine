@@ -11,13 +11,24 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response as InertiaResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 class SessionController extends Controller
 {
-    public function create(): View
+    /**
+     * Inertia sign-in page. The Phase 1 Blade form stays at `?view=blade`.
+     */
+    public function create(Request $request): InertiaResponse|View
     {
-        return view('auth.login');
+        if ($request->query('view') === 'blade') {
+            return view('auth.login');
+        }
+
+        return Inertia::render('Auth/Login', [
+            'submitUrl' => route('login', [], false),
+        ]);
     }
 
     public function store(LoginRequest $request): JsonResponse|RedirectResponse

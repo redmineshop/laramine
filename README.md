@@ -4,7 +4,7 @@ Open-source project management core on Laravel. The domain goal is a clean-room,
 
 P0 database migrations follow the Redmine 7.0.1 table and column layout for identity, projects, issues, custom fields, time entries, attachments, and saved queries. Nested-set columns on projects and issues are included.
 
-Domain services cover project trees, membership and permission checks, issue create/update with workflow transitions, custom field formats and values, and saved issue queries with the issue filter-operator catalog. Issue update writes journals for tracked attribute diffs (including status and done ratio), notes, and private notes. Adding a relation writes a relation-add journal on the source issue. Issue queries can read those journals. Attachment download and link URL resolution are the custom-field HTTP reads. There is no general HTTP API. Redmine parity is not claimed. Behavior, the permission JSON codec, and seeded roles are described in [docs/domain.md](docs/domain.md). Custom fields are described in [docs/custom-fields.md](docs/custom-fields.md). Queries are described in [docs/queries.md](docs/queries.md). The journals security/parity gate is [docs/journals-parity-gate.md](docs/journals-parity-gate.md). The projects, membership, workflow, and issues MVP gate is [docs/acl-workflow-parity-gate.md](docs/acl-workflow-parity-gate.md). Neither gate is a 0.1 tag. Users and authentication are a spec hole in [docs/users-auth-spec.md](docs/users-auth-spec.md): the parity row is **NOT VERIFIED**, and that file does not add login.
+Domain services cover project trees, membership and permission checks, issue create/update with workflow transitions, custom field formats and values, and saved issue queries with the issue filter-operator catalog. Issue update writes journals for tracked attribute diffs (including status and done ratio), notes, and private notes. Adding a relation writes a relation-add journal on the source issue. Issue queries can read those journals. Attachment download and link URL resolution are the custom-field HTTP reads. There is no general HTTP API. Redmine parity is not claimed. Behavior, the permission JSON codec, and seeded roles are described in [docs/domain.md](docs/domain.md). Custom fields are described in [docs/custom-fields.md](docs/custom-fields.md). Queries are described in [docs/queries.md](docs/queries.md). The journals security/parity gate is [docs/journals-parity-gate.md](docs/journals-parity-gate.md). The projects, membership, workflow, and issues MVP gate is [docs/acl-workflow-parity-gate.md](docs/acl-workflow-parity-gate.md). Neither gate is a 0.1 tag. Users and authentication are locked in [docs/users-auth-spec.md](docs/users-auth-spec.md). Phase 1 is session sign-in. The parity row is **NOT VERIFIED**. That is not a 0.1 tag.
 
 ## Requirements
 
@@ -60,14 +60,14 @@ php artisan migrate
 
 The column names match that dump so a later ETL can load Redmine rows. Adapter differences (SQLite versus MySQL string lengths, integer width, and the `lower(login)` index) are listed at the bottom of the inventory. Eloquent models under `app/Models` map those tables. Project, membership, and issue services maintain nested sets and evaluate permission names and workflow rows. Custom field formats validate and store `custom_values`. Issue query filters are evaluated in `app/Domain/Queries` and stored as JSON.
 
-`GET /` is an Inertia smoke page (`resources/js/pages/Health.tsx`). PHPUnit calls `withoutVite()` and does not need Node. A browser visit needs the Vite client:
+`GET /` is an Inertia smoke page (`resources/js/pages/Health.tsx`). `GET /login` is an Inertia sign-in page that posts to the Phase 1 session action. `GET /login?view=blade` still renders the Blade form. PHPUnit calls `withoutVite()` and does not need Node. A browser visit needs the Vite client:
 
 ```bash
 npm install
 npm run dev
 ```
 
-`npm run build` writes the client bundle and the Inertia SSR bundle. The stack, theme tokens, and the unimplemented Composer page registry are in [docs/frontend.md](docs/frontend.md). This scaffold is not UI-ready, not Redmine UX parity, and not a 0.1 release ([docs/ux-parity-notes.md](docs/ux-parity-notes.md)).
+`npm run build` writes the client bundle and the Inertia SSR bundle. The stack, theme tokens, sign-in page, and the unimplemented Composer page registry are in [docs/frontend.md](docs/frontend.md). These pages are not UI-ready, not Redmine UX parity, and not a 0.1 release ([docs/ux-parity-notes.md](docs/ux-parity-notes.md)).
 
 ## Quality gates
 

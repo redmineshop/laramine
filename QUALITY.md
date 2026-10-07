@@ -49,7 +49,7 @@ Users and authentication are locked in [docs/users-auth-spec.md](docs/users-auth
 2. Pint `--test`
 3. PHPStan/Larastan
 4. Full PHPUnit (Unit + Feature + Parity) against MySQL 8
-5. Frontend job: `npm ci`, `tsc --noEmit`, Vite client and SSR build (Node 22). This checks the scaffold in [docs/frontend.md](docs/frontend.md). It does not make the UI ready, does not verify Redmine UX parity, and is not a 0.1 tag ([docs/ux-parity-notes.md](docs/ux-parity-notes.md)).
+5. Frontend job: `npm ci`, `tsc --noEmit`, Vite client and SSR build (Node 22). This checks the pages in [docs/frontend.md](docs/frontend.md), including the sign-in screen. It does not make the UI ready, does not verify Redmine UX parity, and is not a 0.1 tag ([docs/ux-parity-notes.md](docs/ux-parity-notes.md)).
 6. Matrix: at least one supported PHP version for v1; expand after first ship
 
 Do not merge with red CI. Do not tag releases from a red commit.
