@@ -139,7 +139,7 @@ class NewsDocumentsFilesHttpTest extends TestCase
 
         $this->actingAs($user)
             ->post('/projects/'.$project->id.'/files', [
-                'file' => UploadedFile::fake()->create('notes.txt', 1, 'text/plain'),
+                'file' => UploadedFile::fake()->createWithContent('notes.txt', 'notes'),
             ])
             ->assertRedirect('/projects/'.$project->id.'/files');
         $attachment = Attachment::query()->where('filename', 'notes.txt')->first();

@@ -461,7 +461,7 @@ class ModulesNewsDocumentsFilesParityTest extends TestCase
             $call();
             $this->fail($label.' was allowed.');
         } catch (PermissionDeniedException $exception) {
-            $this->assertSame($permission, $exception->getMessage(), $label);
+            $this->assertSame($permission, $exception->permission, $label);
         }
     }
 
