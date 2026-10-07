@@ -1,0 +1,80 @@
+{
+    "omit": {"login": "ada", "activity_id": 3},
+    "cases": [
+        {
+            "name": "one available activity is used before any role default",
+            "login": "ada",
+            "hide": [3],
+            "activities": [
+                {"key": "solo", "name": "Solo", "active": true, "is_default": false, "position": 8, "project_id": 1, "parent": null}
+            ],
+            "expected": "solo"
+        },
+        {
+            "name": "the role default with the lower builtin then position wins",
+            "login": "ada",
+            "activities": [
+                {"key": "design", "name": "Design", "active": true, "is_default": false, "position": 2, "project_id": null, "parent": null},
+                {"key": "support", "name": "Support", "active": true, "is_default": false, "position": 3, "project_id": null, "parent": null}
+            ],
+            "extra_roles": [
+                {"name": "parity-activity-builtin", "builtin": 1, "position": 0, "activity": "support", "login": "ada", "direct": true},
+                {"name": "parity-activity-custom", "builtin": 0, "position": 0, "activity": "design", "login": "ada", "direct": true}
+            ],
+            "expected": "design"
+        },
+        {
+            "name": "an unavailable role default falls through to the next role",
+            "login": "ada",
+            "activities": [
+                {"key": "design", "name": "Design", "active": false, "is_default": false, "position": 2, "project_id": null, "parent": null},
+                {"key": "other", "name": "Other", "active": true, "is_default": false, "position": 4, "project_id": null, "parent": null}
+            ],
+            "extra_roles": [
+                {"name": "parity-activity-early", "builtin": 0, "position": 0, "activity": "design", "login": "ada", "direct": false}
+            ],
+            "expected_id": 3
+        },
+        {
+            "name": "a role default follows the project activity that replaces it",
+            "login": "ada",
+            "activities": [
+                {"key": "design", "name": "Design", "active": true, "is_default": false, "position": 2, "project_id": null, "parent": null},
+                {"key": "local", "name": "Design here", "active": true, "is_default": false, "position": 2, "project_id": 1, "parent": "design"}
+            ],
+            "role_defaults": [{"role_id": 1, "activity": "design"}],
+            "expected": "local"
+        },
+        {
+            "name": "an inactive replacement hides that activity and leaves no default",
+            "login": "ada",
+            "activities": [
+                {"key": "other", "name": "Other", "active": true, "is_default": false, "position": 4, "project_id": null, "parent": null},
+                {"key": "extra", "name": "Extra", "active": true, "is_default": false, "position": 5, "project_id": null, "parent": null},
+                {"key": "off", "name": "Development off", "active": false, "is_default": false, "position": 1, "project_id": 1, "parent_id": 3}
+            ],
+            "role_defaults": [{"role_id": 1, "activity_id": 3}],
+            "error": "Activity is not a time entry activity."
+        },
+        {
+            "name": "the project copy of the system default is used when roles have none",
+            "login": "ada",
+            "activities": [
+                {"key": "local", "name": "Development here", "active": true, "is_default": false, "position": 1, "project_id": 1, "parent_id": 3},
+                {"key": "other", "name": "Other", "active": true, "is_default": false, "position": 4, "project_id": null, "parent": null}
+            ],
+            "role_defaults": [{"role_id": 1, "activity_id": null}],
+            "expected": "local"
+        },
+        {
+            "name": "a role inherited from a group is used",
+            "login": "parity-activity-member",
+            "create_user": true,
+            "activities": [
+                {"key": "support", "name": "Support", "active": true, "is_default": false, "position": 3, "project_id": null, "parent": null}
+            ],
+            "group": {"activity": "support"},
+            "expected": "support"
+        }
+    ]
+}

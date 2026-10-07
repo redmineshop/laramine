@@ -11,7 +11,9 @@ use App\Models\Attachment;
  *
  * The requested edge is used when it is between 1 and 800. Otherwise the
  * `thumbnails_size` setting is used, falling back to 100. The cache file is
- * reused until the attachment digest changes.
+ * `thumbnails/{id}_{digest}_{edge}.png` and is reused until the digest changes.
+ * PNG is decoded in process. Other image types go through the thumbnail
+ * converter, and a missing converter leaves no thumbnail.
  */
 final class AttachmentThumbnailRenderer
 {
@@ -19,6 +21,7 @@ final class AttachmentThumbnailRenderer
         private readonly AttachmentService $files,
         private readonly AttachmentThumbnails $images,
         private readonly SettingValue $settings,
+        private readonly ThumbnailDecoder $decoder,
     ) {}
 
     public function edge(?int $requested): int
@@ -53,10 +56,18 @@ final class AttachmentThumbnailRenderer
             return $cache;
         }
         $bytes = file_get_contents($source);
-        if ($bytes === false || ! str_starts_with($bytes, "\x89PNG\r\n\x1a\n")) {
+        if ($bytes === false) {
             throw new DomainException('Thumbnail image could not be read.');
         }
-        $png = PngImage::fit($bytes, $edge);
+        if (str_starts_with($bytes, "\x89PNG\r\n\x1a\n")) {
+            $png = PngImage::fit($bytes, $edge);
+        } else {
+            $converted = $this->decoder->toPng($bytes);
+            if ($converted === null) {
+                throw new DomainException('Thumbnail image could not be read.');
+            }
+            $png = PngImage::fit($converted, $edge);
+        }
         $directory = dirname($cache);
         if (! is_dir($directory) && ! mkdir($directory, 0775, true) && ! is_dir($directory)) {
             throw new DomainException('Thumbnail directory could not be created.');

@@ -32,7 +32,7 @@
     "closed": {"status": 5, "permission": "log_time", "logins": ["ada", "admin"]},
     "archived": {"status": 9, "permission": "log_time", "logins": ["ada", "admin"]},
     "other_project": {"issue_id": 5, "message": "Issue is not in this project."},
-    "missing_activity": {"message": "Activity is not a time entry activity."},
+    "missing_activity": {"activity_id": 3},
     "inactive_activity": {"message": "Activity is not available on this project."},
     "required_json": "[\"issue_id\",\"comments\",\"activity_id\"]",
     "required_yaml": "---\n- issue_id\n- comments\n- activity_id\n",

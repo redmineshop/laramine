@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\AttachmentArchiveLimitException;
+use App\Domain\Attachments\AttachmentArchive;
 use App\Domain\Attachments\AttachmentContainerService;
 use App\Domain\DomainException;
 use App\Domain\PermissionDeniedException;
@@ -21,7 +23,10 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
  */
 class AttachmentController extends Controller
 {
-    public function __construct(private readonly AttachmentContainerService $attachments) {}
+    public function __construct(
+        private readonly AttachmentContainerService $attachments,
+        private readonly AttachmentArchive $archives,
+    ) {}
 
     public function upload(Request $request): JsonResponse
     {
@@ -82,6 +87,27 @@ class AttachmentController extends Controller
     public function download(Request $request, Attachment $attachment): BinaryFileResponse|JsonResponse
     {
         return $this->send($this->actor($request), $attachment, null, false);
+    }
+
+    public function downloadAll(Request $request, string $objectType, int $objectId): Response|JsonResponse
+    {
+        try {
+            $zip = $this->archives->downloadBundle($this->actor($request), $objectType, $objectId);
+        } catch (PermissionDeniedException $denied) {
+            return $this->denied($denied);
+        } catch (AttachmentArchiveLimitException $limit) {
+            return response()->json(['message' => $limit->getMessage()], 422);
+        } catch (DomainException $exception) {
+            return $this->missing($exception);
+        }
+
+        $response = response($zip->contents, 200, ['Content-Type' => 'application/zip']);
+        $response->headers->set(
+            'Content-Disposition',
+            'attachment; filename="'.$zip->filename.'"',
+        );
+
+        return $response;
     }
 
     public function thumbnail(Request $request, Attachment $attachment): BinaryFileResponse|JsonResponse

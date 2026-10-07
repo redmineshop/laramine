@@ -170,10 +170,14 @@ class TimeEntryWriteTest extends TestCase
             fn () => $entries->create($actor, $world->project, [...$base, 'comments' => 12]),
             'Comments must be text.',
         );
+        $logged = $entries->create($actor, $world->project, [...$base, 'activity_id' => null]);
+        $this->assertSame($system->id, (int) $logged->activity_id);
+        $second = $this->activity('Support', ['position' => 2]);
         $this->expectInvalid(
             fn () => $entries->create($actor, $world->project, [...$base, 'activity_id' => null]),
             'Activity is not a time entry activity.',
         );
+        $second->delete();
 
         $priority = Enumeration::query()->create([
             'name' => 'High',

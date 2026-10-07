@@ -31,6 +31,7 @@ final class TimeEntryService
         private readonly PermissionService $permissions,
         private readonly CustomValueService $customValues,
         private readonly SettingValue $settings,
+        private readonly TimeEntryActivityDefaults $activities,
     ) {}
 
     /**
@@ -101,7 +102,11 @@ final class TimeEntryService
     private function payload(User $actor, Project $project, array $attributes, ?TimeEntry $current): array
     {
         if ($current === null || array_key_exists('activity_id', $attributes)) {
-            $activityId = (int) $this->activity($project, $attributes['activity_id'] ?? null)->id;
+            $raw = $attributes['activity_id'] ?? null;
+            if ($current === null && ($raw === null || $raw === '')) {
+                $raw = $this->activities->idFor($actor, $project);
+            }
+            $activityId = (int) $this->activity($project, $raw)->id;
         } else {
             $activityId = (int) $current->activity_id;
         }

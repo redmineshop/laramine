@@ -5,6 +5,9 @@ namespace App\Providers;
 use App\Auth\RedmineUserProvider;
 use App\Domain\Acl\PermissionCatalog;
 use App\Domain\Acl\PermissionService;
+use App\Domain\Attachments\AbsentThumbnailDecoder;
+use App\Domain\Attachments\InterventionThumbnailDecoder;
+use App\Domain\Attachments\ThumbnailDecoder;
 use App\Domain\Auth\CredentialChecker;
 use App\Domain\Auth\Ldap\LdapDirectory;
 use App\Domain\Auth\Ldap\MemoryLdapDirectory;
@@ -31,6 +34,13 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(PermissionCatalog::class);
         $this->app->singleton(LdapDirectory::class, MemoryLdapDirectory::class);
+        $this->app->bind(ThumbnailDecoder::class, function (): ThumbnailDecoder {
+            if (InterventionThumbnailDecoder::present()) {
+                return new InterventionThumbnailDecoder;
+            }
+
+            return new AbsentThumbnailDecoder;
+        });
 
         Auth::provider('redmine', $this->redmineUserProvider(...));
     }

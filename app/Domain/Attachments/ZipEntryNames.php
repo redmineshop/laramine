@@ -6,7 +6,7 @@ namespace App\Domain\Attachments;
  * Unique file names inside a download-all zip.
  *
  * A repeated name keeps the extension and inserts `(2)`, `(3)`, and so on
- * before that extension.
+ * before that extension. The container download route starts that count at 1.
  */
 final class ZipEntryNames
 {
@@ -14,14 +14,14 @@ final class ZipEntryNames
      * @param  list<string>  $filenames
      * @return list<string>
      */
-    public function unique(array $filenames): array
+    public function unique(array $filenames, int $firstDuplicate = 2): array
     {
         $used = [];
         $names = [];
         foreach ($filenames as $filename) {
             $base = $this->base($filename);
             $candidate = $base;
-            $counter = 2;
+            $counter = $firstDuplicate;
             while (isset($used[$candidate])) {
                 $candidate = $this->withCounter($base, $counter);
                 $counter++;

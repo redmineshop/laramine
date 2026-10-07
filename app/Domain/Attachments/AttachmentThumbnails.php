@@ -12,7 +12,7 @@ final class AttachmentThumbnails
     /**
      * @var list<string>
      */
-    public const EXTENSIONS = ['bmp', 'gif', 'jpg', 'jpe', 'jpeg', 'png', 'webp'];
+    public const EXTENSIONS = ['avif', 'bmp', 'gif', 'jpg', 'jpe', 'jpeg', 'png', 'webp'];
 
     public function isImage(string $filename): bool
     {

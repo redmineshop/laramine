@@ -2,6 +2,7 @@
 
 namespace Tests\Parity;
 
+use App\Domain\Acl\MembershipService;
 use App\Domain\CustomFields\CustomFieldService;
 use App\Domain\DomainException;
 use App\Domain\PermissionDeniedException;
@@ -13,6 +14,8 @@ use App\Domain\TimeEntries\TimeEntryService;
 use App\Models\CustomValue;
 use App\Models\Enumeration;
 use App\Models\Issue;
+use App\Models\Member;
+use App\Models\MemberRole;
 use App\Models\Project;
 use App\Models\Role;
 use App\Models\Setting;
@@ -96,10 +99,9 @@ class TimeEntryParityTest extends TestCase
         unset($missing['activity_id']);
         $missingActivity = $expected['missing_activity'];
         $this->assertIsArray($missingActivity);
-        $this->rejected(
-            fn () => $entries->create($ada, $project, $missing),
-            $this->stringField($missingActivity, 'message'),
-        );
+        $omitted = $entries->create($ada, $project, $missing);
+        $this->assertSame($this->intField($missingActivity, 'activity_id'), (int) $omitted->activity_id);
+        $entries->delete($admin, $omitted);
 
         $inactive = $expected['inactive_activity'];
         $this->assertIsArray($inactive);
@@ -354,6 +356,46 @@ class TimeEntryParityTest extends TestCase
         }
     }
 
+    public function test_default_activity_matches_the_pin(): void
+    {
+        Redmine701Fixture::load();
+        $expected = $this->expectation('time-entries/activity.json');
+        $entries = app(TimeEntryService::class);
+        $admin = $this->user('admin');
+        $project = Project::query()->findOrFail(1);
+        $omit = $expected['omit'];
+        $this->assertIsArray($omit);
+        $blank = $this->base();
+        unset($blank['activity_id']);
+        $created = $entries->create($this->user($this->stringField($omit, 'login')), $project, $blank);
+        $this->assertSame($this->intField($omit, 'activity_id'), (int) $created->activity_id);
+        $entries->delete($admin, $created);
+
+        foreach ($this->listField($expected, 'cases') as $case) {
+            $this->resetActivityPin();
+            $keys = $this->activityKeys($case);
+            $this->activityRoles($case, $project, $keys);
+            $login = $this->stringField($case, 'login');
+            if (($case['create_user'] ?? false) === true) {
+                User::factory()->create(['login' => $login]);
+            }
+            $this->activityGroup($case, $project, $keys, $login);
+            $actor = $this->user($login);
+            $attributes = $this->base();
+            unset($attributes['activity_id']);
+            $error = $case['error'] ?? null;
+            if (is_string($error)) {
+                $this->rejected(fn () => $entries->create($actor, $project, $attributes), $error);
+
+                continue;
+            }
+            $row = $entries->create($actor, $project, $attributes);
+            $expectedId = $this->expectedActivityId($case, $keys);
+            $this->assertSame($expectedId, (int) $row->activity_id, $this->stringField($case, 'name'));
+            $entries->delete($admin, $row);
+        }
+    }
+
     public function test_checklist_evidence_cites_this_comparison(): void
     {
         $checklist = file_get_contents(base_path('docs/parity-checklist.md'));
@@ -363,6 +405,7 @@ class TimeEntryParityTest extends TestCase
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/time-entries/writes.json', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/time-entries/rollup.json', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/time-entries/query.json', $checklist);
+        $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/time-entries/activity.json', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/', $checklist);
     }
 
@@ -564,6 +607,167 @@ class TimeEntryParityTest extends TestCase
         }
 
         return $ids;
+    }
+
+    private function resetActivityPin(): void
+    {
+        Role::query()->whereIn('id', [1, 2])->update(['default_time_entry_activity_id' => 3]);
+        $extra = Role::query()->where('name', 'like', 'parity-activity-%')->pluck('id');
+        if ($extra->isNotEmpty()) {
+            MemberRole::query()->whereIn('role_id', $extra->all())->delete();
+            Role::query()->whereIn('id', $extra->all())->update(['default_time_entry_activity_id' => null]);
+            Role::query()->whereIn('id', $extra->all())->delete();
+        }
+        Enumeration::query()->where('type', 'TimeEntryActivity')->where('id', '!=', 3)->delete();
+        Enumeration::query()->whereKey(3)->update(['active' => true, 'is_default' => true]);
+    }
+
+    /**
+     * @param  array<mixed>  $case
+     * @return array<string, int>
+     */
+    private function activityKeys(array $case): array
+    {
+        if (isset($case['hide']) && is_array($case['hide'])) {
+            foreach ($case['hide'] as $id) {
+                $this->assertIsInt($id);
+                Enumeration::query()->whereKey($id)->update(['active' => false]);
+            }
+        }
+
+        $keys = [];
+        if (! isset($case['activities'])) {
+            return $keys;
+        }
+        $this->assertIsArray($case['activities']);
+        foreach ($case['activities'] as $spec) {
+            $this->assertIsArray($spec);
+            $parent = null;
+            if (isset($spec['parent']) && is_string($spec['parent'])) {
+                $parent = $keys[$spec['parent']] ?? null;
+                $this->assertIsInt($parent);
+            } elseif (isset($spec['parent_id']) && is_int($spec['parent_id'])) {
+                $parent = $spec['parent_id'];
+            }
+            $projectId = array_key_exists('project_id', $spec) ? $spec['project_id'] : null;
+            $this->assertTrue($projectId === null || is_int($projectId));
+            $row = Enumeration::query()->create([
+                'name' => $this->stringField($spec, 'name'),
+                'type' => 'TimeEntryActivity',
+                'active' => ($spec['active'] ?? true) === true,
+                'is_default' => ($spec['is_default'] ?? false) === true,
+                'position' => $this->intField($spec, 'position'),
+                'parent_id' => $parent,
+                'project_id' => $projectId,
+            ]);
+            $keys[$this->stringField($spec, 'key')] = (int) $row->id;
+        }
+        if (isset($case['role_defaults']) && is_array($case['role_defaults'])) {
+            foreach ($case['role_defaults'] as $spec) {
+                $this->assertIsArray($spec);
+                $activityId = null;
+                if (isset($spec['activity']) && is_string($spec['activity'])) {
+                    $activityId = $keys[$spec['activity']] ?? null;
+                    $this->assertIsInt($activityId);
+                } elseif (array_key_exists('activity_id', $spec)) {
+                    $this->assertTrue($spec['activity_id'] === null || is_int($spec['activity_id']));
+                    $activityId = $spec['activity_id'];
+                }
+                Role::query()->whereKey($this->intField($spec, 'role_id'))->update([
+                    'default_time_entry_activity_id' => $activityId,
+                ]);
+            }
+        }
+
+        return $keys;
+    }
+
+    /**
+     * @param  array<mixed>  $case
+     * @param  array<string, int>  $keys
+     */
+    private function activityRoles(array $case, Project $project, array $keys): void
+    {
+        if (! isset($case['extra_roles']) || ! is_array($case['extra_roles'])) {
+            return;
+        }
+        $memberships = app(MembershipService::class);
+        foreach ($case['extra_roles'] as $spec) {
+            $this->assertIsArray($spec);
+            $activity = $keys[$this->stringField($spec, 'activity')] ?? null;
+            $this->assertIsInt($activity);
+            $role = Role::query()->create([
+                'name' => $this->stringField($spec, 'name'),
+                'builtin' => $this->intField($spec, 'builtin'),
+                'position' => $this->intField($spec, 'position'),
+                'assignable' => true,
+                'permissions' => ['log_time', 'view_issues'],
+                'issues_visibility' => 'default',
+                'time_entries_visibility' => 'all',
+                'default_time_entry_activity_id' => $activity,
+            ]);
+            $user = $this->user($this->stringField($spec, 'login'));
+            if (($spec['direct'] ?? false) === true) {
+                $member = Member::query()->where('user_id', $user->id)->where('project_id', $project->id)->first();
+                $this->assertInstanceOf(Member::class, $member);
+                MemberRole::query()->create([
+                    'member_id' => $member->id,
+                    'role_id' => $role->id,
+                    'inherited_from' => null,
+                ]);
+
+                continue;
+            }
+            $memberships->assignRole($project, $user, $role);
+        }
+    }
+
+    /**
+     * @param  array<mixed>  $case
+     * @param  array<string, int>  $keys
+     */
+    private function activityGroup(array $case, Project $project, array $keys, string $login): void
+    {
+        if (! isset($case['group']) || ! is_array($case['group'])) {
+            return;
+        }
+        $spec = $case['group'];
+        $activity = $keys[$this->stringField($spec, 'activity')] ?? null;
+        $this->assertIsInt($activity);
+        $group = User::factory()->create([
+            'login' => 'parity-activity-group',
+            'type' => User::TYPE_GROUP,
+            'firstname' => 'Parity',
+            'lastname' => 'Group',
+        ]);
+        $role = Role::query()->create([
+            'name' => 'parity-activity-group-role',
+            'builtin' => 0,
+            'position' => 12,
+            'assignable' => true,
+            'permissions' => ['log_time', 'view_issues'],
+            'issues_visibility' => 'default',
+            'time_entries_visibility' => 'all',
+            'default_time_entry_activity_id' => $activity,
+        ]);
+        $memberships = app(MembershipService::class);
+        $memberships->addUserToGroup($group, $this->user($login));
+        $memberships->assignRole($project, $group, $role);
+    }
+
+    /**
+     * @param  array<mixed>  $case
+     * @param  array<string, int>  $keys
+     */
+    private function expectedActivityId(array $case, array $keys): int
+    {
+        if (isset($case['expected_id']) && is_int($case['expected_id'])) {
+            return $case['expected_id'];
+        }
+        $id = $keys[$this->stringField($case, 'expected')] ?? null;
+        $this->assertIsInt($id);
+
+        return $id;
     }
 
     /**

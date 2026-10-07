@@ -1,0 +1,22 @@
+{
+    "issue_id": 1,
+    "enabled": "1",
+    "edge": 2,
+    "width": 4,
+    "height": 2,
+    "thumb_width": 2,
+    "thumb_height": 1,
+    "content_type": "image/png",
+    "unreadable_message": "Thumbnail image could not be read.",
+    "not_image_message": "Attachment is not an image.",
+    "required": ["gif", "jpeg", "bmp", "webp"],
+    "formats": [
+        {"kind": "gif", "filename": "anim.gif"},
+        {"kind": "jpeg", "filename": "photo2.jpg"},
+        {"kind": "bmp", "filename": "scan.bmp"},
+        {"kind": "webp", "filename": "diagram.webp"},
+        {"kind": "avif", "filename": "still.avif"}
+    ],
+    "pdf": {"filename": "page.pdf", "body": "%PDF-1.4\n"},
+    "cache_poison": "POISON"
+}
