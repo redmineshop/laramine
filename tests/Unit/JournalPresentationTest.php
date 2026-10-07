@@ -48,8 +48,8 @@ class JournalPresentationTest extends TestCase
     public function test_note_journals_show_quote_and_edit_property_only_journals_do_not(): void
     {
         $actions = new JournalActionList;
-        $withNote = $actions->forJournal(true);
-        $propertyOnly = $actions->forJournal(false);
+        $withNote = $actions->forJournal(true, true, true, '#note-4');
+        $propertyOnly = $actions->forJournal(false, true, true, '#note-5');
 
         $this->assertSame(['reaction', 'quote', 'edit', 'more'], array_map(
             static fn ($action) => $action->key,
@@ -60,9 +60,57 @@ class JournalPresentationTest extends TestCase
         $this->assertSame('edit', $withNote[2]->label);
         $this->assertSame('pencil', $withNote[2]->icon);
         $this->assertSame('⋯', $withNote[3]->label);
+        $this->assertSame(['copy_link', 'delete'], array_map(
+            static fn ($item) => $item->key,
+            $withNote[3]->menuItems,
+        ));
+        $this->assertSame([JournalActionList::COPY_LINK, JournalActionList::DELETE], array_map(
+            static fn ($item) => $item->label,
+            $withNote[3]->menuItems,
+        ));
+        $this->assertSame('#note-4', $withNote[3]->menuItems[0]->fragment);
+        $this->assertNull($withNote[3]->menuItems[1]->fragment);
         $this->assertSame(['reaction', 'more'], array_map(
             static fn ($action) => $action->key,
             $propertyOnly,
+        ));
+        $this->assertSame(['copy_link'], array_map(
+            static fn ($item) => $item->key,
+            $propertyOnly[1]->menuItems,
+        ));
+        $this->assertSame('#note-5', $propertyOnly[1]->menuItems[0]->fragment);
+    }
+
+    public function test_quote_and_edit_controls_follow_the_caller_flags(): void
+    {
+        $actions = new JournalActionList;
+        $quoteOnly = $actions->forJournal(true, true, false, '#note-1');
+        $editOnly = $actions->forJournal(true, false, true, '#note-1');
+        $neither = $actions->forJournal(true, false, false, '#note-1');
+
+        $this->assertSame(['reaction', 'quote', 'more'], array_map(
+            static fn ($action) => $action->key,
+            $quoteOnly,
+        ));
+        $this->assertSame(['copy_link'], array_map(
+            static fn ($item) => $item->key,
+            $quoteOnly[2]->menuItems,
+        ));
+        $this->assertSame(['reaction', 'edit', 'more'], array_map(
+            static fn ($action) => $action->key,
+            $editOnly,
+        ));
+        $this->assertSame(['copy_link', 'delete'], array_map(
+            static fn ($item) => $item->key,
+            $editOnly[2]->menuItems,
+        ));
+        $this->assertSame(['reaction', 'more'], array_map(
+            static fn ($action) => $action->key,
+            $neither,
+        ));
+        $this->assertSame(['copy_link'], array_map(
+            static fn ($item) => $item->key,
+            $neither[1]->menuItems,
         ));
     }
 }
