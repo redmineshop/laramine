@@ -123,6 +123,60 @@ class CustomFieldRecordFormatTest extends TestCase
         $this->assertSame('list_optional', $format->queryFilterType());
     }
 
+    public function test_version_format_follows_sharing(): void
+    {
+        $world = DomainFixture::boot('version-share');
+        $projects = app(ProjectService::class);
+        $child = $projects->create([
+            'name' => 'Child',
+            'identifier' => 'ver-child',
+        ], $world->project);
+        $other = $projects->create([
+            'name' => 'Other',
+            'identifier' => 'ver-other',
+        ]);
+        $format = app(VersionFormat::class);
+        $field = new CustomField([
+            'field_format' => 'version',
+            'format_store' => ['version_status' => ['open']],
+        ]);
+        $down = $this->version($world->project->id, 'down', 'open', 'descendants');
+        $up = $this->version($child->id, 'up', 'open', 'hierarchy');
+        $childOnly = $this->version($child->id, 'local', 'open', 'descendants');
+        $tree = $this->version($world->project->id, 'tree', 'open', 'tree');
+        $system = $this->version($other->id, 'system', 'open', 'system');
+        $locked = $this->version($world->project->id, 'locked', 'locked', 'system');
+        $weird = $this->version($other->id, 'weird', 'open', 'custom');
+
+        $onChild = new Issue(['project_id' => $child->id]);
+        $onChild->setRelation('project', $child->fresh() ?? $child);
+        $onParent = new Issue(['project_id' => $world->project->id]);
+        $onParent->setRelation('project', $world->project->fresh() ?? $world->project);
+        $onOther = new Issue(['project_id' => $other->id]);
+        $onOther->setRelation('project', $other);
+
+        $this->assertSame([], $format->validate($field, $down->id, $onChild));
+        $this->assertSame([], $format->validate($field, $up->id, $onParent));
+        $this->assertSame(
+            ['Version is not available for this project.'],
+            $format->validate($field, $childOnly->id, $onParent),
+        );
+        $this->assertSame([], $format->validate($field, $tree->id, $onChild));
+        $this->assertSame(
+            ['Version is not available for this project.'],
+            $format->validate($field, $tree->id, $onOther),
+        );
+        $this->assertSame([], $format->validate($field, $system->id, $onParent));
+        $this->assertSame(
+            ['Version status is not allowed.'],
+            $format->validate($field, $locked->id, $onOther),
+        );
+        $this->assertSame(
+            ['Version is not available for this project.'],
+            $format->validate($field, $weird->id, $onParent),
+        );
+    }
+
     public function test_enumeration_format_stores_active_ids_for_this_field(): void
     {
         $format = new EnumerationFormat;
@@ -265,5 +319,15 @@ class CustomFieldRecordFormatTest extends TestCase
         $this->assertFalse($format->supportsSearchable());
         $this->assertFalse($format->supportsTotal());
         $this->assertSame('string', $format->queryFilterType());
+    }
+
+    private function version(int $projectId, string $name, string $status, string $sharing): Version
+    {
+        return Version::query()->create([
+            'project_id' => $projectId,
+            'name' => $name,
+            'status' => $status,
+            'sharing' => $sharing,
+        ]);
     }
 }

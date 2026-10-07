@@ -117,6 +117,26 @@ final class AttachmentService
         }
     }
 
+    /**
+     * Remove the bytes for a row that is about to be, or already was, deleted.
+     *
+     * A missing file is left alone. The attachment row is not deleted here.
+     */
+    public function forgetFile(Attachment $attachment): void
+    {
+        try {
+            $path = $this->absolutePath($attachment);
+        } catch (DomainException) {
+            return;
+        }
+        if (! is_file($path)) {
+            return;
+        }
+        if (! unlink($path)) {
+            throw new DomainException('Attachment file could not be removed.');
+        }
+    }
+
     public function absolutePath(Attachment $attachment): string
     {
         $directory = $attachment->getAttribute('disk_directory');

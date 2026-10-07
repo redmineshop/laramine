@@ -9,7 +9,9 @@ use App\Models\CustomField;
  * String rules (regexp, min length, max length) plus an optional URL template.
  *
  * `format_store.url_pattern` is expanded by `formattedUrl`. Substituted tokens
- * are percent-encoded. This format does not request the URL.
+ * are percent-encoded. `outboundUrl` is the URL a client fetches. A stored
+ * value with no pattern and no `scheme://` prefix is returned with `http://`
+ * in front. This format does not request the URL.
  */
 final class LinkFormat extends BoundedTextFormat
 {
@@ -88,6 +90,31 @@ final class LinkFormat extends BoundedTextFormat
         return is_string($built) ? $built : $pattern;
     }
 
+    /**
+     * URL a client fetches for this stored value.
+     *
+     * A pattern result is returned as expanded. Otherwise a value that already
+     * starts with `scheme://` is returned unchanged, and every other value is
+     * prefixed with `http://`. The server does not request this URL.
+     */
+    public function outboundUrl(
+        CustomField $field,
+        string $value,
+        ?int $recordId,
+        ?int $projectId = null,
+        ?string $projectIdentifier = null,
+    ): string {
+        $formatted = $this->formattedUrl($field, $value, $recordId, $projectId, $projectIdentifier);
+        if (is_string($formatted) && $formatted !== '') {
+            return $formatted;
+        }
+        if (preg_match('/\A[a-z][a-z0-9+.-]*:\/\//i', $value) === 1) {
+            return $value;
+        }
+
+        return 'http://'.$value;
+    }
+
     private function urlPatternError(CustomField $field): ?string
     {
         $store = $field->formatStoreData();
@@ -103,8 +130,34 @@ final class LinkFormat extends BoundedTextFormat
         if (! is_string($raw) || trim($raw) === '') {
             return 'url_pattern must be a string.';
         }
+        if (! $this->isSafeUrlPattern($raw)) {
+            return 'url_pattern must use http, https, ftp, mailto, or a path.';
+        }
 
         return null;
+    }
+
+    /**
+     * True when the pattern, with substitution tokens removed, is empty, a
+     * single-slash path, or an absolute URL whose scheme is http, https, ftp,
+     * or mailto.
+     */
+    private function isSafeUrlPattern(string $pattern): bool
+    {
+        $remainder = preg_replace('/%(?:value|id|project_id|project_identifier|m\d+)%/', '', $pattern);
+        if (! is_string($remainder) || preg_match('/[\x00-\x20\x7F]/', $remainder) === 1) {
+            return false;
+        }
+        if ($remainder === '' || preg_match('#\A/(?!/)#', $remainder) === 1 || preg_match('/\A[?#]/', $remainder) === 1) {
+            return true;
+        }
+
+        $scheme = parse_url($remainder, PHP_URL_SCHEME);
+        if (! is_string($scheme)) {
+            return false;
+        }
+
+        return in_array(strtolower($scheme), ['http', 'https', 'ftp', 'mailto'], true);
     }
 
     private function urlPattern(CustomField $field): ?string

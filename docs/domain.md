@@ -64,11 +64,11 @@ The MVP smoke for projects, membership, workflow, and issues is [acl-workflow-pa
 
 ## Journals
 
-`IssueService::update` writes one `journals` row when a tracked attribute changes or the caller sends a non-blank `notes` string. `journalized_type` is `Issue`. `user_id` is the actor. Blank notes are stored as null and do not create a journal by themselves. Create does not write a journal.
+`IssueService::update` writes one `journals` row when a tracked attribute changes, a custom value changes, or the caller sends a non-blank `notes` string. `journalized_type` is `Issue`. `user_id` is the actor. Blank notes are stored as null and do not create a journal by themselves. Create does not write a journal.
 
 A non-blank note requires `add_issue_notes`. `private_notes` true requires `set_notes_private` and is stored on that journal, including when the journal also has property details. Attribute changes still require `edit_issues` or `edit_own_issues`. A notes-only update does not require edit permission. Active admins bypass these checks.
 
-Tracked details use `journal_details.property = attr` and `prop_key` set to the issue column, in this order: `status_id`, `done_ratio`, `subject`, `description`, `priority_id`, `assigned_to_id`, `start_date`, `due_date`, `estimated_hours`, `is_private`, `parent_id`. Compared values are strings. `status_id` and `priority_id` are decimal id strings. `done_ratio` is an integer string. Custom-field diffs are not written.
+Tracked details use `journal_details.property = attr` and `prop_key` set to the issue column, in this order: `status_id`, `done_ratio`, `subject`, `description`, `priority_id`, `assigned_to_id`, `start_date`, `due_date`, `estimated_hours`, `is_private`, `parent_id`. Compared values are strings. `status_id` and `priority_id` are decimal id strings. `done_ratio` is an integer string. Custom-field diffs follow those rows. Each changed field is one detail with `property = cf`, `prop_key` the custom field id, and the stored strings joined by a comma when the field has several values. A cleared field stores null. The history line renderer does not label `cf` rows. See [custom-fields.md](custom-fields.md).
 
 `IssueRelationService::add` inserts `issue_relations` (`relates`, `blocks`, `duplicates`, `precedes`, or `copied_to`) and one journal on the source issue. That detail uses `property = relation`, `prop_key` the relation type, and `value` the other issue id. It requires `manage_issue_relations`.
 

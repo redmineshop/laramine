@@ -119,13 +119,14 @@ final class IssueService
         }
 
         $before = $this->journals->snapshot($issue);
+        $customBefore = $this->journals->customSnapshot($issue);
         if (! $editing) {
-            return DB::transaction(function () use ($actor, $issue, $before, $notes, $privateNotes): Issue {
+            return DB::transaction(function () use ($actor, $issue, $before, $customBefore, $notes, $privateNotes): Issue {
                 if ($notes !== null) {
                     $issue->touch();
                 }
 
-                return $this->persistJournal($actor, $issue, $before, $notes, $privateNotes);
+                return $this->persistJournal($actor, $issue, $before, $customBefore, $notes, $privateNotes);
             });
         }
 
@@ -208,7 +209,7 @@ final class IssueService
         $this->enforceFieldRules($actor, $issue, $incoming, $current);
         $customInputs = $this->customFieldInputs($attributes);
 
-        return DB::transaction(function () use ($actor, $issue, $parent, $parentChanged, $nextStatus, $customInputs, $before, $notes, $privateNotes): Issue {
+        return DB::transaction(function () use ($actor, $issue, $parent, $parentChanged, $nextStatus, $customInputs, $before, $customBefore, $notes, $privateNotes): Issue {
             // Field rules use the status already stored on the issue.
             $this->customValues->sync($actor, $issue, $customInputs, false);
             if ($nextStatus !== null) {
@@ -218,14 +219,15 @@ final class IssueService
             $issue->save();
             $saved = $parentChanged ? $this->trees->move($issue, $parent) : $issue;
 
-            return $this->persistJournal($actor, $saved, $before, $notes, $privateNotes);
+            return $this->persistJournal($actor, $saved, $before, $customBefore, $notes, $privateNotes);
         });
     }
 
     /**
      * @param  array<string, string|null>  $before
+     * @param  array<int, list<string>>  $customBefore
      */
-    private function persistJournal(User $actor, Issue $issue, array $before, ?string $notes, bool $privateNotes): Issue
+    private function persistJournal(User $actor, Issue $issue, array $before, array $customBefore, ?string $notes, bool $privateNotes): Issue
     {
         $fresh = $issue->refresh();
         $this->journals->recordIssueUpdate(
@@ -235,6 +237,8 @@ final class IssueService
             $this->journals->snapshot($fresh),
             $notes,
             $privateNotes,
+            $customBefore,
+            $this->journals->customSnapshot($fresh),
         );
 
         return $fresh;

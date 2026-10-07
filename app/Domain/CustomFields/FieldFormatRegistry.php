@@ -17,6 +17,7 @@ use App\Domain\CustomFields\Formats\TextFormat;
 use App\Domain\CustomFields\Formats\UserFormat;
 use App\Domain\CustomFields\Formats\VersionFormat;
 use App\Domain\DomainException;
+use App\Domain\Projects\VersionAvailability;
 
 /**
  * Maps `field_format` to a format handler. All 13 Redmine 7.0.1 keys resolve.
@@ -26,6 +27,7 @@ final class FieldFormatRegistry
     public function __construct(
         private readonly MembershipService $memberships,
         private readonly CustomizedContext $context,
+        private readonly VersionAvailability $versions,
     ) {}
 
     public function get(string $format): FieldFormat
@@ -46,7 +48,7 @@ final class FieldFormatRegistry
             FieldFormatKey::Bool => new BoolFormat,
             FieldFormatKey::Enumeration => new EnumerationFormat,
             FieldFormatKey::User => new UserFormat($this->memberships, $this->context),
-            FieldFormatKey::Version => new VersionFormat($this->context),
+            FieldFormatKey::Version => new VersionFormat($this->context, $this->versions),
             FieldFormatKey::Attachment => new AttachmentFormat($this->context),
             FieldFormatKey::Progressbar => new ProgressbarFormat,
         };

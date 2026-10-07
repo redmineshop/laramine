@@ -5,19 +5,19 @@ alwaysApply: true
 
 # Laramine
 
-Early MIT Laravel core. Domain goal is Redmine 7.0.1 semantics, reimplemented in original PHP. Read `AGENTS.md` before a large change. The P0 layout, users and authentication, identity, projects nested-set, and workflows rows in `docs/parity-checklist.md` are **VERIFIED** by the tests named there. Every other row is **NOT VERIFIED**. Do not describe the project as production-ready.
+Early MIT Laravel core. Domain goal is Redmine 7.0.1 semantics, reimplemented in original PHP. Read `AGENTS.md` before a large change. The P0 layout, users and authentication, identity, projects nested-set, workflows, and custom fields rows in `docs/parity-checklist.md` are **VERIFIED** by the tests named there. Every other row is **NOT VERIFIED**. Do not describe the project as production-ready.
 
 ## Architecture
 
-- `app/Domain/Issues` — `IssueService` create/update, nested set, workflow, journal write (notes, private notes, attribute diffs, relation-add). `JournalNoteService` quotes, edits, and deletes a note under the same permissions as the history markers.
+- `app/Domain/Issues` — `IssueService` create/update, nested set, workflow, journal write (notes, private notes, attribute diffs, custom-value diffs, relation-add). `JournalNoteService` quotes, edits, and deletes a note under the same permissions as the history markers.
 - `app/Domain/Acl` — `PermissionCatalog`, `PermissionService`, `MembershipService`, `UserVisibility`. Permission names are catalog strings. `roles.permissions` is stored as a JSON array.
 - `app/Domain/Workflow` — transitions (`WorkflowTransition`) and field rules (`WorkflowPermission`). MVP smoke: `docs/acl-workflow-parity-gate.md` (a checklist **PASS** there is Laramine smoke, not a 0.1 tag). The workflows checklist row is **VERIFIED** only by `tests/Parity/WorkflowParityTest.php`.
-- `app/Domain/CustomFields` — formats and `CustomValueService`. See `docs/custom-fields.md`.
+- `app/Domain/CustomFields` — formats and `CustomValueService`. Version values follow `versions.sharing`. See `docs/custom-fields.md`. The checklist row is **VERIFIED** only by `tests/Parity/CustomFieldParityTest.php`.
 - `app/Domain/Queries` — `IssueQuery` runs. Other query types can be stored and are not executed. See `docs/queries.md`.
 - `app/Domain/Projects` — project nested set and modules.
 - `app/Models` — Eloquent over Redmine 7.0.1 table and column names. Timestamp columns are `created_on` / `updated_on` where the schema says so. STI `type` values are Redmine class names.
 - `app/Policies` — project and issue view/update/delete only.
-- `routes/web.php` — Inertia health smoke page at `GET /`, session sign-in and sign-out (`GET /login` is the Inertia sign-in page; `?view=blade` keeps the Blade form), Phase 2 account routes for registration, activation, lost password, and password change, and authorized custom-field attachment download plus link URL resolution. There is no general HTTP API. The pages are not UI-ready and not a 0.1 tag (`docs/ux-parity-notes.md`). Custom fields stay **NOT VERIFIED**.
+- `routes/web.php` — Inertia health smoke page at `GET /`, session sign-in and sign-out (`GET /login` is the Inertia sign-in page; `?view=blade` keeps the Blade form), Phase 2 account routes for registration, activation, lost password, and password change, and authorized custom-field attachment download, attachment delete, and link URL resolution. There is no general HTTP API. The pages are not UI-ready and not a 0.1 tag (`docs/ux-parity-notes.md`). The custom fields checklist row is **VERIFIED** only by `tests/Parity/CustomFieldParityTest.php`.
 - Users and authentication — founder lock in `docs/users-auth-spec.md` (2026-10-07). The session guard and the Redmine-shaped digest stay. Phase 2 adds registration, `must_change_passwd`, and `recovery` / `register` tokens. Do not add LDAP, two-factor, OAuth, API tokens, account administration, or a second auth stack. The compared checklist row is not a 0.1 tag. `users_visibility` stays deferred.
 - Schema pin: `docs/schema-inventory.md` and `docs/sources/redmine-7.0.1-schema.rb` (structure dump only).
 

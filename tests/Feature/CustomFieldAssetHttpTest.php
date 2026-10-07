@@ -2,14 +2,20 @@
 
 namespace Tests\Feature;
 
+use App\Domain\Acl\MembershipService;
 use App\Domain\Attachments\AttachmentService;
+use App\Domain\CustomFields\CustomFieldAssetAccess;
 use App\Domain\CustomFields\CustomFieldService;
 use App\Domain\CustomFields\CustomValueService;
+use App\Domain\Issues\IssueJournalWriter;
 use App\Domain\Issues\IssueService;
 use App\Domain\Projects\ProjectService;
 use App\Models\Attachment;
 use App\Models\CustomValue;
 use App\Models\Issue;
+use App\Models\Journal;
+use App\Models\JournalDetail;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Support\DomainFixture;
@@ -18,8 +24,8 @@ use Tests\TestCase;
 /**
  * HTTP download of an attachment custom value and HTTP resolution of a link.
  *
- * These tests are Laramine behavior on MySQL. They do not compare rows with
- * a Redmine 7.0.1 database. Parity stays NOT VERIFIED.
+ * These tests are Laramine behavior on MySQL. The pin comparison is
+ * tests/Parity/CustomFieldParityTest.php.
  */
 class CustomFieldAssetHttpTest extends TestCase
 {
@@ -337,6 +343,121 @@ class CustomFieldAssetHttpTest extends TestCase
             ->getJson('/custom-fields/links/'.$groupRow->id)
             ->assertOk()
             ->assertJsonPath('url', 'https://groups.test/ops');
+    }
+
+    public function test_link_without_a_scheme_is_prefixed_with_http(): void
+    {
+        $world = DomainFixture::boot('cf-http-scheme');
+        $world->join();
+        $field = app(CustomFieldService::class)->save([
+            'type' => 'IssueCustomField',
+            'name' => 'Site',
+            'field_format' => 'link',
+            'is_for_all' => true,
+            'tracker_ids' => [$world->tracker->id],
+        ]);
+        $issue = app(IssueService::class)->create($world->user, $world->project, [
+            'tracker_id' => $world->tracker->id,
+            'subject' => 'Bare link',
+            'custom_fields' => [
+                ['id' => $field->id, 'value' => 'example.test/a'],
+            ],
+        ]);
+        $row = $this->valueRow($field->id, $issue->id);
+
+        $this->actingAs($world->user)
+            ->getJson('/custom-fields/links/'.$row->id)
+            ->assertOk()
+            ->assertJsonPath('value', 'example.test/a')
+            ->assertJsonPath('url', 'http://example.test/a');
+    }
+
+    public function test_member_deletes_an_attachment_custom_value(): void
+    {
+        $world = DomainFixture::boot('cf-http-delete');
+        $world->join();
+        $paths = [];
+        try {
+            [$issue, $attachment] = $this->issueFile($world, 'Spec.PDF', '%PDF');
+            $files = app(AttachmentService::class);
+            $paths[] = $files->absolutePath($attachment);
+            $loose = $files->store($world->user, 'loose.pdf', 'LOOSE', null, null, $issue);
+            $paths[] = $files->absolutePath($loose);
+            $noted = app(IssueService::class)->update($world->user, $issue, ['notes' => 'Journal file']);
+            $journal = Journal::query()->where('journalized_id', $noted->id)->where('notes', 'Journal file')->first();
+            $this->assertInstanceOf(Journal::class, $journal);
+            $journalFile = $files->store($world->user, 'note.pdf', 'NOTE', null, null, $journal);
+            $paths[] = $files->absolutePath($journalFile);
+
+            $observer = Role::query()->create([
+                'name' => 'Observer',
+                'builtin' => 0,
+                'permissions' => ['view_issues'],
+                'issues_visibility' => 'default',
+            ]);
+            $viewer = User::factory()->create();
+            app(MembershipService::class)->assignRole($world->project, $viewer, $observer);
+            $outsider = User::factory()->create();
+
+            $this->actingAs($outsider)
+                ->deleteJson('/custom-fields/attachments/'.$attachment->id)
+                ->assertForbidden()
+                ->assertJsonPath('message', 'Permission denied: view_issues');
+            $this->actingAs($viewer)
+                ->deleteJson('/custom-fields/attachments/'.$attachment->id)
+                ->assertForbidden()
+                ->assertJsonPath('message', 'Permission denied: edit_issues');
+            $this->actingAs($world->user)
+                ->deleteJson('/custom-fields/attachments/'.$loose->id)
+                ->assertNotFound();
+            $this->actingAs($world->user)
+                ->deleteJson('/custom-fields/attachments/'.$journalFile->id)
+                ->assertNotFound();
+
+            $this->actingAs($world->user)
+                ->delete('/custom-fields/attachments/'.$attachment->id)
+                ->assertNoContent();
+
+            $this->assertFileDoesNotExist($paths[0]);
+            $this->assertNull(Attachment::query()->find($attachment->id));
+            $this->assertNull(CustomValue::query()->where('customized_id', $issue->id)->where('value', (string) $attachment->id)->first());
+            $detail = JournalDetail::query()->orderByDesc('id')->first();
+            $this->assertInstanceOf(JournalDetail::class, $detail);
+            $this->assertSame(IssueJournalWriter::PROPERTY_CF, (string) $detail->property);
+            $this->assertSame((string) $attachment->id, $detail->old_value);
+            $this->assertNull($detail->value);
+            $this->actingAs($world->user)
+                ->getJson('/custom-fields/attachments/'.$attachment->id)
+                ->assertNotFound();
+            $this->assertFileExists($paths[1]);
+            $this->assertFileExists($paths[2]);
+
+            $locked = app(CustomFieldService::class)->save([
+                'type' => 'IssueCustomField',
+                'name' => 'Locked file',
+                'field_format' => 'attachment',
+                'editable' => false,
+                'is_for_all' => true,
+                'tracker_ids' => [$world->tracker->id],
+                'format_store' => ['extensions_allowed' => 'pdf'],
+            ]);
+            $admin = User::factory()->create(['admin' => true]);
+            $secret = $files->store($admin, 'locked.pdf', 'LOCK');
+            $paths[] = $files->absolutePath($secret);
+            app(IssueService::class)->update($admin, $issue->fresh() ?? $issue, [
+                'custom_fields' => [[
+                    'id' => $locked->id,
+                    'value' => (string) $secret->id,
+                ]],
+            ]);
+            $this->actingAs($world->user)
+                ->deleteJson('/custom-fields/attachments/'.$secret->id)
+                ->assertForbidden()
+                ->assertJsonPath('message', 'Permission denied: '.CustomFieldAssetAccess::NOT_EDITABLE);
+            $this->assertFileExists($paths[3]);
+        } finally {
+            $this->unlinkFiles($paths);
+        }
     }
 
     /**
