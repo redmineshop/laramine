@@ -75,7 +75,7 @@ Tracked details use `journal_details.property = attr` and `prop_key` set to the 
 - On History and Notes, a journal with note text exposes reaction (`thumbs-up`). Quote is added when the actor has `add_issue_notes`. Edit (pencil) is added when the actor has `edit_issue_notes`, or `edit_own_issue_notes` and `journals.user_id` is that actor. More (`⋯`) is always on those two tabs. A journal without note text exposes reaction and more only.
 - The more menu lists Download all files when that journal has more than one attachment, then Copy link, then Delete when edit is allowed for that note. The issue show model offers the same Download all files item when the issue container itself has more than one attachment. `AttachmentArchive` returns a zip named `issue-{id}.zip` or `journal-{id}.zip`. Repeated filenames keep the extension and insert `(2)`, `(3)`, and so on. One attachment is not an archive. A private journal stays hidden, and the zip is refused, without `view_private_notes`. The show model records the control. There is no HTTP route.
 - Image filenames (`bmp`, `gif`, `jpg`, `jpe`, `jpeg`, `png`, `webp`) are thumbnails when `thumbnails_enabled` is on. The default is off. `thumbnails_size` defaults to 100 and is stored on the show model. Thumbnail image bytes are not rendered. A non-image file does not put a detail-only journal on Notes.
-- Spent time rows are ordered by `spent_on` descending, then `created_on`, then `id`. Hours are rounded to two decimals. `time_entries_visibility` applies to those rows: `all`, or `own` where `user_id` is the actor. Only roles that grant `view_time_entries` count, and several of those roles use the most open value. The tab stays when the hours sum is above zero even if that filter leaves no rows. Active admins see every row. There is still no time-entry write service.
+- Spent time rows are ordered by `spent_on` descending, then `created_on`, then `id`. Hours are rounded to two decimals. `time_entries_visibility` applies to those rows: `all`, or `own` where `user_id` is the actor. Only roles that grant `view_time_entries` count, and several of those roles use the most open value. The tab stays when the hours sum is above zero even if that filter leaves no rows. Active admins see every row. Writes go through `TimeEntryService`.
 - Associated revisions are `changesets` rows joined through `changesets_issues`, newest `committed_on` first. The actor needs `view_changesets` on the repository's project. The repository `type` string is stored and is not used to fetch commits.
 - After `IssueService::update` returns, the caller passes `justUpdated: true`. The show model then carries the flash `✓ Successful update.` with tone `green`.
 
@@ -88,6 +88,20 @@ Tracked details use `journal_details.property = attr` and `prop_key` set to the 
 - The notes fieldset is present when the actor can add a note or edit the issue. The Private notes checkbox is present only with `set_notes_private`, and the form leaves it unchecked.
 
 A private journal is omitted for an actor without `view_private_notes`, including the author. An active admin sees it. Query filters use the same rule; see [queries.md](queries.md). The security/parity gate for this slice is [journals-parity-gate.md](journals-parity-gate.md). Parity is **NOT VERIFIED**.
+
+## Time entries
+
+`TimeEntryService` creates, updates, and deletes `time_entries`. It is not an HTTP time log. Parity is **NOT VERIFIED**. Users and authentication stay the spec hole in [users-auth-spec.md](users-auth-spec.md): this service does not log anyone in.
+
+Create requires `log_time` on the project. `time_tracking` must be enabled unless the actor is an active admin. `author_id` is the actor and is not changed later. `user_id` defaults to the actor. Setting it to anyone else requires `log_time_for_other_users` and an active user (`type` User, `status` 1). A group or an inactive user is rejected. Passing the user already stored on an update does not ask for that permission again. Passing null, or the actor's id, stores the actor. The spent user's project membership is not checked.
+
+`issue_id` may be omitted. When it is set, that issue's project must be the time entry's project. `project_id` is chosen at create and is not changed. `activity_id` must be an active `TimeEntryActivity`. A system activity (`project_id` null) is available unless this project has a child row with that `parent_id`. That child replaces the parent: only an active child is accepted, and an inactive child hides the parent as well. An activity that belongs to another project is rejected. `roles.default_time_entry_activity_id` is stored and is not applied.
+
+`hours` must be a finite number greater than zero. `spent_on` is a calendar date `Y-m-d`. `tyear` is the ISO week-year, `tmonth` is the calendar month, and `tweek` is the ISO week number. `comments` are optional, trimmed, and stored as null when blank. Text longer than 1024 characters is rejected. Logging time does not change `issues.updated_on`.
+
+Update and delete require `edit_time_entries`, or `edit_own_time_entries` when `user_id` is the actor. Delete removes the row and `custom_values` whose `customized_type` is `TimeEntry` for that id. This service does not write custom field values.
+
+Spent hours are not a column on `issues`. After a write, IssueQuery `spent_hours` totals and the projected column read these rows. That visibility is the one already described in [queries.md](queries.md). The `spent_time` filter does not use it. The Spent time tab is still listed from the unfiltered hours sum.
 
 ## Seed
 
@@ -110,7 +124,7 @@ No workflow matrix is seeded, because statuses and trackers are not created by t
 - Same-status saves do not require a workflow row that points at the current status.
 - Closing and reopening blockers (relations, open subtasks, a closed parent) are not applied.
 - `roles.settings` tracker masks are stored when they are JSON and are not applied.
-- `roles.time_entries_visibility` is applied on the issue history Spent time tab and on IssueQuery `spent_hours` totals and the projected column. The `spent_time` filter does not use it. There is no time-entry write service.
+- `roles.time_entries_visibility` is applied on the issue history Spent time tab and on IssueQuery `spent_hours` totals and the projected column. The `spent_time` filter does not use it. `TimeEntryService` writes rows. `roles.default_time_entry_activity_id` is stored and is not applied. The spent user's membership is not checked.
 - `roles.users_visibility` is stored and is not applied. User administration is outside this slice. Users and authentication are a spec hole in [users-auth-spec.md](users-auth-spec.md): **NOT VERIFIED**, not a 0.1 tag, and not an invitation to add login.
 - `roles_managed_roles` is stored and is not checked when a role is assigned.
 - `MembershipService::assignRole` does not itself require `manage_members`.
