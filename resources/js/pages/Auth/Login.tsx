@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import { type FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import {
@@ -13,6 +13,10 @@ import { Label } from '@/components/ui/label';
 
 type LoginPageProps = {
     submitUrl: string;
+    lostPasswordUrl: string | null;
+    registerUrl: string | null;
+    activationEmailUrl: string | null;
+    notice: string | null;
 };
 
 type LoginForm = {
@@ -20,7 +24,13 @@ type LoginForm = {
     password: string;
 };
 
-export default function Login({ submitUrl }: LoginPageProps) {
+export default function Login({
+    submitUrl,
+    lostPasswordUrl,
+    registerUrl,
+    activationEmailUrl,
+    notice,
+}: LoginPageProps) {
     const form = useForm<LoginForm>({
         login: '',
         password: '',
@@ -29,6 +39,13 @@ export default function Login({ submitUrl }: LoginPageProps) {
     function submit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         form.post(submitUrl);
+    }
+
+    function resendActivation(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        if (activationEmailUrl !== null) {
+            router.post(activationEmailUrl);
+        }
     }
 
     return (
@@ -44,6 +61,11 @@ export default function Login({ submitUrl }: LoginPageProps) {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
+                        {notice !== null ? (
+                            <p className="mb-4 text-sm text-muted-foreground">
+                                {notice}
+                            </p>
+                        ) : null}
                         <form className="flex flex-col gap-4" onSubmit={submit}>
                             <div className="flex flex-col gap-2">
                                 <Label htmlFor="login">Login or email</Label>
@@ -92,6 +114,33 @@ export default function Login({ submitUrl }: LoginPageProps) {
                                 Sign in
                             </Button>
                         </form>
+                        {lostPasswordUrl !== null ? (
+                            <p className="mt-4 text-sm">
+                                <a
+                                    className="text-primary underline-offset-4 hover:underline"
+                                    href={lostPasswordUrl}
+                                >
+                                    Lost password
+                                </a>
+                            </p>
+                        ) : null}
+                        {registerUrl !== null ? (
+                            <p className="mt-2 text-sm">
+                                <a
+                                    className="text-primary underline-offset-4 hover:underline"
+                                    href={registerUrl}
+                                >
+                                    Register
+                                </a>
+                            </p>
+                        ) : null}
+                        {activationEmailUrl !== null ? (
+                            <form className="mt-4" onSubmit={resendActivation}>
+                                <Button type="submit" variant="outline">
+                                    Send the activation email again
+                                </Button>
+                            </form>
+                        ) : null}
                     </CardContent>
                 </Card>
             </main>
