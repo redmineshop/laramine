@@ -2,7 +2,6 @@
 
 namespace App\Domain\CustomFields;
 
-use App\Domain\Acl\PermissionService;
 use App\Domain\Attachments\AttachmentService;
 use App\Domain\DomainException;
 use App\Domain\Workflow\WorkflowService;
@@ -29,7 +28,6 @@ final class CustomValueService
         private readonly CustomFieldScope $scope,
         private readonly CustomFieldVisibility $visibility,
         private readonly CustomizedContext $context,
-        private readonly PermissionService $permissions,
         private readonly WorkflowService $workflows,
         private readonly AttachmentService $attachments,
     ) {}
