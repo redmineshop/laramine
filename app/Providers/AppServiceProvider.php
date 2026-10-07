@@ -2,15 +2,23 @@
 
 namespace App\Providers;
 
+use App\Auth\RedmineUserProvider;
 use App\Domain\Acl\PermissionCatalog;
 use App\Domain\Acl\PermissionService;
+use App\Domain\Auth\CredentialChecker;
 use App\Models\Issue;
 use App\Models\Project;
 use App\Models\User;
 use App\Policies\IssuePolicy;
 use App\Policies\ProjectPolicy;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\Hashing\Hasher;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
+use RuntimeException;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -20,6 +28,25 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(PermissionCatalog::class);
+
+        Auth::provider('redmine', $this->redmineUserProvider(...));
+    }
+
+    /**
+     * @param  array<string, mixed>  $config
+     */
+    private function redmineUserProvider(Application $app, array $config): RedmineUserProvider
+    {
+        $model = $config['model'] ?? User::class;
+        if (! is_string($model)) {
+            throw new RuntimeException('Auth user model must be a class name.');
+        }
+
+        return new RedmineUserProvider(
+            $app->make(Hasher::class),
+            $model,
+            $app->make(CredentialChecker::class),
+        );
     }
 
     /**
@@ -39,5 +66,16 @@ class AppServiceProvider extends ServiceProvider
                 return $this->app->make(PermissionService::class)->allowed($actor, $name, $target);
             });
         }
+
+        Event::listen(Login::class, function (Login $event): void {
+            $user = $event->user;
+            if (! $user instanceof User) {
+                return;
+            }
+
+            $user->forceFill([
+                'last_login_on' => now()->startOfSecond(),
+            ])->save();
+        });
     }
 }

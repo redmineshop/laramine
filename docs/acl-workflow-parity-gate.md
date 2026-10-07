@@ -70,13 +70,13 @@ These checks already pass in existing tests. This change does not rewrite them.
 | Item | Status |
 | --- | --- |
 | `time_entries_visibility` | **Open for a Redmine comparison.** The issue history Spent time tab applies `all` and `own`. IssueQuery `spent_hours` totals and the projected column do too (`tests/Feature/IssueQueryDepthTest.php`). The `spent_time` filter does not. `TimeEntryService` writes with `log_time`, `edit_time_entries`, `edit_own_time_entries`, and `log_time_for_other_users` (`tests/Feature/TimeEntryWriteTest.php`). Not a parity pass. |
-| `users_visibility` and user authentication | **Open.** Spec hole in [users-auth-spec.md](users-auth-spec.md). `users_visibility` is stored and not applied. Login, password checks, tokens, and account administration are not implemented. Founder unlock is required before an auth slice. **NOT VERIFIED**, not a 0.1 tag. |
+| `users_visibility` and user authentication | **Open.** Founder lock 2026-10-07 in [users-auth-spec.md](users-auth-spec.md). Phase 1 can open a web session. `users_visibility` is still not applied. Tokens, LDAP, two-factor, OAuth, registration, and account administration are later phases. **NOT VERIFIED**, not a 0.1 tag. |
 | Per-tracker permission masks | **Open.** `roles.settings` is stored. `allowed` does not read it. Criterion 18 locks that deferral. |
 | Managed-role enforcement | **Open.** `roles_managed_roles` is stored. `assignRole` does not read it. Criterion 19 locks that deferral. |
 | Wiki, news, documents, files, repository, boards, calendar, gantt | **Open.** Names exist in the catalog. No behavior beyond the permission registry. |
 | `copy_issues`, import, watchers, categories | **Open.** Names exist in the catalog. No write service. |
 | Close / reopen blockers | **Open.** Relations, open subtasks, and a closed parent do not block a transition. |
-| Users auth pack, HTTP, front end, MCP | **Open.** Not part of this slice. The users/auth pack is the spec hole in [users-auth-spec.md](users-auth-spec.md): **NOT VERIFIED**, not a 0.1 tag. |
+| Users auth pack, HTTP, front end, MCP | **Open.** Phase 1 sign-in routes exist. The rest of the users/auth pack is phased in [users-auth-spec.md](users-auth-spec.md). **NOT VERIFIED**, not a 0.1 tag. The HTTP API and front end are still outside this gate. |
 | Journal Block C criteria 16–19 | **Covered by Laramine tests.** Parity is NOT VERIFIED. Quote, edit, and delete now write through `JournalNoteService`. That write path is also Laramine-only. See [journals-parity-gate.md](journals-parity-gate.md). |
 | Redmine parity VERIFIED, tag 0.1 | **Open.** Not claimed. |
 

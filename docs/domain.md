@@ -91,7 +91,7 @@ A private journal is omitted for an actor without `view_private_notes`, includin
 
 ## Time entries
 
-`TimeEntryService` creates, updates, and deletes `time_entries`. It is not an HTTP time log. Parity is **NOT VERIFIED**. Users and authentication stay the spec hole in [users-auth-spec.md](users-auth-spec.md): this service does not log anyone in.
+`TimeEntryService` creates, updates, and deletes `time_entries`. It is not an HTTP time log. Parity is **NOT VERIFIED**. This service does not sign anyone in. Web sign-in is Phase 1 in [users-auth-spec.md](users-auth-spec.md). That row is **NOT VERIFIED** and is not a 0.1 tag.
 
 Create requires `log_time` on the project. `time_tracking` must be enabled unless the actor is an active admin. `author_id` is the actor and is not changed later. `user_id` defaults to the actor. Setting it to anyone else requires `log_time_for_other_users` and an active user (`type` User, `status` 1). A group or an inactive user is rejected. Passing the user already stored on an update does not ask for that permission again. Passing null, or the actor's id, stores the actor. The spent user's project membership is not checked.
 
@@ -125,7 +125,7 @@ No workflow matrix is seeded, because statuses and trackers are not created by t
 - Closing and reopening blockers (relations, open subtasks, a closed parent) are not applied.
 - `roles.settings` tracker masks are stored when they are JSON and are not applied.
 - `roles.time_entries_visibility` is applied on the issue history Spent time tab and on IssueQuery `spent_hours` totals and the projected column. The `spent_time` filter does not use it. `TimeEntryService` writes rows. `roles.default_time_entry_activity_id` is stored and is not applied. The spent user's membership is not checked.
-- `roles.users_visibility` is stored and is not applied. User administration is outside this slice. Users and authentication are a spec hole in [users-auth-spec.md](users-auth-spec.md): **NOT VERIFIED**, not a 0.1 tag, and not an invitation to add login.
+- `roles.users_visibility` is stored and is not applied. Account administration is not in this slice. Web sign-in is Phase 1 in [users-auth-spec.md](users-auth-spec.md). That row is **NOT VERIFIED** and is not a 0.1 tag.
 - `roles_managed_roles` is stored and is not checked when a role is assigned.
 - `MembershipService::assignRole` does not itself require `manage_members`.
 - Subtask parents must belong to the same project.

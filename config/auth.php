@@ -63,7 +63,8 @@ return [
 
     'providers' => [
         'users' => [
-            'driver' => 'eloquent',
+            // Checks `hashed_password` + `salt`. Does not bcrypt-rehash the column.
+            'driver' => 'redmine',
             'model' => env('AUTH_MODEL', User::class),
         ],
 
@@ -89,6 +90,9 @@ return [
     | The throttle setting is the number of seconds a user must wait before
     | generating more password reset tokens. This prevents the user from
     | quickly generating a very large amount of password reset tokens.
+    |
+    | This broker is not the product recovery path. Recovery uses `tokens`
+    | with action `recovery`, looked up through `email_addresses`.
     |
     */
 

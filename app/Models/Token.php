@@ -6,7 +6,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * Redmine 7.0.1 `tokens` row (`action` distinguishes session, api, recovery, and feeds).
+ * Redmine 7.0.1 `tokens` row.
+ *
+ * Named actions: session, api, feeds, recovery, register, autologin, twofa_backup_code.
+ * Phase 1 web sign-in does not write a token row.
  */
 class Token extends Model
 {

@@ -80,7 +80,7 @@ PR text should list behavior changed, tests added or updated, and parity rows to
 ## Out of scope unless the task says otherwise
 
 - Copying upstream source into the repository
-- HTTP controllers, auth screens, or a public JSON API. Users and authentication are a spec hole in `docs/users-auth-spec.md` (**NOT VERIFIED**, not a 0.1 tag). Do not add login, password hashing, sessions, or OAuth from that file.
+- A public JSON API, or auth work beyond the locked spec. Users and authentication are locked in `docs/users-auth-spec.md` (Phase 1 session sign-in). Parity is **NOT VERIFIED**, not a 0.1 tag. Do not add LDAP, two-factor, OAuth, tokens, or account admin from an issues, queries, or custom-fields task.
 - Mail or full-text search
 - Wiki, SCM, forums, news, webhooks
 - Switching CI to SQLite or lowering PHPStan

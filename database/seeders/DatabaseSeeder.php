@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(DefaultAccessSeeder::class);
 
+        // Placeholder digest, admin = false. This row cannot sign in.
         User::factory()->create([
             'login' => 'admin',
             'firstname' => 'Test',
