@@ -2,6 +2,7 @@
 
 namespace App\Domain\Settings;
 
+use App\Domain\Auth\SelfRegistrationMode;
 use App\Models\Setting;
 
 /**
@@ -18,6 +19,16 @@ final class SettingValue
     public const THUMBNAILS_ENABLED = 'thumbnails_enabled';
 
     public const THUMBNAILS_SIZE = 'thumbnails_size';
+
+    public const SELF_REGISTRATION = 'self_registration';
+
+    public const LOST_PASSWORD = 'lost_password';
+
+    public const PASSWORD_MIN_LENGTH = 'password_min_length';
+
+    public const PASSWORD_REQUIRED_CHAR_CLASSES = 'password_required_char_classes';
+
+    public const DEFAULT_NOTIFICATION_OPTION = 'default_notification_option';
 
     /**
      * Redmine `display_subprojects_issues` defaults to 1.
@@ -67,6 +78,69 @@ final class SettingValue
         }
 
         return 100;
+    }
+
+    /**
+     * Missing or unrecognized values use manual activation (`2`).
+     */
+    public function selfRegistration(): SelfRegistrationMode
+    {
+        $stored = $this->string(self::SELF_REGISTRATION);
+        if ($stored === null) {
+            return SelfRegistrationMode::Manual;
+        }
+
+        return SelfRegistrationMode::fromSetting($stored);
+    }
+
+    /**
+     * Lost password defaults to on.
+     */
+    public function lostPasswordEnabled(): bool
+    {
+        return $this->boolean(self::LOST_PASSWORD, true);
+    }
+
+    /**
+     * A missing or non-numeric value is 8. Zero is treated as 1 so a blank password is rejected.
+     */
+    public function passwordMinLength(): int
+    {
+        $stored = $this->string(self::PASSWORD_MIN_LENGTH);
+        if ($stored !== null && preg_match('/^\d+$/', $stored) === 1) {
+            $value = (int) $stored;
+
+            return $value < 1 ? 1 : $value;
+        }
+
+        return 8;
+    }
+
+    /**
+     * How many of the four character classes a new password must include. Missing means none.
+     */
+    public function passwordRequiredCharClasses(): int
+    {
+        $stored = $this->string(self::PASSWORD_REQUIRED_CHAR_CLASSES);
+        if ($stored !== null && preg_match('/^\d+$/', $stored) === 1) {
+            return min(4, (int) $stored);
+        }
+
+        return 0;
+    }
+
+    /**
+     * Mail notification stored on a newly registered account. Missing means `only_my_events`.
+     */
+    public function defaultMailNotification(): string
+    {
+        $stored = $this->string(self::DEFAULT_NOTIFICATION_OPTION);
+        $legal = ['all', 'selected', 'only_my_events', 'only_assigned', 'only_owner', 'none'];
+        if ($stored !== null && in_array($stored, $legal, true)) {
+            return $stored;
+        }
+
+        return 'only_my_events';
     }
 
     public function boolean(string $name, bool $default): bool

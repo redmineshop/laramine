@@ -1,0 +1,62 @@
+{
+    "pin": "7.0.1",
+    "active_user": {
+        "id": 1,
+        "login": "ada",
+        "mail": "ada@parity.test",
+        "salt": "00112233445566778899aabbccddeeff",
+        "password": "secret"
+    },
+    "placeholder_user": {
+        "id": 2,
+        "login": "admin",
+        "password": "secret",
+        "decision": "password",
+        "message_key": "invalid"
+    },
+    "group_user": {
+        "id": 3,
+        "login": "platform",
+        "password": "secret",
+        "decision": "not_account",
+        "message_key": "invalid"
+    },
+    "messages": {
+        "invalid": "Invalid user or password",
+        "locked": "Your account is locked.",
+        "pending": "Your account was created and is now pending administrator approval.",
+        "not_activated": "Your account has not yet been activated.",
+        "must_change": "You must change your password before you can continue.",
+        "password_must_differ": "The new password must be different from the current password.",
+        "password_updated": "Password was successfully updated.",
+        "recovery_sent": "An email with instructions to choose a new password has been sent to you.",
+        "activated": "Your account has been activated. You can now log in.",
+        "registered_email": "Account was successfully created. Use the activation link to activate it."
+    },
+    "status_gates": [
+        {"status": 3, "password": "secret", "decision": "locked", "message_key": "locked"},
+        {"status": 3, "password": "wrong", "decision": "password", "message_key": "invalid"},
+        {"status": 2, "self_registration": "2", "password": "secret", "decision": "registered", "message_key": "pending"},
+        {"status": 2, "self_registration": "1", "password": "secret", "decision": "registered", "message_key": "not_activated"},
+        {"status": 0, "password": "secret", "decision": "inactive", "message_key": "invalid"},
+        {"status": 4, "password": "secret", "decision": "inactive", "message_key": "invalid"}
+    ],
+    "tokens": {
+        "recovery_action": "recovery",
+        "register_action": "register",
+        "value_length": 40,
+        "lifetime_seconds": 86400
+    },
+    "replacement_password": "secret-2",
+    "different_password": "secret-3",
+    "registration": {
+        "login": "newcomer",
+        "mail": "newcomer@parity.test",
+        "firstname": "New",
+        "lastname": "Comer",
+        "password": "secret-2",
+        "email_mode": "1",
+        "status_before_activation": 2,
+        "status_after_activation": 1
+    }
+}

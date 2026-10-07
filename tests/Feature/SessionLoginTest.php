@@ -99,7 +99,9 @@ class SessionLoginTest extends TestCase
         $this->from('/login')->post('/login', [
             'login' => 'ada',
             'password' => 'wrong',
-        ])->assertRedirect('/login')->assertSessionHasErrors('login');
+        ])->assertRedirect('/login')->assertSessionHasErrors([
+            'login' => 'Invalid user or password',
+        ]);
 
         $this->assertGuest();
         $fresh = $user->fresh();
@@ -124,18 +126,33 @@ class SessionLoginTest extends TestCase
 
     public function test_inactive_statuses_do_not_start_a_session(): void
     {
-        foreach ([User::STATUS_ANONYMOUS, User::STATUS_REGISTERED, User::STATUS_LOCKED] as $status) {
+        $cases = [
+            User::STATUS_ANONYMOUS => [LoginDecision::Inactive, 'Invalid user or password'],
+            User::STATUS_REGISTERED => [LoginDecision::Registered, 'Your account was created and is now pending administrator approval.'],
+            User::STATUS_LOCKED => [LoginDecision::Locked, 'Your account is locked.'],
+        ];
+
+        foreach ($cases as $status => [$decision, $message]) {
             $login = 'idle-'.$status;
             $this->account(['login' => $login, 'status' => $status]);
 
             $this->from('/login')->post('/login', [
                 'login' => $login,
                 'password' => 'secret',
-            ])->assertRedirect('/login');
+            ])->assertRedirect('/login')->assertSessionHasErrors([
+                'login' => $message,
+            ]);
 
             $this->assertGuest();
-            $this->assertSame(LoginDecision::Inactive, app(CredentialChecker::class)->decide($login, 'secret'));
+            $this->assertSame($decision, app(CredentialChecker::class)->decide($login, 'secret'));
             $this->assertSame(LoginDecision::Password, app(CredentialChecker::class)->decide($login, 'wrong'));
+
+            $this->from('/login')->post('/login', [
+                'login' => $login,
+                'password' => 'wrong',
+            ])->assertSessionHasErrors([
+                'login' => 'Invalid user or password',
+            ]);
         }
     }
 
@@ -239,6 +256,8 @@ class SessionLoginTest extends TestCase
             ->assertSee('Sign in')
             ->assertSee('name="login"', false)
             ->assertSee('name="password"', false)
+            ->assertSee('Lost password', false)
+            ->assertSee('Register', false)
             ->assertDontSee('Auth/Login', false);
     }
 

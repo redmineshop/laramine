@@ -7,7 +7,10 @@
     </head>
     <body>
         <h1>Sign in</h1>
-        <form method="POST" action="{{ route('login') }}">
+        @if ($notice)
+            <p>{{ $notice }}</p>
+        @endif
+        <form method="POST" action="{{ $submitUrl }}">
             @csrf
             <p>
                 <label for="login">Login or email</label>
@@ -24,5 +27,17 @@
                 <button type="submit">Sign in</button>
             </p>
         </form>
+        @if ($lostPasswordUrl)
+            <p><a href="{{ $lostPasswordUrl }}">Lost password</a></p>
+        @endif
+        @if ($registerUrl)
+            <p><a href="{{ $registerUrl }}">Register</a></p>
+        @endif
+        @if ($activationEmailUrl)
+            <form method="POST" action="{{ $activationEmailUrl }}">
+                @csrf
+                <button type="submit">Send the activation email again</button>
+            </form>
+        @endif
     </body>
 </html>

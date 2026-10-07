@@ -5,7 +5,8 @@ namespace App\Domain\Auth;
 /**
  * Why a sign-in did or did not open a session.
  *
- * HTTP responses collapse every denial into one message.
+ * Locked and registered accounts keep their own notices. Every other denial
+ * uses the generic invalid-credentials notice.
  */
 enum LoginDecision: string
 {
@@ -13,6 +14,8 @@ enum LoginDecision: string
     case Unknown = 'unknown';
     case Password = 'password';
     case Inactive = 'inactive';
+    case Locked = 'locked';
+    case Registered = 'registered';
     case NotAccount = 'not_account';
     case ExternalAuth = 'external_auth';
     case TwoFactor = 'two_factor';
@@ -21,7 +24,7 @@ enum LoginDecision: string
     {
         return match ($this) {
             self::Accepted => true,
-            self::Unknown, self::Password, self::Inactive, self::NotAccount, self::ExternalAuth, self::TwoFactor => false,
+            self::Unknown, self::Password, self::Inactive, self::Locked, self::Registered, self::NotAccount, self::ExternalAuth, self::TwoFactor => false,
         };
     }
 }

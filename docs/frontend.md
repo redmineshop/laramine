@@ -2,7 +2,7 @@
 
 Mount point for later Inertia pages. This is not a Redmine UI, not product chrome, and not a 0.1 release. Limits are in [ux-parity-notes.md](ux-parity-notes.md).
 
-Founder lock (2026-09-29): Inertia.js, React, TypeScript, Vite, Tailwind CSS, and shadcn/ui. Themes are CSS variables read by Tailwind. Plugins, when they exist, are Composer packages plus an Inertia page registry. Domain behavior stays in PHP and still targets Redmine 7.0.1 semantics. Parity is **NOT VERIFIED**.
+Founder lock (2026-09-29): Inertia.js, React, TypeScript, Vite, Tailwind CSS, and shadcn/ui. Themes are CSS variables read by Tailwind. Plugins, when they exist, are Composer packages plus an Inertia page registry. Domain behavior stays in PHP and still targets Redmine 7.0.1 semantics. UX parity is **NOT VERIFIED**.
 
 ## What is wired
 
@@ -12,7 +12,7 @@ Founder lock (2026-09-29): Inertia.js, React, TypeScript, Vite, Tailwind CSS, an
 | Root template | `resources/views/app.blade.php` |
 | Client entry | `resources/js/app.tsx` (`pages: './pages'`) |
 | Smoke page | `resources/js/pages/Health.tsx`, `GET /` via `FrontendSmokeController` (`status` = `ok`). Links to sign-in. |
-| Sign-in page | `resources/js/pages/Auth/Login.tsx`, `GET /login` via `SessionController::create`. Posts login and password to the Phase 1 session action. `GET /login?view=blade` still returns `resources/views/auth/login.blade.php`. |
+| Sign-in page | `resources/js/pages/Auth/Login.tsx`, `GET /login` via `SessionController::create`. Posts login and password to the session action. Links to lost password and register are full page loads when those settings allow them. `GET /login?view=blade` still returns `resources/views/auth/login.blade.php`. Register, activation, lost password, and `GET /my/password` are Blade forms, not Inertia pages. |
 | Theme tokens | `resources/css/app.css` (`:root`, `.dark`, Tailwind `@theme inline`) |
 | shadcn baseline | `components.json`. Pages use Card, Badge, Button, Input, and Label. These are scaffold controls, not a product shell. |
 

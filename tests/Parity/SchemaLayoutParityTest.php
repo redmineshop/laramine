@@ -144,7 +144,7 @@ class SchemaLayoutParityTest extends TestCase
             $checklist,
         );
         $this->assertDoesNotMatchRegularExpression(
-            '/^\| (?!P0 table and column layout \|)[^|\n]+\| VERIFIED \|/m',
+            '/^\| (?!P0 table and column layout \|)(?!Users and authentication \|)[^|\n]+\| VERIFIED \|/m',
             $checklist,
         );
     }

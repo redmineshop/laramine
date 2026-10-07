@@ -77,7 +77,7 @@ Row data for parity tests is a separate pin at `tests/Parity/fixtures/redmine-7.
 | Role permissions | `roles.permissions` is a **serialized list of permission name symbols**, not a join table | **P0c** |
 | acts_as patterns | watchable, attachable, customizable, event, search, activity, tree/nested_set — app-layer | parity notes |
 | Visibility | `roles.issues_visibility` / `users_visibility` / `time_entries_visibility`; query `visibility` enum | **P0c** |
-| Mailer / tokens | `tokens.action` (session, api, feeds, recovery, register, autologin, twofa_backup_code) | Locked in [users-auth-spec.md](users-auth-spec.md) (2026-10-07). Phase 1 uses Laravel sessions and does not issue token rows. **NOT VERIFIED.** |
+| Mailer / tokens | `tokens.action` (session, api, feeds, recovery, register, autologin, twofa_backup_code) | Locked in [users-auth-spec.md](users-auth-spec.md) (2026-10-07). Phase 2 writes `recovery` and `register`. The web session stays in Laravel `sessions`. Other actions are deferred. The users row comparison is in [parity-checklist.md](parity-checklist.md). |
 
 ---
 

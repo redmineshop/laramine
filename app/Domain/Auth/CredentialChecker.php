@@ -65,7 +65,11 @@ final class CredentialChecker
         }
 
         if (! $user->isActive()) {
-            return LoginDecision::Inactive;
+            return match ((int) $user->status) {
+                User::STATUS_LOCKED => LoginDecision::Locked,
+                User::STATUS_REGISTERED => LoginDecision::Registered,
+                default => LoginDecision::Inactive,
+            };
         }
 
         if ($user->twoFactorGate()) {

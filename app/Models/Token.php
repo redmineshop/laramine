@@ -9,10 +9,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * Redmine 7.0.1 `tokens` row.
  *
  * Named actions: session, api, feeds, recovery, register, autologin, twofa_backup_code.
- * Phase 1 web sign-in does not write a token row.
+ * Phase 2 writes `recovery` and `register` only. The web session stays in `sessions`.
  */
 class Token extends Model
 {
+    public const ACTION_RECOVERY = 'recovery';
+
+    public const ACTION_REGISTER = 'register';
+
     public const CREATED_AT = 'created_on';
 
     public const UPDATED_AT = 'updated_on';

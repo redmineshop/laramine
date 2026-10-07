@@ -13,7 +13,7 @@ Use this when extending issues, issue queries, or custom fields. The source of t
    - Issues, workflow, permissions, project tree: `docs/domain.md`
    - Custom fields: `docs/custom-fields.md`
    - Queries and operators: `docs/queries.md`
-2. Read `docs/parity-checklist.md`. The P0 table and column layout row is **VERIFIED** by `tests/Parity/SchemaLayoutParityTest.php`. Every other P0 row is **NOT VERIFIED**. Leave those rows that way unless you add a real comparison (see below). The schema row does not verify issues, queries, or custom fields.
+2. Read `docs/parity-checklist.md`. The P0 table and column layout row is **VERIFIED** by `tests/Parity/SchemaLayoutParityTest.php`. The users and authentication row is **VERIFIED** by `tests/Parity/UsersAuthParityTest.php`. Every other P0 row is **NOT VERIFIED**. Leave those rows that way unless you add a real comparison (see below). The schema row does not verify issues, queries, or custom fields.
 3. Read the service you will change and one existing test that already covers a neighbor behavior.
 4. Do not copy Redmine Ruby or other GPLv2 source. Reimplement from the semantic notes already in `docs/`. If you need a new semantic detail, write it in your own words in the doc.
 
@@ -82,7 +82,7 @@ PR text should list behavior changed, tests added or updated, and parity rows to
 ## Out of scope unless the task says otherwise
 
 - Copying upstream source into the repository
-- A public JSON API, or auth work beyond the locked spec. Users and authentication are locked in `docs/users-auth-spec.md` (Phase 1 session sign-in, Inertia page at `GET /login`). Parity is **NOT VERIFIED**, not a 0.1 tag. Do not add LDAP, two-factor, OAuth, tokens, or account admin from an issues, queries, or custom-fields task.
+- A public JSON API, or auth work beyond the locked spec. Users and authentication are locked in `docs/users-auth-spec.md` (Phase 2 account gates on the session guard, Inertia page at `GET /login`). Do not add LDAP, two-factor, OAuth, API tokens, or account admin from an issues, queries, or custom-fields task. That checklist row is not a 0.1 tag.
 - Mail or full-text search
 - Wiki, SCM, forums, news, webhooks
 - Switching CI to SQLite or lowering PHPStan

@@ -25,6 +25,10 @@ class InertiaLoginPageTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Auth/Login')
                 ->where('submitUrl', '/login')
+                ->where('lostPasswordUrl', '/account/lost_password')
+                ->where('registerUrl', '/account/register')
+                ->where('activationEmailUrl', null)
+                ->where('notice', null)
                 ->has('errors')
             );
     }
@@ -56,7 +60,7 @@ class InertiaLoginPageTest extends TestCase
         ], $this->inertiaHeaders())
             ->assertRedirect('/login')
             ->assertSessionHasErrors([
-                'login' => 'Invalid user or password.',
+                'login' => 'Invalid user or password',
             ]);
 
         $this->assertGuest();
@@ -65,7 +69,7 @@ class InertiaLoginPageTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Auth/Login')
-                ->where('errors.login', 'Invalid user or password.')
+                ->where('errors.login', 'Invalid user or password')
             );
     }
 
