@@ -308,7 +308,7 @@ final class SettingValue
      *
      * @return list<string>|null
      */
-    public function stringList(string $name): ?array
+    public function jsonStringList(string $name): ?array
     {
         $stored = Setting::query()->where('name', $name)->value('value');
         if (! is_string($stored)) {

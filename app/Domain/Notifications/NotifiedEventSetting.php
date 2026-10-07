@@ -21,7 +21,7 @@ final class NotifiedEventSetting
      */
     public function enabled(): array
     {
-        $stored = $this->settings->stringList(SettingValue::NOTIFIED_EVENTS);
+        $stored = $this->settings->jsonStringList(SettingValue::NOTIFIED_EVENTS);
         if ($stored === null) {
             return NotifiedEventCatalog::defaults();
         }
