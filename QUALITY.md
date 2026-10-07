@@ -31,6 +31,7 @@ First public / v1 ship must meet **all** gates below. Same spirit as Redmine cor
 - Membership and role assignment happy + negative paths
 
 ### Parity
+- Shared data pin: `tests/Parity/fixtures/redmine-7.0.1/` (invented, Redmine 7.0.1-shaped). `tests/Parity/Redmine701FixtureHarnessTest.php` proves the pin loads on MySQL 8. That pass is not **VERIFIED**.
 - Shared fixtures aligned with Redmine Migrate Analyst P0 inventory
 - Living `docs/parity-checklist.md`: VERIFIED / NOT VERIFIED / INCONCLUSIVE + evidence paths
 - **No release claim** while any P0 row is failed or inconclusive

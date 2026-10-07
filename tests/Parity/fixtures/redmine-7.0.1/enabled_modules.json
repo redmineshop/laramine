@@ -1,0 +1,6 @@
+[
+    {"id": 1, "project_id": 1, "name": "issue_tracking"},
+    {"id": 2, "project_id": 1, "name": "time_tracking"},
+    {"id": 3, "project_id": 2, "name": "issue_tracking"},
+    {"id": 4, "project_id": 2, "name": "time_tracking"}
+]

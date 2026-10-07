@@ -1,0 +1,24 @@
+[
+    {
+        "id": 1,
+        "journalized_type": "Issue",
+        "journalized_id": 1,
+        "user_id": 1,
+        "notes": "Opened from the parity pin.",
+        "private_notes": false,
+        "updated_by_id": null,
+        "created_on": "2026-08-26 12:00:00",
+        "updated_on": "2026-08-26 12:00:00"
+    },
+    {
+        "id": 2,
+        "journalized_type": "Issue",
+        "journalized_id": 1,
+        "user_id": 2,
+        "notes": "Private note stored on the pin.",
+        "private_notes": true,
+        "updated_by_id": null,
+        "created_on": "2026-08-26 12:05:00",
+        "updated_on": "2026-08-26 12:05:00"
+    }
+]

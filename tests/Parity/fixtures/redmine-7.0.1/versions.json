@@ -1,0 +1,14 @@
+[
+    {
+        "id": 1,
+        "project_id": 1,
+        "name": "1.0",
+        "description": "Synthetic version",
+        "status": "open",
+        "sharing": "none",
+        "effective_date": null,
+        "wiki_page_title": null,
+        "created_on": "2026-08-26 12:00:00",
+        "updated_on": "2026-08-26 12:00:00"
+    }
+]

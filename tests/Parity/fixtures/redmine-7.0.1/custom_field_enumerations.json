@@ -1,0 +1,4 @@
+[
+    {"id": 1, "custom_field_id": 3, "name": "Low", "position": 1, "active": true},
+    {"id": 2, "custom_field_id": 3, "name": "High", "position": 2, "active": true}
+]

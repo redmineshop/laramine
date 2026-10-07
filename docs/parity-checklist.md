@@ -2,7 +2,7 @@
 
 Structure pin: **Redmine 7.0.1**. Inventory: [schema-inventory.md](schema-inventory.md).
 
-No row below is VERIFIED. A row becomes VERIFIED only when a fixture-backed test in `tests/Parity` compares Laramine behavior to that pin and the evidence path is filled in.
+No row below is VERIFIED. A row becomes VERIFIED only when a fixture-backed test in `tests/Parity` compares Laramine behavior to that pin and the evidence path is filled in. Path rules are under [Evidence paths](#evidence-paths). Loading the shared pin is not that comparison.
 
 | Area | Status | Evidence |
 | --- | --- | --- |
@@ -31,3 +31,31 @@ This is a Laramine quality-bar re-run on that checkout (PHP 8.3, MySQL 8.0, Node
 | Frontend (`npm run typecheck`, `npm run build`, client and SSR) | PASS |
 
 Custom fields, queries, journals, users and authentication, and UX stay **NOT VERIFIED**. The Inertia pages are not UI-ready ([ux-parity-notes.md](ux-parity-notes.md)). `tests/Parity` still only boots the application. Checklist **PASS** is not Redmine parity **VERIFIED**.
+
+That paragraph describes tip `56b74184e38388ab0fb1cc527f06067593e6adac`. The data pin added later is under Evidence paths. It does not move any row to **VERIFIED**.
+
+## Evidence paths
+
+Shared data pin: `tests/Parity/fixtures/redmine-7.0.1/`.
+
+The pin is invented and labeled `redmine-7.0.1-shaped`. It is not a copy of Redmine fixtures or source. [`sources/redmine-7.0.1-schema.rb`](sources/redmine-7.0.1-schema.rb) is the schema pin only. It is not this data fixture. Repository, git, and SCM tables (`repositories`, `changesets`, `changes`, `changeset_parents`, `changesets_issues`) stay out of the pin.
+
+| Path | Role |
+| --- | --- |
+| `tests/Parity/fixtures/redmine-7.0.1/manifest.json` | Pin `7.0.1`, origin `invented`, load order, and row counts |
+| `tests/Parity/fixtures/redmine-7.0.1/<table>.json` | Rows for one table named in the manifest |
+| `tests/Parity/fixtures/redmine-7.0.1/expectations/<area>/<case>.json` | Recorded result a later slice compares against. Add the file with that slice. |
+| `tests/Parity/Support/Redmine701Fixture.php` | Loads the pin on MySQL 8 |
+| `tests/Parity/Redmine701FixtureHarnessTest.php` | Proves the pin loads. Not a domain comparison. |
+| `tests/Parity/<Area>ParityTest.php` | Later comparison test. One area per class. |
+
+A later slice marks one row **VERIFIED** only when all of these are true:
+
+1. A test under `tests/Parity` loads `tests/Parity/fixtures/redmine-7.0.1/` through `Tests\Parity\Support\Redmine701Fixture` on MySQL 8.
+2. That test compares Laramine behavior to rows in the pin, or to a file under `tests/Parity/fixtures/redmine-7.0.1/expectations/`.
+3. The Evidence cell of that one row cites the test class and the fixture or expectation path.
+4. The pull request does not say the whole product matches Redmine.
+
+`Redmine701FixtureHarnessTest` does not satisfy those rules. Every row in the table above stays **NOT VERIFIED**.
+
+**INCONCLUSIVE** is for a comparison that ran and did not decide. The Evidence cell still cites the test and the fixture path. Do not use it as a soft pass.

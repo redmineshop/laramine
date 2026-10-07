@@ -80,7 +80,7 @@ These commands must pass before merge. Details and the v1 checklist are in [QUAL
 | PHPUnit (Unit, Feature, Parity) | `composer test` |
 | Frontend typecheck and Vite build | `npm run typecheck` and `npm run build` (Node 22) |
 
-PHPStan is locked at level 8 with no baseline. The Parity suite is wired and currently contains only a boot smoke test. It does not verify Redmine compatibility.
+PHPStan is locked at level 8 with no baseline. The Parity suite boots the application and loads `tests/Parity/fixtures/redmine-7.0.1/` on MySQL 8. That harness does not verify Redmine compatibility.
 
 GitHub Actions runs Pint, PHPStan, and the full PHPUnit suite on MySQL 8 for every pull request and on pushes to `main`. There is no Pest configuration.
 

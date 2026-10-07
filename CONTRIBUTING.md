@@ -66,7 +66,7 @@ Green CI is required. Do not merge with a red check. Do not tag a release from a
 | Feature | Service behavior on MySQL: issues, projects, membership, custom values, saved queries, allow and deny paths |
 | Parity | Fixture-backed comparison with Redmine 7.0.1 semantics, when that comparison exists |
 
-`tests/Parity` currently contains a boot smoke test only. That test keeps the suite runnable. It does not verify Redmine compatibility. Leave checklist rows at **NOT VERIFIED** until a Parity test compares behavior and the evidence path is filled in.
+`tests/Parity` boots the application and loads the invented pin at `tests/Parity/fixtures/redmine-7.0.1/` on MySQL 8. Loading that pin does not verify Redmine compatibility. Leave checklist rows at **NOT VERIFIED** until a Parity test compares behavior to the pin and the evidence path is filled in. See [docs/parity-checklist.md](docs/parity-checklist.md).
 
 Domain feature tests use `Illuminate\Foundation\Testing\RefreshDatabase` and `Tests\Support\DomainFixture` where that fixture fits. Cover the deny path when you touch permissions.
 

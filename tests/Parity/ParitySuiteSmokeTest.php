@@ -5,10 +5,10 @@ namespace Tests\Parity;
 use Tests\TestCase;
 
 /**
- * Keeps the Parity suite executable before Redmine fixture tests exist.
+ * Boots the application for the Parity suite.
  *
- * P0 tables can be migrated. This suite does not compare them to a Redmine
- * database and does not mark any parity row VERIFIED.
+ * Row loading is covered by Redmine701FixtureHarnessTest. This test does not
+ * compare Laramine to Redmine and does not mark any parity row VERIFIED.
  */
 class ParitySuiteSmokeTest extends TestCase
 {

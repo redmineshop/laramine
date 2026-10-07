@@ -1,0 +1,6 @@
+[
+    {"id": 1, "custom_field_id": 1, "customized_type": "Issue", "customized_id": 1, "value": "pin"},
+    {"id": 2, "custom_field_id": 2, "customized_type": "Issue", "customized_id": 1, "value": "alpha"},
+    {"id": 3, "custom_field_id": 3, "customized_type": "Issue", "customized_id": 1, "value": "1"},
+    {"id": 4, "custom_field_id": 4, "customized_type": "Issue", "customized_id": 1, "value": "pin-link"}
+]
