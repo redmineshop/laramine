@@ -69,8 +69,8 @@ These checks already pass in existing tests. This change does not rewrite them.
 
 | Item | Status |
 | --- | --- |
-| `time_entries_visibility` | **Open.** The column is stored. No time-entry list uses it. There is no time-entry write service for `log_time` or `edit_time_entries`. |
-| `users_visibility` and user authentication | **Open.** Spec hole in [users-auth-spec.md](users-auth-spec.md). `users_visibility` is stored and not applied. Login, password checks, tokens, and account administration are not implemented. Founder unlock is required before an auth slice. |
+| `time_entries_visibility` | **Open for writes and query totals.** The issue history Spent time tab applies `all` and `own`. Issue query `spent_hours` does not. There is no time-entry write service for `log_time` or `edit_time_entries`. |
+| `users_visibility` and user authentication | **Open.** Spec hole in [users-auth-spec.md](users-auth-spec.md). `users_visibility` is stored and not applied. Login, password checks, tokens, and account administration are not implemented. Founder unlock is required before an auth slice. **NOT VERIFIED**, not a 0.1 tag. |
 | Per-tracker permission masks | **Open.** `roles.settings` is stored. `allowed` does not read it. Criterion 18 locks that deferral. |
 | Managed-role enforcement | **Open.** `roles_managed_roles` is stored. `assignRole` does not read it. Criterion 19 locks that deferral. |
 | Wiki, news, documents, files, repository, boards, calendar, gantt | **Open.** Names exist in the catalog. No behavior beyond the permission registry. |

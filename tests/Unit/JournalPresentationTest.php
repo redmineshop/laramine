@@ -4,6 +4,7 @@ namespace Tests\Unit;
 
 use App\Domain\Issues\History\JournalActionList;
 use App\Domain\Issues\History\JournalDetailFormatter;
+use App\Domain\Issues\History\JournalMenuItemView;
 use App\Domain\Issues\History\JournalPropertyLine;
 use App\Domain\Issues\History\TextileEmphasis;
 use PHPUnit\Framework\TestCase;
@@ -112,5 +113,37 @@ class JournalPresentationTest extends TestCase
             static fn ($item) => $item->key,
             $neither[1]->menuItems,
         ));
+    }
+
+    public function test_download_all_files_is_listed_before_copy_link(): void
+    {
+        $download = new JournalMenuItemView(
+            'download_all',
+            JournalActionList::DOWNLOAD_ALL,
+            null,
+            'Journal',
+            9,
+        );
+        $actions = (new JournalActionList)->forJournal(
+            false,
+            false,
+            false,
+            'https://tracker.example/issues/4#note-2',
+            $download,
+        );
+
+        $this->assertSame(['reaction', 'more'], array_map(
+            static fn ($action) => $action->key,
+            $actions,
+        ));
+        $this->assertSame(['download_all', 'copy_link'], array_map(
+            static fn ($item) => $item->key,
+            $actions[1]->menuItems,
+        ));
+        $this->assertSame(JournalActionList::DOWNLOAD_ALL, $actions[1]->menuItems[0]->label);
+        $this->assertNull($actions[1]->menuItems[0]->fragment);
+        $this->assertSame('Journal', $actions[1]->menuItems[0]->containerType);
+        $this->assertSame(9, $actions[1]->menuItems[0]->containerId);
+        $this->assertSame('https://tracker.example/issues/4#note-2', $actions[1]->menuItems[1]->fragment);
     }
 }
