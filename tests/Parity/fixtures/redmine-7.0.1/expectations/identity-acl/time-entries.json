@@ -1,0 +1,30 @@
+{
+    "pin": "7.0.1",
+    "project_id": 1,
+    "rows": [
+        {"login": "ada", "ids": [1, 2, 3, 5]},
+        {"login": "bea", "ids": [1, 2, 3, 5]},
+        {"login": "finn", "ids": [5]},
+        {"login": "erin", "ids": []},
+        {"login": "cleo", "ids": []},
+        {"login": "admin", "ids": [1, 2, 3, 5]}
+    ],
+    "history": [
+        {"login": "ada", "issue_id": 1, "visible": true, "ids": [5, 2, 1]},
+        {"login": "finn", "issue_id": 1, "visible": true, "ids": [5]},
+        {"login": "erin", "issue_id": 1, "visible": false, "ids": []}
+    ],
+    "most_open": {
+        "login": "finn",
+        "project_id": 1,
+        "extra_role_id": 1,
+        "ids": [1, 2, 3, 5]
+    },
+    "ignored_value": {
+        "login": "finn",
+        "role_id": 7,
+        "visibility": "hidden",
+        "project_id": 1,
+        "ids": []
+    }
+}

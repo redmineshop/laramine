@@ -1,0 +1,18 @@
+{
+    "pin": "7.0.1",
+    "grant_manage_members_role_id": 2,
+    "coordinator": {
+        "name": "Coordinator",
+        "project_id": 1,
+        "holder": "cleo",
+        "permissions": ["view_issues", "manage_members"],
+        "managed_role_id": 5
+    },
+    "cases": [
+        {"actor": "bea", "project_id": 1, "principal": "cleo", "role_id": 5, "error": null},
+        {"actor": "ada", "project_id": 1, "principal": "erin", "role_id": 1, "error": "manage_members"},
+        {"actor": "cleo", "project_id": 1, "principal": "dora", "role_id": 5, "error": null},
+        {"actor": "cleo", "project_id": 1, "principal": "dora", "role_id": 1, "error": "not managed"},
+        {"actor": "admin", "project_id": 1, "principal": "erin", "role_id": 1, "error": null}
+    ]
+}

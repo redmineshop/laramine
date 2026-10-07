@@ -18,6 +18,12 @@ class Project extends Model
 
     public const UPDATED_AT = 'updated_on';
 
+    public const STATUS_ACTIVE = 1;
+
+    public const STATUS_CLOSED = 5;
+
+    public const STATUS_ARCHIVED = 9;
+
     /**
      * @var list<string>
      */

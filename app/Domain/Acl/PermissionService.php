@@ -4,25 +4,34 @@ namespace App\Domain\Acl;
 
 use App\Models\Project;
 use App\Models\Role;
+use App\Models\Tracker;
 use App\Models\User;
 use Illuminate\Support\Collection;
 
 /**
  * Permission checks by Redmine permission name.
  *
- * Admin users bypass project checks. Public permissions are implied for every
- * applicable role. Modular permissions also require the module on the project.
+ * An active admin bypasses role and module checks after the project status
+ * gate. Archived projects allow no action. Closed projects allow read
+ * actions only. Public permissions are implied for every applicable role.
+ * Modular permissions also require the module on the project, except for
+ * that admin bypass. A tracker argument limits the five masked permissions.
  */
 final class PermissionService
 {
     public function __construct(
         private readonly PermissionCatalog $catalog,
         private readonly MembershipService $memberships,
+        private readonly TrackerPermissionMask $trackers,
     ) {}
 
-    public function allowed(?User $user, string $permission, ?Project $project = null): bool
+    public function allowed(?User $user, string $permission, ?Project $project = null, ?Tracker $tracker = null): bool
     {
         $definition = $this->catalog->definition($permission);
+
+        if ($project !== null && ! $this->projectAllowsAction($project, $definition)) {
+            return false;
+        }
 
         if ($this->isActiveAdmin($user)) {
             return true;
@@ -43,9 +52,14 @@ final class PermissionService
         }
 
         foreach ($this->rolesFor($user, $project) as $role) {
-            if ($role->grants($definition->name)) {
-                return true;
+            if (! $role->grants($definition->name)) {
+                continue;
             }
+            if ($tracker !== null && ! $this->trackers->allows($role, $definition->name, (int) $tracker->id)) {
+                continue;
+            }
+
+            return true;
         }
 
         return false;
@@ -53,6 +67,14 @@ final class PermissionService
 
     public function projectVisible(?User $user, Project $project): bool
     {
+        $status = (int) $project->status;
+        if ($status === Project::STATUS_ARCHIVED) {
+            return $this->isActiveAdmin($user);
+        }
+        if ($status !== Project::STATUS_ACTIVE && $status !== Project::STATUS_CLOSED) {
+            return false;
+        }
+
         if ($this->isActiveAdmin($user)) {
             return true;
         }
@@ -118,6 +140,23 @@ final class PermissionService
     private function isActiveAdmin(?User $user): bool
     {
         return $user !== null && $user->admin && $user->isActive();
+    }
+
+    /**
+     * Archived projects allow no action. Closed projects allow read actions.
+     * Any other status allows nothing. Active projects are not filtered here.
+     */
+    private function projectAllowsAction(Project $project, PermissionDefinition $definition): bool
+    {
+        $status = (int) $project->status;
+        if ($status === Project::STATUS_ACTIVE) {
+            return true;
+        }
+        if ($status === Project::STATUS_CLOSED) {
+            return $definition->read;
+        }
+
+        return false;
     }
 
     /**

@@ -1,0 +1,91 @@
+{
+    "pin": "7.0.1",
+    "closed": {
+        "project_id": 1,
+        "status": 5,
+        "grant_role_id": 1,
+        "grant_permissions": ["view_news", "manage_news"],
+        "visible": [
+            {"login": "ada", "visible": true},
+            {"login": "cleo", "visible": true},
+            {"login": null, "visible": true},
+            {"login": "admin", "visible": true}
+        ],
+        "permissions": [
+            {"login": "ada", "permission": "view_issues", "allowed": true},
+            {"login": "ada", "permission": "add_issues", "allowed": false},
+            {"login": "ada", "permission": "edit_issues", "allowed": false},
+            {"login": "ada", "permission": "view_time_entries", "allowed": true},
+            {"login": "ada", "permission": "log_time", "allowed": false},
+            {"login": "ada", "permission": "manage_members", "allowed": false},
+            {"login": "bea", "permission": "manage_members", "allowed": false},
+            {"login": "bea", "permission": "view_issues", "allowed": true},
+            {"login": "admin", "permission": "view_issues", "allowed": true},
+            {"login": "admin", "permission": "edit_issues", "allowed": false},
+            {"login": "admin", "permission": "add_issues", "allowed": false},
+            {"login": "admin", "permission": "view_time_entries", "allowed": true},
+            {"login": "admin", "permission": "close_project", "allowed": true},
+            {"login": "cleo", "permission": "view_issues", "allowed": false},
+            {"login": "ada", "permission": "view_news", "allowed": false}
+        ],
+        "enabled_module": {
+            "name": "news",
+            "checks": [
+                {"login": "ada", "permission": "view_news", "allowed": true},
+                {"login": "ada", "permission": "manage_news", "allowed": false},
+                {"login": "admin", "permission": "manage_news", "allowed": false}
+            ]
+        },
+        "edits": [
+            {"login": "ada", "issue_id": 1, "error": "edit_issues", "stored_subject": "Parity pin parent"},
+            {"login": "admin", "issue_id": 1, "error": "edit_issues", "stored_subject": "Parity pin parent"}
+        ],
+        "issue_ids": [
+            {"login": "ada", "project_id": 1, "ids": [1, 2, 3, 5, 6]},
+            {"login": "admin", "project_id": 1, "ids": [1, 2, 3, 4, 5, 6]}
+        ],
+        "time_entry_ids": [
+            {"login": "ada", "ids": [1, 2, 3, 5]},
+            {"login": "admin", "ids": [1, 2, 3, 5]}
+        ],
+        "membership": {"actor": "bea", "principal": "cleo", "role_id": 5, "error": "manage_members"}
+    },
+    "archived": {
+        "project_id": 2,
+        "status": 9,
+        "is_public": true,
+        "visible": [
+            {"login": "ada", "visible": false},
+            {"login": "dora", "visible": false},
+            {"login": null, "visible": false},
+            {"login": "admin", "visible": true}
+        ],
+        "permissions": [
+            {"login": "ada", "permission": "view_project", "allowed": false},
+            {"login": "ada", "permission": "view_issues", "allowed": false},
+            {"login": "ada", "permission": "edit_issues", "allowed": false},
+            {"login": "dora", "permission": "view_issues", "allowed": false},
+            {"login": "dora", "permission": "view_time_entries", "allowed": false},
+            {"login": "admin", "permission": "view_issues", "allowed": false},
+            {"login": "admin", "permission": "edit_issues", "allowed": false},
+            {"login": "admin", "permission": "view_time_entries", "allowed": false},
+            {"login": "admin", "permission": "close_project", "allowed": false},
+            {"login": "admin", "permission": "manage_members", "allowed": false}
+        ],
+        "see_issue": [
+            {"login": "ada", "issue_id": 5, "visible": false},
+            {"login": "dora", "issue_id": 5, "visible": false},
+            {"login": "admin", "issue_id": 5, "visible": false}
+        ],
+        "issue_ids": [
+            {"login": "ada", "project_id": null, "ids": [1, 2, 3, 6]},
+            {"login": "admin", "project_id": null, "ids": [1, 2, 3, 4, 6]},
+            {"login": "dora", "project_id": 2, "ids": []}
+        ],
+        "time_entry_ids": [
+            {"login": "dora", "ids": []},
+            {"login": "admin", "ids": []}
+        ],
+        "edit": {"login": "admin", "issue_id": 5, "error": "edit_issues", "stored_subject": "Child project bug"}
+    }
+}

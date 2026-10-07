@@ -51,7 +51,7 @@ Creating a query requires `save_queries` on the project, or on any membership wh
 
 ## Running a query
 
-`IssueQueryRunner` limits rows with `IssueVisibility` for a project-scoped query. A global query (`project_id` null) keeps issues only in projects where the actor has `view_issues`, using that project's `all` / `default` / `own` rule. With no `subproject_id` filter, `display_subprojects_issues` (default on, stored in `settings`) includes every descendant. Set that value to `0` to keep the query project alone. An explicit `subproject_id` filter overrides the setting, and each project is still checked with `view_issues`.
+`IssueQueryRunner` limits rows with `IssueVisibility` for a project-scoped query. That scope ORs the roles that grant `view_issues`, each with its `all` / `default` / `own` rule and its `view_issues` tracker mask. A global query (`project_id` null) uses the same per-project scope. An archived project is omitted because `view_issues` is denied there. A closed project stays when `view_issues` is allowed. An active admin sees every issue in a project where `view_issues` is allowed, without a tracker mask. With no `subproject_id` filter, `display_subprojects_issues` (default on, stored in `settings`) includes every descendant. Set that value to `0` to keep the query project alone. An explicit `subproject_id` filter overrides the setting, and each project is still checked with `view_issues`.
 
 Custom field filters use `cf_{id}`. The field must be an `IssueCustomField` with `is_filter` and a format this engine implements. A field the actor cannot see is an error, not a silent skip. `!`, `!~`, and `!*` are `NOT EXISTS` on `custom_values`, so a missing value matches "not equal" and "none". List `=` matches if any stored value is in the list. Link and attachment use the string operators on the stored text (an attachment value is the id). Enumeration uses the list operators on enumeration ids, and list, enumeration, bool, user, and version also accept `ev`, `!ev`, and `cf` on `property = cf` journal details. Progress bar uses the integer operators.
 
@@ -232,7 +232,7 @@ An unknown operator or an unknown field is rejected.
 - `display_type` accepts `list` and `board` only. Board columns are statuses. `group_by` does not pick the board axis.
 - `spent_hours` totals, the projected column, and the `spent_time` filter count time entries on the issue's own project after `time_entries_visibility`. They do not roll descendant time into a parent that is outside the result. A stored visibility other than `all` or `own` contributes nothing.
 - A hidden custom field is an error for sort and totals. The same name in `column_names` is omitted from the projection for an actor who cannot see the field.
-- Global queries check `view_issues` per project in PHP, then OR the visibility groups. Spent hours use each issue's project, not the query project alone.
+- Global queries OR `IssueVisibility` per project, including tracker masks. Archived projects drop out because `view_issues` is denied. Closed projects stay when that read permission is allowed. Spent hours use each issue's project, not the query project alone. The queries checklist row does not newly verify archived projects; that gate is the projects row.
 
 ## Still open
 

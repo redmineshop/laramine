@@ -17,7 +17,7 @@ use Tests\TestCase;
 /**
  * Compares workflow transitions and field-rule merge to the shared pin.
  *
- * Close and reopen blockers are not part of this comparison.
+ * Close and reopen blockers are compared to blockers.json.
  */
 class WorkflowParityTest extends TestCase
 {
@@ -146,6 +146,68 @@ class WorkflowParityTest extends TestCase
         $this->assertMatchesRegularExpression('/^\| Workflows \| VERIFIED \|/m', $checklist);
         $this->assertStringContainsString('tests/Parity/WorkflowParityTest.php', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/workflows/transitions.json', $checklist);
+        $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/workflows/blockers.json', $checklist);
+    }
+
+    public function test_close_and_reopen_blockers_match_the_recorded_steps(): void
+    {
+        Redmine701Fixture::load();
+        $expected = $this->blockerExpectation();
+        $steps = $expected['steps'];
+        $this->assertIsArray($steps);
+        $issues = app(IssueService::class);
+        foreach ($steps as $step) {
+            $this->assertIsArray($step);
+            $this->assertBlockerStep($issues, $step);
+        }
+    }
+
+    /**
+     * @param  array<mixed>  $step
+     */
+    private function assertBlockerStep(IssueService $issues, array $step): void
+    {
+        $action = $this->stringField($step, 'action');
+        $actor = $this->actor($this->stringField($step, 'login'));
+        $error = $step['error'] ?? null;
+        $this->assertTrue($error === null || is_string($error));
+        try {
+            if ($action === 'create') {
+                $issues->create($actor, $this->project($this->intField($step, 'project_id')), [
+                    'tracker_id' => $this->intField($step, 'tracker_id'),
+                    'parent_id' => $this->intField($step, 'parent_id'),
+                    'subject' => $this->stringField($step, 'subject'),
+                ]);
+            } else {
+                $issue = $this->issue($this->intField($step, 'issue_id'));
+                $attributes = $action === 'attach'
+                    ? ['parent_id' => $this->intField($step, 'parent_id')]
+                    : ['status_id' => $this->intField($step, 'status_id')];
+                $issues->update($actor, $issue, $attributes);
+            }
+            $this->assertNull($error, $action);
+        } catch (WorkflowDeniedException $exception) {
+            $this->assertIsString($error, $action);
+            $this->assertStringContainsString($error, $exception->getMessage(), $action);
+        }
+
+        if ($action === 'create') {
+            $this->assertSame($this->intField($step, 'issue_count'), DB::table('issues')->count());
+
+            return;
+        }
+
+        $issueId = $this->intField($step, 'issue_id');
+        if ($action === 'attach') {
+            $parentId = DB::table('issues')->where('id', $issueId)->value('parent_id');
+            $expectedParent = $step['stored_parent_id'] ?? null;
+            $this->assertTrue($expectedParent === null || is_int($expectedParent));
+            $this->assertSame($expectedParent, $parentId === null ? null : (int) $parentId);
+
+            return;
+        }
+
+        $this->assertSame($this->intField($step, 'stored_status_id'), (int) DB::table('issues')->where('id', $issueId)->value('status_id'));
     }
 
     /**
@@ -244,6 +306,21 @@ class WorkflowParityTest extends TestCase
         $this->assertTrue(is_int($value) || is_float($value));
 
         return (float) $value;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function blockerExpectation(): array
+    {
+        $path = Redmine701Fixture::directory().'/expectations/workflows/blockers.json';
+        $raw = file_get_contents($path);
+        $this->assertIsString($raw);
+        $decoded = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+        $this->assertIsArray($decoded);
+        $this->assertSame('7.0.1', $decoded['pin'] ?? null);
+
+        return $decoded;
     }
 
     /**
