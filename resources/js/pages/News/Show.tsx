@@ -9,6 +9,7 @@ type CommentRow = {
     id: number;
     author_id: number;
     content: string;
+    content_html: string;
 };
 
 type NewsShowProps = {
@@ -18,6 +19,7 @@ type NewsShowProps = {
         title: string;
         summary: string;
         description: string;
+        description_html: string;
         author_id: number;
         comments_count: number;
     };
@@ -56,7 +58,9 @@ export default function NewsShow({
                             Minimal news page. This is not a Redmine screen and not a 0.1 release.
                         </p>
                         <p>{news.summary}</p>
-                        <p>{news.description}</p>
+                        {news.description_html === '' ? null : (
+                            <div className="wiki text-sm" dangerouslySetInnerHTML={{ __html: news.description_html }} />
+                        )}
                         <p className="text-sm text-muted-foreground">
                             Author {news.author_id} · {news.comments_count} comments
                         </p>
@@ -100,7 +104,8 @@ export default function NewsShow({
                         <ul className="flex flex-col gap-2">
                             {comments.map((comment) => (
                                 <li key={comment.id} className="text-sm">
-                                    #{comment.id} by {comment.author_id}: {comment.content}
+                                    #{comment.id} by {comment.author_id}:{' '}
+                                    <span dangerouslySetInnerHTML={{ __html: comment.content_html }} />
                                     {canManage ? (
                                         <Button
                                             type="button"

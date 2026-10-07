@@ -7,6 +7,8 @@ use App\Domain\Attachments\AttachmentService;
 use App\Domain\Attachments\AttachmentThumbnailRenderer;
 use App\Domain\Attachments\UnboundAttachment;
 use App\Domain\DomainException;
+use App\Domain\PermissionDeniedException;
+use App\Domain\TextFormatting\FormattedText;
 use App\Domain\Watchers\WatcherLedger;
 use App\Models\Attachment;
 use App\Models\Project;
@@ -23,7 +25,7 @@ use Illuminate\Support\Facades\DB;
  * Wiki pages, versions, redirects, protection, attachments, and watchers.
  *
  * A disabled `wiki` module denies every user, including an active administrator.
- * Stored text is not rendered.
+ * Export returns the stored text. html() returns the formatted page.
  */
 final class WikiService
 {
@@ -35,6 +37,7 @@ final class WikiService
         private readonly UnboundAttachment $tokens,
         private readonly WatcherLedger $watchers,
         private readonly WikiNotifier $notifications,
+        private readonly FormattedText $formatted,
     ) {}
 
     public function open(User $actor, Project $project): Wiki
@@ -344,6 +347,24 @@ final class WikiService
             'version' => (int) $content->version,
             'text' => is_string($content->text) ? $content->text : '',
         ];
+    }
+
+    public function html(?User $actor, WikiPage $page): string
+    {
+        $project = $this->projectOf($page);
+        $this->gate->allow($actor, $project, 'wiki', 'view_wiki_pages');
+        $content = $this->contentOf($page);
+        $sectionEdit = false;
+        if ($actor instanceof User) {
+            try {
+                $this->assertCanEdit($actor, $project, $page);
+                $sectionEdit = true;
+            } catch (PermissionDeniedException) {
+                $sectionEdit = false;
+            }
+        }
+
+        return $this->formatted->wiki($content, $project, $actor, $sectionEdit);
     }
 
     public function attach(User $actor, WikiPage $page, string $token, ?string $filename, ?string $description): Attachment

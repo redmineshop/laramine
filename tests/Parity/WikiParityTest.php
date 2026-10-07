@@ -22,7 +22,7 @@ use ZipArchive;
 /**
  * Compares wiki pages, versions, redirects, and the wiki page zip to the pin.
  *
- * Textile and Markdown are not rendered. Export text stays raw.
+ * Export text stays raw. Rendered HTML is the Textile and Markdown row.
  */
 class WikiParityTest extends TestCase
 {
@@ -191,7 +191,7 @@ class WikiParityTest extends TestCase
         $this->assertStringContainsString('tests/Parity/WikiParityTest.php', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/wiki/pages.json', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/', $checklist);
-        $this->assertMatchesRegularExpression('/^\| Textile and Markdown rendering \| NOT VERIFIED \|/m', $checklist);
+        $this->assertMatchesRegularExpression('/^\| Textile and Markdown rendering \| VERIFIED \|/m', $checklist);
     }
 
     /**

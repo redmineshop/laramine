@@ -5,7 +5,7 @@ namespace App\Domain\Wiki;
 /**
  * Line diff and annotate for stored wiki text.
  *
- * The text is the raw column value. Textile and Markdown are not rendered.
+ * The text is the raw column value. Diff and export do not render Textile or Markdown.
  */
 final class WikiText
 {

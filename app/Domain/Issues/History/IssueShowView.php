@@ -10,6 +10,7 @@ namespace App\Domain\Issues\History;
  * visible detail line, with the note body omitted and only the reaction
  * control left. timeEntries
  * and changesets fill the Spent time and Associated revisions tabs.
+ * descriptionHtml is the formatted issue description.
  */
 final readonly class IssueShowView
 {
@@ -37,5 +38,6 @@ final readonly class IssueShowView
         public ?JournalMenuItemView $issueDownloadAll,
         public array $timeEntries,
         public array $changesets,
+        public string $descriptionHtml,
     ) {}
 }

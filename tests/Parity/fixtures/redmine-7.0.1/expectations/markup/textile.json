@@ -1,0 +1,89 @@
+{
+    "format": "textile",
+    "repository_links": {
+        "status": "N/A",
+        "citation": "tests/Parity/fixtures/redmine-7.0.1/manifest.json excludes repositories, changesets, changes, changeset_parents, and changesets_issues. rN, commit:, source:, and export: stay plain text."
+    },
+    "cases": {
+        "emphasis": {
+            "input": "*bold* and _italic_",
+            "context": "issue",
+            "html": "<p><strong>bold</strong> and <em>italic</em></p>"
+        },
+        "headings": {
+            "input": "h1. Guide\n\nh2. Details\n\n{{toc}}\n\n{{>toc}}",
+            "context": "wiki-edit",
+            "html": "<a href=\"/projects/parity-core/wiki/Guide/edit?section=1\" class=\"wiki-edit-section icon-only icon-edit\" title=\"Edit this section\">Edit</a><h1 id=\"Guide\">Guide<a href=\"#Guide\" class=\"wiki-anchor\">¶</a></h1>\n\n<a href=\"/projects/parity-core/wiki/Guide/edit?section=2\" class=\"wiki-edit-section icon-only icon-edit\" title=\"Edit this section\">Edit</a><h2 id=\"Details\">Details<a href=\"#Details\" class=\"wiki-anchor\">¶</a></h2>\n\n<ul class=\"toc left\"><li><a href=\"#Guide\">Guide</a><ul><li><a href=\"#Details\">Details</a></li></ul></li></ul>\n\n<ul class=\"toc right\"><li><a href=\"#Guide\">Guide</a><ul><li><a href=\"#Details\">Details</a></li></ul></li></ul>"
+        },
+        "image": {
+            "input": "!picture.png!",
+            "context": "issue",
+            "html": "<p><img src=\"/attachments/{picture}/picture.png\" alt=\"picture.png\" /></p>"
+        },
+        "code": {
+            "input": "<pre><code class=\"ruby\">def greet\n  # hi\n  puts \"ok\"\nend</code></pre>",
+            "context": "issue",
+            "html": "<pre><code class=\"ruby syntaxhl\"><span class=\"k\">def</span> <span class=\"nf\">greet</span>\n  <span class=\"c1\"># hi</span>\n  puts <span class=\"s2\">&quot;ok&quot;</span>\n<span class=\"k\">end</span></code></pre>"
+        },
+        "unsafe": {
+            "input": "<script>alert(1)</script> <b>ok</b>",
+            "context": "issue",
+            "html": "<p>&lt;script&gt;alert(1)&lt;/script&gt; &lt;b&gt;ok&lt;/b&gt;</p>"
+        },
+        "wiki_links": {
+            "input": "[[Guide]] [[Missing]] [[parity-child:Guide|Child label]] [[#Details]] [[parity-core:]]",
+            "context": "wiki",
+            "html": "<p><a href=\"/projects/parity-core/wiki/Guide\" class=\"wiki-page\">Guide</a> <a href=\"/projects/parity-core/wiki/Missing\" class=\"wiki-page new\">Missing</a> <a href=\"/projects/parity-child/wiki/Guide\" class=\"wiki-page new\">Child label</a> <a href=\"/projects/parity-core/wiki/Guide#Details\" class=\"wiki-page\">#Details</a> <a href=\"/projects/parity-core/wiki/Guide\" class=\"wiki-page\">Guide</a></p>"
+        },
+        "issues": {
+            "input": "#1 #3 #1#note-2 #1-2 ##1 #note-2 Bug#1 !#1",
+            "context": "issue-ada",
+            "html": "<p><a href=\"/issues/1\" class=\"issue tracker-1 status-1 priority-1 priority-1 priority-default parent overdue created-by-me assigned-to-me\" title=\"Bug: Parity pin parent\">#1</a> <a href=\"/issues/3\" class=\"issue tracker-2 status-4 priority-2 priority-2 closed\" title=\"Feature: Closed feature\">#3</a> <a href=\"/issues/1#note-2\" class=\"issue tracker-1 status-1 priority-1 priority-1 priority-default parent overdue created-by-me assigned-to-me\" title=\"Bug: Parity pin parent\">#1#note-2</a> <a href=\"/issues/1#note-2\" class=\"issue tracker-1 status-1 priority-1 priority-1 priority-default parent overdue created-by-me assigned-to-me\" title=\"Bug: Parity pin parent\">#1-2</a> <a href=\"/issues/1\" class=\"issue tracker-1 status-1 priority-1 priority-1 priority-default parent overdue created-by-me assigned-to-me\" title=\"Bug: Parity pin parent\">Bug #1: Parity pin parent</a> <a href=\"/issues/1#note-2\" class=\"issue tracker-1 status-1 priority-1 priority-1 priority-default parent overdue created-by-me assigned-to-me\" title=\"Bug: Parity pin parent\">#note-2</a> <a href=\"/issues/1\" class=\"issue tracker-1 status-1 priority-1 priority-1 priority-default parent overdue created-by-me assigned-to-me\" title=\"Bug: Parity pin parent\">Bug#1</a> #1</p>"
+        },
+        "resources": {
+            "input": "version#1 version:\"1.0\" document#{document} document:Spec news#{news} news:Greetings message#{topic} message#{reply} project#1 project:parity-core user#1 user:ada @lars forum#{board} forum:Discussion attachment:before.pdf",
+            "context": "issue",
+            "html": "<p><a href=\"/versions/1\">1.0</a> <a href=\"/versions/1\">1.0</a> <a href=\"/documents/{document}\">Spec</a> <a href=\"/documents/{document}\">Spec</a> <a href=\"/news/{news}\">Greetings</a> <a href=\"/news/{news}\">Greetings</a> <a href=\"/boards/{board}/topics/{topic}\">Hello</a> <a href=\"/boards/{board}/topics/{topic}#message-{reply}\">Reply</a> <a href=\"/projects/parity-core\">Parity Core</a> <a href=\"/projects/parity-core\">Parity Core</a> <a href=\"/users/1\" class=\"user active\">Ada Lovelace</a> <a href=\"/users/1\" class=\"user active\">Ada Lovelace</a> <a href=\"/users/6\" class=\"user locked\">Lars Locked</a> <a href=\"/projects/parity-core/boards/{board}\">Discussion</a> <a href=\"/projects/parity-core/boards/{board}\">Discussion</a> <a href=\"/attachments/1/before.pdf\" class=\"attachment\">before.pdf</a></p>"
+        },
+        "scoped": {
+            "input": "parity-core:version:1.0 parity-core:document:\"Spec\"",
+            "context": "issue",
+            "html": "<p><a href=\"/versions/1\">1.0</a> <a href=\"/documents/{document}\">Spec</a></p>"
+        },
+        "thumbnail": {
+            "input": "{{thumbnail(picture.png)}} {{thumbnail(picture.png, size=80, title=Shot)}}",
+            "context": "issue",
+            "html": "<p><a href=\"/attachments/{picture}/picture.png\" class=\"thumbnail\" title=\"picture.png\"><img src=\"/attachments/thumbnail/{picture}/200\" alt=\"picture.png\" /></a> <a href=\"/attachments/{picture}/picture.png\" class=\"thumbnail\" title=\"Shot\"><img src=\"/attachments/thumbnail/{picture}/80\" alt=\"picture.png\" /></a></p>"
+        },
+        "collapse": {
+            "input": "{{collapse(View details...)\nHidden *word*\n}}",
+            "context": "issue",
+            "html": "<a href=\"#\" class=\"icon icon-collapsed collapsible\" id=\"collapse-77120d6d-show\" onclick=\"var s=document.getElementById(&#039;collapse-77120d6d-show&#039;);var h=document.getElementById(&#039;collapse-77120d6d-hide&#039;);var b=document.getElementById(&#039;collapse-77120d6d&#039;);if(s&amp;&amp;h&amp;&amp;b){s.style.display=s.style.display===&#039;none&#039;?&#039;&#039;:&#039;none&#039;;h.style.display=h.style.display===&#039;none&#039;?&#039;&#039;:&#039;none&#039;;b.style.display=b.style.display===&#039;none&#039;?&#039;&#039;:&#039;none&#039;;}return false;\">View details...</a><a href=\"#\" class=\"icon icon-expanded collapsible\" id=\"collapse-77120d6d-hide\" style=\"display:none;\" onclick=\"var s=document.getElementById(&#039;collapse-77120d6d-show&#039;);var h=document.getElementById(&#039;collapse-77120d6d-hide&#039;);var b=document.getElementById(&#039;collapse-77120d6d&#039;);if(s&amp;&amp;h&amp;&amp;b){s.style.display=s.style.display===&#039;none&#039;?&#039;&#039;:&#039;none&#039;;h.style.display=h.style.display===&#039;none&#039;?&#039;&#039;:&#039;none&#039;;b.style.display=b.style.display===&#039;none&#039;?&#039;&#039;:&#039;none&#039;;}return false;\">View details...</a><div class=\"collapsed-text\" id=\"collapse-77120d6d\" style=\"display:none;\"><p>Hidden <strong>word</strong></p></div>"
+        },
+        "include": {
+            "input": "{{include(Included)}}",
+            "context": "wiki",
+            "html": "<p>Hello from include</p>"
+        },
+        "children": {
+            "input": "{{child_pages}}\n\n{{child_pages(Guide, parent=1)}}",
+            "context": "wiki",
+            "html": "<ul class=\"pages-hierarchy\"><li><a href=\"/projects/parity-core/wiki/Child\" class=\"wiki-page\">Child</a></li></ul>\n\n<ul class=\"pages-hierarchy\"><li><a href=\"/projects/parity-core/wiki/Guide\" class=\"wiki-page\">Guide</a><ul class=\"pages-hierarchy\"><li><a href=\"/projects/parity-core/wiki/Child\" class=\"wiki-page\">Child</a></li></ul></li></ul>"
+        },
+        "hello": {
+            "input": "{{hello_world}} {{hello_world(a, b)}}",
+            "context": "issue",
+            "html": "<p>Hello world! Object: Issue, Called with no argument and no block of text. Hello world! Object: Issue, Arguments: a, b and no block of text.</p>"
+        },
+        "macros": {
+            "input": "{{macro_list}}\n\n{{issue(3)}} {{issue(3, tracker=false)}}\n\n{{recent_pages(time=true)}}",
+            "context": "wiki",
+            "html": "<dl><dt><code>hello_world</code></dt><dd><pre>Sample macro.</pre></dd><dt><code>macro_list</code></dt><dd><pre>Lists the available macros.</pre></dd><dt><code>child_pages</code></dt><dd><pre>Lists child wiki pages.</pre></dd><dt><code>recent_pages</code></dt><dd><pre>Lists recently updated wiki pages.</pre></dd><dt><code>include</code></dt><dd><pre>Includes another wiki page.</pre></dd><dt><code>collapse</code></dt><dd><pre>Inserts a collapsed block of text.</pre></dd><dt><code>thumbnail</code></dt><dd><pre>Displays a clickable thumbnail of an attached image.</pre></dd><dt><code>issue</code></dt><dd><pre>Displays an issue link with additional information.</pre></dd></dl>\n\n<p><a href=\"/issues/3\" class=\"issue tracker-2 status-4 priority-2 priority-2 closed\" title=\"Feature: Closed feature\">Feature #3: Closed feature</a> <a href=\"/issues/3\" class=\"issue tracker-2 status-4 priority-2 priority-2 closed\" title=\"Feature: Closed feature\">#3: Closed feature</a></p>\n\n<ul><li><a href=\"/projects/parity-core/wiki/Guide\" class=\"wiki-page\">Guide</a> (1 day ago)</li><li><a href=\"/projects/parity-core/wiki/Child\" class=\"wiki-page\">Child</a> (2 days ago)</li><li><a href=\"/projects/parity-core/wiki/Included\" class=\"wiki-page\">Included</a> (3 days ago)</li></ul>"
+        },
+        "repository": {
+            "input": "r758 commit:c6f4d0fd source:some/file export:some/file parity-core:r758",
+            "context": "issue",
+            "html": "<p>r758 commit:c6f4d0fd source:some/file export:some/file parity-core:r758</p>"
+        }
+    }
+}

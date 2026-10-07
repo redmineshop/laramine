@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Domain\DomainException;
 use App\Domain\News\NewsService;
 use App\Domain\PermissionDeniedException;
+use App\Domain\TextFormatting\FormattedText;
+use App\Domain\TextFormatting\FormattingContext;
 use App\Models\Comment;
 use App\Models\News;
 use App\Models\Project;
@@ -19,7 +21,10 @@ use Inertia\Response;
  */
 class NewsController extends Controller
 {
-    public function __construct(private readonly NewsService $news) {}
+    public function __construct(
+        private readonly NewsService $news,
+        private readonly FormattedText $formatted,
+    ) {}
 
     public function index(Request $request): Response
     {
@@ -50,9 +55,21 @@ class NewsController extends Controller
     {
         $this->authorize('view', $news);
         $actor = $this->actor($request);
-        $project = $news->project;
+        $project = $news->project instanceof Project ? $news->project : null;
         $watcherIds = $this->news->watcherIds($actor, $news);
         $watching = $actor instanceof User && in_array((int) $actor->id, $watcherIds, true);
+
+        $description = $news->description === null ? '' : (string) $news->description;
+        $viewer = $actor instanceof User ? $actor : null;
+        $comments = [];
+        foreach ($this->news->comments($actor, $news) as $comment) {
+            $content = $comment['content'];
+            $comment['content_html'] = $this->formatted->html(
+                $content,
+                new FormattingContext($project, $news, false, false, $viewer),
+            );
+            $comments[] = $comment;
+        }
 
         return Inertia::render('News/Show', [
             'news' => [
@@ -60,11 +77,12 @@ class NewsController extends Controller
                 'project_id' => (int) $news->project_id,
                 'title' => (string) $news->title,
                 'summary' => (string) $news->summary,
-                'description' => $news->description === null ? '' : (string) $news->description,
+                'description' => $description,
+                'description_html' => $this->news->html($viewer, $news),
                 'author_id' => (int) $news->author_id,
                 'comments_count' => (int) $news->comments_count,
             ],
-            'comments' => $this->news->comments($actor, $news),
+            'comments' => $comments,
             'watcherIds' => $watcherIds,
             'watching' => $watching,
             'canComment' => $actor instanceof User && $actor->can('comment', $news),
