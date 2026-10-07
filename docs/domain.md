@@ -73,8 +73,15 @@ Tracked details use `journal_details.property = attr` and `prop_key` set to the 
 - A `relates` detail reads `Related to {tracker} #{id}: {subject} added`. That line is not italicized.
 - Note text is escaped. A textile `*emphasis*` span becomes `em`. Other textile marks stay plain text.
 - On History and Notes, a journal with note text exposes reaction (`thumbs-up`). Quote is added when the actor has `add_issue_notes`. Edit (pencil) is added when the actor has `edit_issue_notes`, or `edit_own_issue_notes` and `journals.user_id` is that actor. More (`⋯`) is always on those two tabs. A journal without note text exposes reaction and more only.
-- The more menu lists Copy link, then Delete when edit is allowed for that note. Copy link carries the same `#note-n` fragment as the anchor. Download all files is not listed. Quote, edit, and Delete do not change rows.
+- The more menu lists Copy link, then Delete when edit is allowed for that note. Copy link carries the same `#note-n` fragment as the anchor. Download all files is not listed. The show model records those controls. It does not write.
 - After `IssueService::update` returns, the caller passes `justUpdated: true`. The show model then carries the flash `✓ Successful update.` with tone `green`.
+
+`JournalNoteService` persists quote, edit, and delete. The permission checks are `JournalNoteAccess`, the same rules the show model uses for the markers. Active admins pass through `PermissionService`.
+
+- Quote requires `add_issue_notes` and a journal the actor can see. It inserts a new `journals` row on the same issue. `user_id` is the actor. `notes` is `{name} wrote:` followed by the source note, one `> ` line per source line. The name is the author's first and last name, the login when that name is blank, or `User`. A `<pre>` block in the source is stored as `[...]`. `updated_on` stays null. A private source is stored as a private note, and that copy does not require `set_notes_private`.
+- Edit requires `edit_issue_notes`, or `edit_own_issue_notes` when `journals.user_id` is the actor, and a visible journal that already has note text. Blank text is rejected. The same text after trimming does not write. A real change stores the trimmed note, sets `updated_by_id` to the actor and `updated_on` to now, and leaves `user_id`, `created_on`, `private_notes`, and `journal_details` as they were.
+- Delete uses the same permission rule as edit. A journal with no `journal_details` is removed, including `reactions` rows whose `reactable_type` is `Journal` and whose `reactable_id` is that journal. A journal that has details keeps the row and the details, sets `notes` to null, and stamps `updated_by_id` and `updated_on`. `private_notes` stays as it was.
+- A detail-only journal, a non-issue journal, or a private journal the actor cannot view is rejected. Quote, edit, and delete that change history also touch the issue `updated_on`.
 - The notes fieldset is present when the actor can add a note or edit the issue. The Private notes checkbox is present only with `set_notes_private`, and the form leaves it unchecked.
 
 A private journal is omitted for an actor without `view_private_notes`, including the author. An active admin sees it. Query filters use the same rule; see [queries.md](queries.md). The security/parity gate for this slice is [journals-parity-gate.md](journals-parity-gate.md). Parity is **NOT VERIFIED**.
@@ -110,7 +117,10 @@ No workflow matrix is seeded, because statuses and trackers are not created by t
 - Archived and closed project statuses are not special-cased.
 - Relation-add journals are written on the source issue only. The other issue does not get a row.
 - A private journal stays hidden from its author when that user lacks `view_private_notes`.
-- Quote, edit, and Delete do not write journal rows. Editing or deleting a note is not implemented.
+- Quote writes a new journal immediately. It does not fill a notes field for a later update.
+- Quoting a private journal stores the new note as private. The actor does not need `set_notes_private` for that copy.
+- Edit rejects a blank note. Clearing a note is the delete action.
+- Delete removes a notes-only journal. A journal that also has details keeps the row and the details, with `notes` set to null.
 - Copy link carries the `#note-n` fragment. There is no issue URL, because the HTTP API is not in this slice.
 - The Notes tab does not keep a detail-only journal for thumbnail attachments. Journal file thumbnails are not implemented.
 - The journal menu does not list Download all files.

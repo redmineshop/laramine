@@ -5,6 +5,7 @@ namespace App\Domain\Issues\History;
 use App\Domain\Acl\PermissionService;
 use App\Domain\DomainException;
 use App\Domain\Issues\IssueJournalWriter;
+use App\Domain\Issues\JournalNoteAccess;
 use App\Models\Enumeration;
 use App\Models\Issue;
 use App\Models\IssueStatus;
@@ -16,8 +17,9 @@ use App\Models\User;
 /**
  * Issue-show history, note rendering, and the private-notes checkbox.
  *
- * This is a view model for a later UI. It does not render HTTP and it does
- * not edit or delete journals. Quote, edit, and the more menu are markers.
+ * This is a view model. It does not render HTTP and it does not write journals.
+ * Quote, edit, and delete markers follow JournalNoteAccess. Persistence is
+ * JournalNoteService.
  */
 final class IssueHistoryPresenter
 {
@@ -59,6 +61,7 @@ final class IssueHistoryPresenter
 
     public function __construct(
         private readonly PermissionService $permissions,
+        private readonly JournalNoteAccess $noteAccess,
         private readonly JournalDetailFormatter $details,
         private readonly JournalActionList $actions,
         private readonly TextileEmphasis $textile,
@@ -191,12 +194,7 @@ final class IssueHistoryPresenter
 
     private function visible(User $actor, Project $project, bool $privateNotes): bool
     {
-        if (! $privateNotes) {
-            return true;
-        }
-
-        // Same rule as query journal visibility: the author is not exempt.
-        return $this->permissions->allowed($actor, 'view_private_notes', $project);
+        return $this->noteAccess->canView($actor, $project, $privateNotes);
     }
 
     private function entry(User $actor, Project $project, Journal $journal, int $displayNumber): JournalEntryView
@@ -225,23 +223,13 @@ final class IssueHistoryPresenter
             $lines,
             $this->actions->forJournal(
                 $hasNote,
-                $hasNote && $this->permissions->allowed($actor, 'add_issue_notes', $project),
-                $hasNote && $this->canEditJournalNote($actor, $project, $journal),
+                $hasNote && $this->noteAccess->canQuote($actor, $project),
+                $hasNote && $this->noteAccess->canEdit($actor, $project, $journal),
                 $anchorHref,
             ),
             (bool) $journal->private_notes,
             $hasDetails,
         );
-    }
-
-    private function canEditJournalNote(User $actor, Project $project, Journal $journal): bool
-    {
-        if ($this->permissions->allowed($actor, 'edit_issue_notes', $project)) {
-            return true;
-        }
-
-        return (int) $journal->user_id === (int) $actor->id
-            && $this->permissions->allowed($actor, 'edit_own_issue_notes', $project);
     }
 
     private function line(JournalDetail $detail): ?JournalPropertyLine

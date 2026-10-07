@@ -12,6 +12,7 @@ Block C criteria 16–19 are covered by Laramine tests. That is not a Redmine co
 | --- | --- |
 | Journal write on issue update | `App\Domain\Issues\IssueJournalWriter`, called from `IssueService::update` |
 | Relation-add journal | `App\Domain\Issues\IssueRelationService` |
+| Quote, edit, and delete of a note | `App\Domain\Issues\JournalNoteService` with `JournalNoteAccess` |
 | History, notes rendering, checkbox, flash | `App\Domain\Issues\History\IssueHistoryPresenter` |
 | Private-note query rule | `App\Domain\Queries\JournalVisibility` |
 
@@ -24,6 +25,8 @@ Domain behavior is described in [domain.md](domain.md). The parity row stays **N
 `tests/Unit/JournalPresentationTest.php` covers emphasis, italic old/new values, the relation-add sentence, header controls, and the more-menu labels.
 
 `tests/Feature/IssueJournalBlockCTest.php` covers which journals the Notes and Property changes tabs keep, the `#note-n` href, the more-menu labels, and which actors see quote, edit, and Delete.
+
+`tests/Feature/IssueJournalNoteWriteTest.php` covers quote, edit, and delete rows on MySQL. `tests/Unit/JournalQuoteTextTest.php` covers the quoted note text. Those tests do not compare rows with a Redmine 7.0.1 database.
 
 The relation line is `Related to {tracker} #{id}: {subject} added`, using the other issue's id. The 7.0.1 capture showed `#2` because that issue was id 2. The smoke asserts the same sentence with the id this fixture actually stored.
 
@@ -67,13 +70,25 @@ The presenter omits a whole private journal when the actor lacks `view_private_n
 | 18 | The anchor label stays `#n` in visible order. The href is `#note-n` for that index, including after a private journal is omitted. | `test_block_c_anchor_href_follows_visible_order` |
 | 19 | Quote requires `add_issue_notes`. Edit and Delete require `edit_issue_notes`, or `edit_own_issue_notes` when `journals.user_id` is the actor. A detail-only journal does not show quote, edit, or Delete. | `test_block_c_quote_edit_and_menu_follow_note_permissions` |
 
-These checks do not edit or delete a journal row.
+These checks decide which controls are visible. They do not write a journal row. The writes are the next section.
+
+## Journal note writes
+
+`JournalNoteService` quotes, edits, and deletes a note under the same permission rules as the markers. A green test here is Laramine behavior. Parity stays **NOT VERIFIED**.
+
+| Action | What is stored |
+| --- | --- |
+| Quote | A new issue journal whose note quotes the source text, when the actor has `add_issue_notes` and can see that journal. A private source stays private on the new row. |
+| Edit | `journals.notes`, `updated_by_id`, and `updated_on` when the actor may edit that note. `user_id`, `created_on`, and `journal_details` stay. A blank note is rejected. |
+| Delete | The journal row is removed when it has no details. When details exist, `notes` is cleared and the detail rows stay. Same permission rule as edit. |
+
+`tests/Feature/IssueJournalNoteWriteTest.php` is the MySQL coverage, including a deny path for each action.
 
 ## Still open
 
 | Item | Status |
 | --- | --- |
-| Journal note edit and delete | **Open.** Quote, edit, and Delete are markers. They do not write. |
+| Journal note writes compared with Redmine 7.0.1 | **Open.** Laramine stores the rows. No parity comparison has been recorded. |
 | Download all files | **Open.** The menu does not list it. Journal attachments are not in this slice. |
 | Thumbnail-only journals on Notes | **Open.** A detail-only journal is not kept on Notes for file thumbnails. |
 | Absolute copy-link URL | **Open.** Copy link carries `#note-n`. There is no issue URL. |

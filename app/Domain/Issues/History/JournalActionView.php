@@ -3,7 +3,9 @@
 namespace App\Domain\Issues\History;
 
 /**
- * A journal header control. Presence only: these do not write rows.
+ * A journal header control on the issue show model.
+ *
+ * The object records which control is visible. It does not write.
  */
 final readonly class JournalActionView
 {
