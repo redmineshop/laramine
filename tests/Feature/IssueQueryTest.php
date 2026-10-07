@@ -354,22 +354,24 @@ class IssueQueryTest extends TestCase
     public function test_sort_and_stub_types(): void
     {
         $world = $this->member();
-        $low = Enumeration::query()->create([
-            'name' => 'Low',
+        $world->priority->position = 4;
+        $world->priority->save();
+        $urgent = Enumeration::query()->create([
+            'name' => 'Urgent',
             'type' => 'IssuePriority',
             'active' => true,
-            'position' => 2,
+            'position' => 1,
         ]);
-        $first = $this->issue($world, ['priority_id' => $low->id, 'subject' => 'Low']);
-        $second = $this->issue($world, ['subject' => 'Normal']);
+        $byPosition = $this->issue($world, ['priority_id' => $urgent->id, 'subject' => 'Urgent']);
+        $byForeignKey = $this->issue($world, ['subject' => 'Normal']);
 
         $ids = $this->ids(app(IssueQueryRunner::class)->preview(
             $world->user,
             $world->project,
             [],
-            [['priority', 'desc'], ['id', 'asc']],
+            [['priority', 'asc'], ['id', 'asc']],
         ));
-        $this->assertSame([$first->id, $second->id], $ids);
+        $this->assertSame([$byPosition->id, $byForeignKey->id], $ids);
 
         $stub = app(SavedQueryService::class)->create($world->user, [
             'name' => 'Projects',

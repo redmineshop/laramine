@@ -129,7 +129,32 @@ Relations are stored once. The canonical `relation_type` is `relates`, `blocks`,
 
 `any_searchable` is a SQL `LIKE` over `issues.subject`, `issues.description`, visible journal notes, and `custom_values` for issue custom fields that are `searchable`, implemented, visible to the actor, and whose format supports search. Link, enumeration, attachment, and progress bar do not support search, so a `searchable` column on those rows is ignored. Private notes follow the same rule as the `notes` filter. It does not search attachment filenames. `~` requires every token to appear in at least one of those places. `*~` requires any token. `!~` is the negation of `~`. A hidden custom field is not searched.
 
-Sort keys (`priority`, `status`, `tracker`, `assigned_to`, …) order by the issue column (`priority_id`, and so on), then `id` when no sort is stored. `group_by` adds a leading `ORDER BY` and does not collapse rows.
+## Sort
+
+When no sort is stored, the order is `issues.id` ascending. `group_by` adds a leading ascending order on the same kind of key and does not collapse rows. A missing priority, status, tracker, user, or custom value sorts as NULL. On MySQL, ASC places NULL before any position or name, and DESC places it last.
+
+| Key | Order |
+| --- | --- |
+| `priority`, `priority_id` | `enumerations.position` where `type` is `IssuePriority` |
+| `status`, `status_id` | `issue_statuses.position` |
+| `tracker`, `tracker_id` | `trackers.position` |
+| `author`, `author_id`, `assigned_to`, `assigned_to_id` | `users.firstname`, then `users.lastname`. There is no `user_format` setting, so this is the default Redmine name order. A group is a `users` row; a blank firstname sorts before any letter. |
+| `cf_{id}` | One minimum per issue. See below. |
+| `id`, `project`, `subject`, dates, hours, `category`, `fixed_version`, `parent`, `is_private`, `description`, and the same names with `_id` where the table above does not already claim them | The issue column (`project_id`, `category_id`, `fixed_version_id`, and so on) |
+
+`cf_{id}` must be an `IssueCustomField` the actor can see. `is_filter` is not required, and the name does not have to be listed in `column_names`. Several stored values become one key, the minimum:
+
+| Format | Minimum |
+| --- | --- |
+| string, text, link, date, list, bool | `MIN` of the stored text. A date stored as `YYYY-MM-DD` then follows calendar order. |
+| int, progressbar | `MIN` of values that are an optional sign and digits, cast as a whole number. Any other text is ignored. |
+| float | `MIN` of decimal tokens, cast as a decimal. Any other text is ignored. |
+| enumeration | `MIN` of `custom_field_enumerations.position` for stored ids of that field. |
+| user | The user with the earliest `firstname`, then `lastname`, then `id`. The issue is ordered by that user's firstname and lastname. |
+| version | `MIN` of `versions.name` for stored version ids. |
+| attachment | Rejected. |
+
+An unknown field, a field that is not an `IssueCustomField`, a hidden field, or an attachment field is an error. Saving an `IssueQuery` runs the same check. Other query types reject `cf_{id}` sort keys. A public query that names a hidden field can be saved by an admin. Another user who can open that query still cannot run that sort.
 
 ## Totals
 
@@ -168,7 +193,9 @@ An unknown operator or an unknown field is rejected.
 - `ev` / `cf` compare decimal id strings on `journal_details.old_value` and `value` for `property = attr` only. A private journal is hidden without `view_private_notes`, including from its author. Redmine also lets that author read their own private note.
 - `any_searchable` does not search attachment filenames. Those have their own filter. It uses the same quoted-phrase tokens as text `~`.
 - `me` expands to the actor's groups only on `assigned_to_id` and `watcher_id`. Group filters still take group ids.
-- Sort uses the issue column (for example `priority_id`), not enumeration position or user name.
+- Author and assignee sort by `firstname`, then `lastname`. There is no `user_format` setting. Custom-field user sort uses that same name order.
+- Custom-field sort keeps one minimum value per issue (text, number, enumeration position, version name, or the earliest user name). Attachment custom fields are not sort keys.
+- `project`, `category`, and `fixed_version` still sort by the foreign key.
 - `issues_visibility = all` includes other people's private issues. `default` hides them unless the user is the author or assignee.
 - Active admins can read private saved queries.
 - Execution returns full issue rows. `column_names` is a display list.
@@ -183,7 +210,7 @@ These are Laramine gaps. They are not a parity verdict.
 | Item | Why it stays open |
 | --- | --- |
 | `display_type` | Stored (`list`, `board`, and any other string). Nothing branches on it. |
-| Sort by position or name | `priority`, `status`, and `tracker` order by the foreign key. `assigned_to` and `author` order by user id. Custom fields are not sort keys. |
+| Sort by project, category, or version name | `project`, `category`, and `fixed_version` still order by the foreign key. |
 | Column projection | `column_names` is a display list. Unknown names that match the token pattern are stored. The runner returns full issue rows. |
 | `cf_N.*` other than `.due_date` and `.status` | Listed under deferred fields. |
 | Custom-field history | `ev` / `!ev` / `cf` are not compiled for custom fields. |

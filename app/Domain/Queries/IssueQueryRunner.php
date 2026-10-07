@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Builder;
  * Rows stay inside the actor's issue visibility. Column names are not projected;
  * callers read full issue rows and use `column_names` only as a display list.
  * `totals` sums `options.totalable_names` over that same set. `display_type` is not applied.
+ * Sort uses position, user name, or a custom-field value where those keys are defined.
  */
 final class IssueQueryRunner
 {
@@ -94,16 +95,16 @@ final class IssueQueryRunner
         $map = QueryPayload::filters($filters);
         $pairs = QueryPayload::sort($sort) ?? [];
         foreach ($pairs as [$column]) {
-            $this->sort->column($column);
+            $this->sort->assertAvailable($column, QueryType::ISSUE, $actor, $project);
         }
 
         $group = $groupBy === null || $groupBy === '' ? null : $groupBy;
         if ($group !== null) {
-            $this->sort->column($group);
+            $this->sort->assertAvailable($group, QueryType::ISSUE, $actor, $project);
         }
 
         $builder = $this->filtered($actor, $project, $map);
-        $this->sort->apply($builder, $group, $pairs);
+        $this->sort->apply($builder, $group, $pairs, $actor, $project);
 
         return $builder;
     }

@@ -58,8 +58,8 @@ final class SavedQueryService
         $sort = array_key_exists('sort_criteria', $attributes)
             ? QueryPayload::sort($attributes['sort_criteria'])
             : null;
-        $this->assertSort($sort);
-        $groupBy = $this->groupBy($attributes['group_by'] ?? null);
+        $this->assertSort($type, $sort, $actor, $project);
+        $groupBy = $this->groupBy($attributes['group_by'] ?? null, $type, $actor, $project);
         $options = array_key_exists('options', $attributes)
             ? QueryPayload::options($attributes['options'])
             : null;
@@ -125,10 +125,10 @@ final class SavedQueryService
         $sort = array_key_exists('sort_criteria', $attributes)
             ? QueryPayload::sort($attributes['sort_criteria'])
             : QueryPayload::sort($query->sort_criteria);
-        $this->assertSort($sort);
+        $this->assertSort($type, $sort, $actor, $project);
         $groupBy = array_key_exists('group_by', $attributes)
-            ? $this->groupBy($attributes['group_by'])
-            : $this->groupBy($query->group_by);
+            ? $this->groupBy($attributes['group_by'], $type, $actor, $project)
+            : $this->groupBy($query->group_by, $type, $actor, $project);
         $options = array_key_exists('options', $attributes)
             ? QueryPayload::options($attributes['options'])
             : QueryPayload::options($query->options);
@@ -309,14 +309,14 @@ final class SavedQueryService
     /**
      * @param  list<array{0: string, 1: string}>|null  $sort
      */
-    private function assertSort(?array $sort): void
+    private function assertSort(string $type, ?array $sort, User $actor, ?Project $project): void
     {
         if ($sort === null) {
             return;
         }
 
         foreach ($sort as [$column]) {
-            $this->sort->column($column);
+            $this->sort->assertAvailable($column, $type, $actor, $project);
         }
     }
 
@@ -515,7 +515,7 @@ final class SavedQueryService
         return $description;
     }
 
-    private function groupBy(mixed $value): ?string
+    private function groupBy(mixed $value, string $type, User $actor, ?Project $project): ?string
     {
         if ($value === null || $value === '') {
             return null;
@@ -525,7 +525,7 @@ final class SavedQueryService
             throw new QueryValidationException('Query group is invalid.');
         }
 
-        $this->sort->column($value);
+        $this->sort->assertAvailable($value, $type, $actor, $project);
 
         return $value;
     }
