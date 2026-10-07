@@ -9,6 +9,7 @@ use App\Domain\Attachments\AttachmentThumbnailRenderer;
 use App\Domain\Attachments\UnboundAttachment;
 use App\Domain\DomainException;
 use App\Domain\PermissionDeniedException;
+use App\Domain\TextFormatting\FormattedText;
 use App\Domain\Watchers\WatcherLedger;
 use App\Models\Attachment;
 use App\Models\Board;
@@ -35,7 +36,23 @@ final class MessageService
         private readonly UnboundAttachment $tokens,
         private readonly WatcherLedger $watchers,
         private readonly MessageNotifier $notifications,
+        private readonly FormattedText $formatted,
     ) {}
+
+    public function html(?User $actor, Message $message): string
+    {
+        $board = Board::query()->find($message->board_id);
+        if (! $board instanceof Board) {
+            throw new DomainException('Message has no board.');
+        }
+        $project = Project::query()->find($board->project_id);
+        if (! $project instanceof Project) {
+            throw new DomainException('Message has no project.');
+        }
+        $this->gate->allow($actor, $project, 'boards', 'view_messages');
+
+        return $this->formatted->message($message, $project, false, $actor);
+    }
 
     public function postTopic(
         User $actor,

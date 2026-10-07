@@ -98,6 +98,7 @@ class NewsDocumentsFilesHttpTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('News/Show')
                 ->where('news.title', 'Hello')
+                ->where('news.description_html', '<p>Body</p>')
                 ->where('watching', false)
                 ->where('canComment', true)
                 ->where('canManage', true)
@@ -118,6 +119,7 @@ class NewsDocumentsFilesHttpTest extends TestCase
                 ->where('watching', true)
                 ->where('watcherIds', [(int) $user->id])
                 ->has('comments', 1)
+                ->where('comments.0.content_html', '<p>Noted</p>')
             );
 
         $this->actingAs($user)

@@ -6,18 +6,30 @@ use App\Domain\Issues\History\JournalActionList;
 use App\Domain\Issues\History\JournalDetailFormatter;
 use App\Domain\Issues\History\JournalMenuItemView;
 use App\Domain\Issues\History\JournalPropertyLine;
-use App\Domain\Issues\History\TextileEmphasis;
+use App\Domain\TextFormatting\CommonMarkFormatter;
+use App\Domain\TextFormatting\HtmlFragment;
+use App\Domain\TextFormatting\PlainFormatter;
+use App\Domain\TextFormatting\TextileFormatter;
 use PHPUnit\Framework\TestCase;
 
 class JournalPresentationTest extends TestCase
 {
-    public function test_textile_emphasis_renders_italics_and_escapes_html(): void
+    public function test_formatters_escape_raw_html_and_render_emphasis(): void
     {
-        $html = (new TextileEmphasis)->render('Shipped with *emphasis* in the note. <b>');
+        $commonMark = (new CommonMarkFormatter)->convert('Shipped with *emphasis* in the note.');
+        $textile = (new TextileFormatter)->convert('*bold* and _italic_');
+        $plain = (new PlainFormatter)->convert('Shipped with *emphasis* in the note. <b>');
+        $fragment = HtmlFragment::fromHtml('<p><script>alert(1)</script><a href="javascript:alert(1)">x</a><b>ok</b></p>');
+        $fragment->sanitize();
 
-        $this->assertSame('Shipped with <em>emphasis</em> in the note. &lt;b&gt;', $html);
-        $this->assertSame('**', (new TextileEmphasis)->render('**'));
-        $this->assertSame('a <em>b</em> and <em>c</em>', (new TextileEmphasis)->render('a *b* and *c*'));
+        $this->assertStringContainsString('<em>emphasis</em>', $commonMark);
+        $this->assertStringContainsString('<strong>bold</strong>', $textile);
+        $this->assertStringContainsString('<em>italic</em>', $textile);
+        $this->assertSame('<p>Shipped with *emphasis* in the note. &lt;b&gt;</p>', $plain);
+        $safe = $fragment->html();
+        $this->assertStringNotContainsString('<script', $safe);
+        $this->assertStringNotContainsString('javascript:', $safe);
+        $this->assertStringContainsString('<b>ok</b>', $safe);
     }
 
     public function test_attribute_lines_italicize_old_and_new_values(): void

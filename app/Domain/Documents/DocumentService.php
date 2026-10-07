@@ -8,6 +8,7 @@ use App\Domain\Attachments\AttachmentThumbnailRenderer;
 use App\Domain\DomainException;
 use App\Domain\Notifications\ModuleNotifier;
 use App\Domain\PermissionDeniedException;
+use App\Domain\TextFormatting\FormattedText;
 use App\Models\Attachment;
 use App\Models\CustomValue;
 use App\Models\Document;
@@ -35,7 +36,18 @@ final class DocumentService
         private readonly AttachmentService $attachments,
         private readonly AttachmentThumbnailRenderer $thumbnails,
         private readonly ModuleNotifier $notifications,
+        private readonly FormattedText $formatted,
     ) {}
+
+    public function html(?User $actor, Document $document): string
+    {
+        $project = $this->project($document);
+        if (! $this->permissions->allowed($actor, 'view_documents', $project) || ! $project->isModuleEnabled('documents')) {
+            throw new PermissionDeniedException('view_documents');
+        }
+
+        return $this->formatted->document($document, false, $actor);
+    }
 
     public function create(
         User $actor,

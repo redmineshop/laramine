@@ -94,7 +94,7 @@ Tracked details use `journal_details.property = attr` and `prop_key` set to the 
 - A custom-field detail uses the field name as the label. A field the actor cannot see, and a missing field, are omitted. Several stored values are split on comma and shown joined by `, `. List, string, link, int, float, and date keep the stored text. Bool uses Yes and No. Enumeration, user, and version use the option, person, or version name. An attachment value uses the file name. Progress bar appends `%`. Text reads `{name} updated`. A multiple field with no old value reads `{name} {values} added`, with the values in `em`.
 - An attachment detail with a new file name reads `File {filename} added`. A removed file reads `File deleted ({filename})`.
 - A relation detail names the other issue as `{tracker} #{id}: {subject}`. Added reads `{label} {tracker} #{id}: {subject} added` and is not italicized. Removed reads `{label} deleted ({tracker} #{id}: {subject})`. The line is omitted when that issue is missing or the actor cannot see it. Labels are Related to, Blocks, Duplicates, Precedes, and Copied to.
-- Note text is escaped. A textile `*emphasis*` span becomes `em`. Other textile marks stay plain text.
+- Note text is formatted with `text_formatting` (`textile`, `common_mark`, or plain). The HTML is `JournalEntryView::$noteHtml`. The stored note stays plain.
 - On History and Notes, a journal with note text exposes reaction (`thumbs-up`). Quote is added when the actor has `add_issue_notes`. Edit (pencil) is added when the actor has `edit_issue_notes`, or `edit_own_issue_notes` and `journals.user_id` is that actor. More (`⋯`) is always on those two tabs. A journal without note text exposes reaction and more only.
 - The more menu lists Download all files when that journal has more than one attachment, then Copy link, then Delete when edit is allowed for that note. The issue show model offers the same Download all files item when the issue container itself has more than one attachment. `AttachmentArchive` returns a zip named `issue-{id}.zip` or `journal-{id}.zip`. Repeated filenames keep the extension and insert `(2)`, `(3)`, and so on. One attachment is not an archive. A private journal stays hidden, and the zip is refused, without `view_private_notes`. The show model records the control. The bytes are the container route under Attachments, which uses a different file name and duplicate count.
 - Image filenames (`avif`, `bmp`, `gif`, `jpg`, `jpe`, `jpeg`, `png`, `webp`) are thumbnails when `thumbnails_enabled` is on. The default is off. `thumbnails_size` defaults to 100 and is stored on the show model. Thumbnail image bytes are not rendered. A non-image file does not put a detail-only journal on Notes.
@@ -142,7 +142,19 @@ Each save writes `wiki_contents` and a `wiki_content_versions` row. The version 
 
 A protected page needs `protect_wiki_pages` to edit, attach, or change the flag. Renaming a protected page also needs `rename_wiki_pages`. Deleting the page needs `delete_wiki_pages`. Deleting an attachment needs `delete_wiki_pages_attachments`. Parents stay in the same wiki and cannot cycle. Deleting a page clears its children's `parent_id`. A disabled `wiki` module denies every user, including an active administrator. Watchers use `watchable_type` `WikiPage`.
 
-The wiki checklist row is **VERIFIED** only by `tests/Parity/WikiParityTest.php`. Textile and Markdown rendering stay **NOT VERIFIED**. This is not a 0.1 tag.
+The wiki checklist row is **VERIFIED** only by `tests/Parity/WikiParityTest.php`. Export text stays raw. Rendered wiki HTML is the Textile and Markdown row. This is not a 0.1 tag.
+
+## Text formatting
+
+`SettingValue::textFormatting()` reads `text_formatting`. A missing row is `common_mark`, which is the Redmine 7.0.1 default. `textile` and `common_mark` are the named formats. A blank or any other stored value is plain text. `TextFormatter` escapes or sanitizes HTML, then applies Redmine links and the core macros `toc`, `child_pages`, `include`, `collapse`, `thumbnail`, `hello_world`, `macro_list`, `issue`, and `recent_pages`. `{{toc}}` is left and `{{>toc}}` is right. Issue links use the tracker, status, priority, closed, child, parent, private, and overdue classes, plus `created-by-me` and `assigned-to-me` when a viewer is passed. A closed issue keeps the `closed` class. `#note-n` and `##id` follow the 7.0.1 link forms. An exclamation mark in front of a link leaves the text unlinked.
+
+The same HTML is used for issue descriptions, journal notes, wiki pages, news, messages, document descriptions, and the HTML mail part (`div.wiki`). Absolute mail links use `protocol` and `host_name`, and a blank or unusable host uses `localhost:3000`. The plain mail body and wiki export stay the stored text.
+
+Repository, changeset, and source links (`rN`, `commit:`, `source:`, `export:`) are N/A. The pin manifest excludes `repositories`, `changesets`, `changes`, `changeset_parents`, and `changesets_issues`, and those tokens stay plain text.
+
+Intentional differences from 7.0.1, recorded in the pin HTML: issue links do not add `behind-schedule`; Ruby code uses a small lexer with the span classes `k`, `nf`, `c1`, `s1`, and `s2`, and other languages stay escaped inside `syntaxhl`; collapse controls use the collapsible classes without an upstream sprite, and the id is a stable hash; `macro_list` descriptions are short original sentences; the thumbnail macro defaults to 200 pixels while the attachment thumbnail route stays `/attachments/{id}/thumbnail`; recent-page times are English phrases from the clock. Custom-field `text_formatting` stays stored and is not rendered.
+
+The Textile and Markdown checklist row is **VERIFIED** only by `tests/Parity/MarkupParityTest.php`. This is not a 0.1 tag.
 
 ## Boards and forums
 

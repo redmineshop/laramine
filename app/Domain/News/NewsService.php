@@ -6,6 +6,7 @@ use App\Domain\Acl\PermissionService;
 use App\Domain\DomainException;
 use App\Domain\Notifications\ModuleNotifier;
 use App\Domain\PermissionDeniedException;
+use App\Domain\TextFormatting\FormattedText;
 use App\Models\Comment;
 use App\Models\News;
 use App\Models\Project;
@@ -29,7 +30,18 @@ final class NewsService
     public function __construct(
         private readonly PermissionService $permissions,
         private readonly ModuleNotifier $notifications,
+        private readonly FormattedText $formatted,
     ) {}
+
+    public function html(?User $actor, News $news): string
+    {
+        $project = $this->project($news);
+        if (! $this->permissions->allowed($actor, 'view_news', $project) || ! $project->isModuleEnabled('news')) {
+            throw new PermissionDeniedException('view_news');
+        }
+
+        return $this->formatted->news($news, false, $actor);
+    }
 
     public function create(User $actor, Project $project, string $title, ?string $summary, ?string $description): News
     {

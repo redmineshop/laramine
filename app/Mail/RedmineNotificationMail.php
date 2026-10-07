@@ -12,7 +12,8 @@ use Illuminate\Mail\Mailables\Headers;
 use Illuminate\Queue\SerializesModels;
 
 /**
- * One queued notification. The body is plain text. Headers carry the
+ * One queued notification. The text part is the summary. bodyHtml is the
+ * formatted alternative when the event has wiki text. Headers carry the
  * Redmine thread and project markers.
  */
 class RedmineNotificationMail extends Mailable implements ShouldQueue
@@ -33,6 +34,7 @@ class RedmineNotificationMail extends Mailable implements ShouldQueue
         public readonly array $headerLines,
         public readonly string $fromAddress,
         public readonly string $fromName,
+        public readonly ?string $bodyHtml = null,
     ) {}
 
     public function envelope(): Envelope
@@ -46,7 +48,14 @@ class RedmineNotificationMail extends Mailable implements ShouldQueue
 
     public function content(): Content
     {
+        if ($this->bodyHtml === null) {
+            return new Content(
+                text: 'mail.notification',
+            );
+        }
+
         return new Content(
+            html: 'mail.notification-html',
             text: 'mail.notification',
         );
     }

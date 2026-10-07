@@ -6,7 +6,11 @@ use App\Mail\RedmineNotificationMail;
 use Illuminate\Support\Facades\Mail;
 
 /**
- * Queues one plain-text notification per address.
+ * Queues one notification per address.
+ *
+ * The text part stays the stored summary. An HTML part is set when the
+ * event has a formatted description, note, wiki page, news item, document,
+ * or message.
  */
 final class OutboundMail
 {
@@ -25,6 +29,7 @@ final class OutboundMail
         string $messageId,
         array $references,
         array $headers,
+        ?string $html = null,
     ): void {
         Mail::queue(new RedmineNotificationMail(
             $address,
@@ -35,6 +40,7 @@ final class OutboundMail
             $headers,
             $this->identity->fromAddress(),
             $this->identity->appTitle(),
+            $html === '' ? null : $html,
         ));
     }
 }

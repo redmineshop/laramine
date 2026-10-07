@@ -2,6 +2,8 @@
 
 namespace App\Domain\Notifications;
 
+use App\Domain\TextFormatting\FormattedText;
+use App\Domain\TextFormatting\FormattingContext;
 use App\Models\Attachment;
 use App\Models\Comment;
 use App\Models\Document;
@@ -26,6 +28,7 @@ final class ModuleNotifier
         private readonly IssueRecipientResolver $recipients,
         private readonly MailIdentity $identity,
         private readonly OutboundMail $mail,
+        private readonly FormattedText $formatted,
     ) {}
 
     public function newsAdded(User $actor, News $news): void
@@ -48,6 +51,7 @@ final class ModuleNotifier
             null,
             '['.$project->name.'] News: '.$news->title,
             "News: {$news->title}\nProject: {$project->identifier}\n",
+            $this->wiki((string) $news->description, $project, $news),
             $messageId,
             [$messageId],
         );
@@ -73,6 +77,7 @@ final class ModuleNotifier
             (int) $news->id,
             'Re: ['.$project->name.'] News: '.$news->title,
             "News: {$news->title}\nProject: {$project->identifier}\nComment: {$comment->content}\n",
+            $this->wiki((string) $comment->content, $project, $news),
             $this->identity->messageId('comment', (int) $comment->id, $createdOn),
             [$this->identity->messageId('news', (int) $news->id, $newsCreated)],
         );
@@ -98,6 +103,7 @@ final class ModuleNotifier
             null,
             '['.$project->name.'] New document: '.$document->title,
             "Document: {$document->title}\nProject: {$project->identifier}\n",
+            $this->wiki((string) $document->description, $project, $document),
             $messageId,
             [$messageId],
         );
@@ -123,6 +129,7 @@ final class ModuleNotifier
             null,
             '['.$project->name.'] New file',
             "File: {$attachment->filename}\nProject: {$project->identifier}\nDocument: {$document->title}\n",
+            null,
             $this->identity->messageId('attachment', (int) $attachment->id, $createdOn),
             [$this->identity->messageId('document', (int) $document->id, $documentCreated)],
         );
@@ -148,6 +155,7 @@ final class ModuleNotifier
             null,
             '['.$project->name.'] New file',
             "File: {$attachment->filename}\nProject: {$project->identifier}\n",
+            null,
             $messageId,
             [$messageId],
         );
@@ -164,6 +172,7 @@ final class ModuleNotifier
         ?int $watchableId,
         string $subject,
         string $body,
+        ?string $html,
         string $messageId,
         array $references,
     ): void {
@@ -171,9 +180,16 @@ final class ModuleNotifier
         $headers['X-Redmine-Project'] = (string) $project->identifier;
         foreach ($this->recipients->projectEventRecipients($actor, $project, $viewPermission, $watchableType, $watchableId) as $user) {
             foreach ($this->recipients->addresses($user) as $address) {
-                $this->mail->queue($address, $subject, $body, $messageId, $references, $headers);
+                $this->mail->queue($address, $subject, $body, $messageId, $references, $headers, $html);
             }
         }
+    }
+
+    private function wiki(string $text, Project $project, Model $object): ?string
+    {
+        $html = $this->formatted->html($text, new FormattingContext($project, $object, true));
+
+        return $html === '' ? null : '<div class="wiki">'.$html.'</div>';
     }
 
     private function project(mixed $project): ?Project

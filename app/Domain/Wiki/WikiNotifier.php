@@ -7,6 +7,7 @@ use App\Domain\Notifications\ModuleRecipientResolver;
 use App\Domain\Notifications\NotifiedEventCatalog;
 use App\Domain\Notifications\NotifiedEventSetting;
 use App\Domain\Notifications\OutboundMail;
+use App\Domain\TextFormatting\FormattedText;
 use App\Domain\Watchers\WatcherLedger;
 use App\Models\Project;
 use App\Models\User;
@@ -17,7 +18,7 @@ use DateTimeInterface;
 /**
  * Queues `wiki_content_added` and `wiki_content_updated`.
  *
- * The body is the stored text. Textile and Markdown are not rendered.
+ * The text part is the stored page. The HTML part is the formatted page.
  */
 final class WikiNotifier
 {
@@ -27,6 +28,7 @@ final class WikiNotifier
         private readonly MailIdentity $identity,
         private readonly OutboundMail $mail,
         private readonly WatcherLedger $watchers,
+        private readonly FormattedText $formatted,
     ) {}
 
     public function saved(User $actor, Project $project, WikiPage $page, WikiContent $content, bool $added): void
@@ -47,12 +49,15 @@ final class WikiNotifier
         $headers['X-Redmine-Wiki-Page-Id'] = (string) $page->id;
         $headers['X-Redmine-Wiki-Page-Title'] = (string) $page->title;
         $subject = '['.(string) $project->name.' - Wiki] '.$page->title;
+        $stored = is_string($content->text) ? $content->text : '';
         $body = $subject."\n"
             .'Project: '.$project->identifier."\n"
             .'Wiki page: '.$page->title."\n"
             .'Version: '.$content->version."\n"
             .'Text:'."\n"
-            .(is_string($content->text) ? $content->text : '')."\n";
+            .$stored."\n";
+        $rendered = $this->formatted->wiki($content, $project, null, false, true);
+        $html = $rendered === '' ? null : '<div class="wiki">'.$rendered.'</div>';
         $messageId = $this->identity->messageId('wiki_content', (int) $content->id, $updatedOn);
         $references = [$this->identity->messageId('wiki_page', (int) $page->id, $createdOn)];
 
@@ -64,7 +69,7 @@ final class WikiNotifier
             $this->watchers->userIds(WatcherLedger::WIKI_PAGE, (int) $page->id),
         ) as $user) {
             foreach ($this->recipients->addresses($user) as $address) {
-                $this->mail->queue($address, $subject, $body, $messageId, $references, $headers);
+                $this->mail->queue($address, $subject, $body, $messageId, $references, $headers, $html);
             }
         }
     }

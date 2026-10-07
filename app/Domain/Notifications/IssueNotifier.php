@@ -2,6 +2,7 @@
 
 namespace App\Domain\Notifications;
 
+use App\Domain\TextFormatting\FormattedText;
 use App\Models\Issue;
 use App\Models\Journal;
 use App\Models\Project;
@@ -19,6 +20,7 @@ final class IssueNotifier
         private readonly IssueRecipientResolver $recipients,
         private readonly MailIdentity $identity,
         private readonly OutboundMail $mail,
+        private readonly FormattedText $formatted,
     ) {}
 
     public function added(User $actor, Issue $issue): void
@@ -105,10 +107,33 @@ final class IssueNotifier
 
         foreach ($this->recipients->recipients($actor, $issue, $previousAssigneeId, $journal) as $user) {
             $body = $sharedBody ?? $this->body($issue, $journal, $user);
+            $html = $this->htmlFor($issue, $journal, $user);
             foreach ($this->recipients->addresses($user) as $address) {
-                $this->mail->queue($address, $subject, $body, $messageId, $references, $headers);
+                $this->mail->queue($address, $subject, $body, $messageId, $references, $headers, $html);
             }
         }
+    }
+
+    private function htmlFor(Issue $issue, ?Journal $journal, ?User $reader): ?string
+    {
+        $project = $issue->project instanceof Project ? $issue->project : null;
+        if (! $journal instanceof Journal) {
+            $html = $this->formatted->issueDescription($issue, $reader, true);
+
+            return $html === '' ? null : '<div class="wiki">'.$html.'</div>';
+        }
+        $notes = is_string($journal->notes) ? trim($journal->notes) : '';
+        if ($notes === '') {
+            return null;
+        }
+        $show = ! (bool) $journal->private_notes
+            || ($reader instanceof User && $project instanceof Project && $this->recipients->seesPrivateNote($reader, $project));
+        if (! $show) {
+            return null;
+        }
+        $html = $this->formatted->journalNote($journal, $project, $reader, true);
+
+        return $html === '' ? null : '<div class="wiki">'.$html.'</div>';
     }
 
     private function subject(Issue $issue, bool $includeStatus): string

@@ -6,6 +6,7 @@ use App\Domain\Acl\PermissionService;
 use App\Domain\DomainException;
 use App\Domain\Issues\IssueJournalWriter;
 use App\Domain\Issues\JournalNoteAccess;
+use App\Domain\TextFormatting\FormattedText;
 use App\Models\Issue;
 use App\Models\Journal;
 use App\Models\JournalDetail;
@@ -13,7 +14,7 @@ use App\Models\Project;
 use App\Models\User;
 
 /**
- * Issue-show history, note rendering, and the private-notes checkbox.
+ * Issue-show history, formatted description and notes, and the private-notes checkbox.
  *
  * This is a view model. It does not render HTTP and it does not write journals.
  * Quote, edit, and delete markers follow JournalNoteAccess. Persistence is
@@ -38,7 +39,7 @@ final class IssueHistoryPresenter
         private readonly JournalNoteAccess $noteAccess,
         private readonly JournalHistoryLines $historyLines,
         private readonly JournalActionList $actions,
-        private readonly TextileEmphasis $textile,
+        private readonly FormattedText $formatted,
         private readonly IssueCopyLink $copyLinks,
         private readonly JournalAttachmentList $attachments,
         private readonly IssueHistorySides $sides,
@@ -75,6 +76,7 @@ final class IssueHistoryPresenter
             $this->attachments->downloadAllItem('Issue', $issueId, count($issueFiles)),
             $side->spentTimeVisible ? $side->timeEntries : [],
             $side->changesets,
+            $this->formatted->issueDescription($issue, $actor),
         );
     }
 
@@ -219,7 +221,7 @@ final class IssueHistoryPresenter
     ): JournalEntryView {
         $noteText = is_string($journal->notes) && trim($journal->notes) !== '' ? $journal->notes : null;
         $hasNote = $noteText !== null;
-        $noteHtml = $noteText === null ? null : $this->textile->render($noteText);
+        $noteHtml = $noteText === null ? null : $this->formatted->journalNote($journal, $project, $actor);
         $lines = $this->historyLines->lines(
             $actor,
             $project,

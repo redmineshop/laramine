@@ -69,6 +69,28 @@ final class SettingValue
 
     public const GANTT_MONTHS_LIMIT = 'gantt_months_limit';
 
+    public const TEXT_FORMATTING = 'text_formatting';
+
+    /**
+     * `textile`, `common_mark`, or an empty string for plain text.
+     *
+     * A missing row uses CommonMark, which is the Redmine 7.0.1 default.
+     * A stored blank value is plain text. Any other stored value is plain text.
+     */
+    public function textFormatting(): string
+    {
+        $stored = Setting::query()->where('name', self::TEXT_FORMATTING)->value('value');
+        if (! is_string($stored)) {
+            return 'common_mark';
+        }
+
+        return match (strtolower(trim($stored))) {
+            'textile' => 'textile',
+            'common_mark' => 'common_mark',
+            default => '',
+        };
+    }
+
     /**
      * Redmine `display_subprojects_issues` defaults to 1.
      */
