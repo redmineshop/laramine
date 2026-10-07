@@ -23,9 +23,11 @@ use Tests\TestCase;
  *
  * Saved and ad-hoc queries are checked per actor: ids and order, column
  * cells, list and board display, group counts, totals, private/role/public
- * visibility, custom-field filters, and spent hours under
- * time_entries_visibility. Gantt, other query types, custom-field history
- * operators, descendant hour columns, and SCM are not part of this comparison.
+ * visibility, custom-field filters, `cf` journal details on history
+ * operators and on `updated_by` / `last_updated_by`, and spent hours under
+ * time_entries_visibility. Gantt, other query types, journal presentation
+ * of custom-field history, descendant hour columns, and SCM are not part
+ * of this comparison.
  */
 class IssueQueryParityTest extends TestCase
 {

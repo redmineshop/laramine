@@ -479,6 +479,10 @@ final class AssociationFilterSql
     }
 
     /**
+     * Any visible journal by those users. A journal whose only `journal_details`
+     * row has `property = cf` still counts. Private journals are hidden without
+     * `view_private_notes`.
+     *
      * @param  Builder<Issue>  $query
      */
     private function updatedBy(Builder $query, QueryFilter $filter, ?User $actor, ?Project $project): void
@@ -506,6 +510,7 @@ final class AssociationFilterSql
 
     /**
      * Latest visible journal by id. A private journal is skipped when the actor cannot see it.
+     * A later journal that only records a `property = cf` detail is still that latest journal.
      *
      * @param  Builder<Issue>  $query
      */

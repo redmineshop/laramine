@@ -4,7 +4,7 @@
   "excluded": [
     "gantt and calendar display types",
     "ProjectQuery, TimeEntryQuery, UserQuery, and ProjectAdminQuery",
-    "custom-field history operators",
+    "journals presentation of custom-field history",
     "descendant total_estimated_hours and total_spent_hours",
     "repository, git, and SCM"
   ],
@@ -3353,6 +3353,156 @@
           "rows": []
         }
       ]
+    },
+    {
+      "name": "cf-list-was-beta",
+      "filters": {"cf_2": {"operator": "ev", "values": ["beta"]}},
+      "project_id": 1,
+      "sort": [["id", "asc"]],
+      "runs": [
+        {"login": "ada", "ids": [2]},
+        {"login": "bea", "ids": [2]},
+        {"login": "admin", "ids": [2]},
+        {"login": "erin", "ids": [2]},
+        {"login": "finn", "ids": [2]},
+        {"login": "dora", "ids": []},
+        {"login": "cleo", "ids": []}
+      ]
+    },
+    {
+      "name": "cf-list-changed-from-beta",
+      "filters": {"cf_2": {"operator": "cf", "values": ["beta"]}},
+      "project_id": 1,
+      "sort": [["id", "asc"]],
+      "runs": [
+        {"login": "ada", "ids": [2]},
+        {"login": "bea", "ids": [2]},
+        {"login": "admin", "ids": [2]},
+        {"login": "erin", "ids": [2]},
+        {"login": "finn", "ids": [2]},
+        {"login": "dora", "ids": []},
+        {"login": "cleo", "ids": []}
+      ]
+    },
+    {
+      "name": "cf-list-never-beta",
+      "filters": {"cf_2": {"operator": "!ev", "values": ["beta"]}},
+      "project_id": 1,
+      "sort": [["id", "asc"]],
+      "runs": [
+        {"login": "ada", "ids": [1, 3, 5, 6]},
+        {"login": "bea", "ids": [1, 3, 4, 6]},
+        {"login": "admin", "ids": [1, 3, 4, 5, 6]},
+        {"login": "erin", "ids": [1, 3, 6]},
+        {"login": "finn", "ids": [1, 3, 6]},
+        {"login": "dora", "ids": [5]},
+        {"login": "cleo", "ids": []}
+      ]
+    },
+    {
+      "name": "cf-list-was-alpha",
+      "filters": {"cf_2": {"operator": "ev", "values": ["alpha"]}},
+      "project_id": 1,
+      "sort": [["id", "asc"]],
+      "runs": [
+        {"login": "ada", "ids": [1, 2]},
+        {"login": "bea", "ids": [1, 2]},
+        {"login": "admin", "ids": [1, 2]},
+        {"login": "erin", "ids": [1, 2]},
+        {"login": "finn", "ids": [1, 2]},
+        {"login": "dora", "ids": []},
+        {"login": "cleo", "ids": []}
+      ]
+    },
+    {
+      "name": "cf-list-changed-from-alpha",
+      "filters": {"cf_2": {"operator": "cf", "values": ["alpha"]}},
+      "project_id": 1,
+      "sort": [["id", "asc"]],
+      "runs": [
+        {"login": "ada", "ids": []},
+        {"login": "bea", "ids": []},
+        {"login": "admin", "ids": []},
+        {"login": "erin", "ids": []},
+        {"login": "finn", "ids": []},
+        {"login": "dora", "ids": []},
+        {"login": "cleo", "ids": []}
+      ]
+    },
+    {
+      "name": "cf-list-was-gamma",
+      "filters": {"cf_2": {"operator": "ev", "values": ["gamma"]}},
+      "project_id": 1,
+      "sort": [["id", "asc"]],
+      "runs": [
+        {"login": "ada", "ids": []},
+        {"login": "bea", "ids": [6]},
+        {"login": "admin", "ids": [6]},
+        {"login": "erin", "ids": []},
+        {"login": "finn", "ids": []},
+        {"login": "dora", "ids": []},
+        {"login": "cleo", "ids": []}
+      ]
+    },
+    {
+      "name": "updated-by-finn-cf",
+      "filters": {"updated_by": {"operator": "=", "values": ["9"]}},
+      "project_id": 1,
+      "sort": [["id", "asc"]],
+      "runs": [
+        {"login": "ada", "ids": [2]},
+        {"login": "bea", "ids": [2]},
+        {"login": "admin", "ids": [2]},
+        {"login": "erin", "ids": [2]},
+        {"login": "finn", "ids": [2]},
+        {"login": "dora", "ids": []},
+        {"login": "cleo", "ids": []}
+      ]
+    },
+    {
+      "name": "last-updated-by-finn-cf",
+      "filters": {"last_updated_by": {"operator": "=", "values": ["9"]}},
+      "project_id": 1,
+      "sort": [["id", "asc"]],
+      "runs": [
+        {"login": "ada", "ids": [2]},
+        {"login": "bea", "ids": [2]},
+        {"login": "admin", "ids": [2]},
+        {"login": "erin", "ids": [2]},
+        {"login": "finn", "ids": [2]},
+        {"login": "dora", "ids": []},
+        {"login": "cleo", "ids": []}
+      ]
+    },
+    {
+      "name": "updated-by-bea-private-cf",
+      "filters": {"updated_by": {"operator": "=", "values": ["4"]}},
+      "project_id": 1,
+      "sort": [["id", "asc"]],
+      "runs": [
+        {"login": "ada", "ids": []},
+        {"login": "bea", "ids": [6]},
+        {"login": "admin", "ids": [6]},
+        {"login": "erin", "ids": []},
+        {"login": "finn", "ids": []},
+        {"login": "dora", "ids": []},
+        {"login": "cleo", "ids": []}
+      ]
+    },
+    {
+      "name": "last-updated-by-bea-private-cf",
+      "filters": {"last_updated_by": {"operator": "=", "values": ["4"]}},
+      "project_id": 1,
+      "sort": [["id", "asc"]],
+      "runs": [
+        {"login": "ada", "ids": []},
+        {"login": "bea", "ids": [6]},
+        {"login": "admin", "ids": [6]},
+        {"login": "erin", "ids": []},
+        {"login": "finn", "ids": []},
+        {"login": "dora", "ids": []},
+        {"login": "cleo", "ids": []}
+      ]
     }
   ],
   "denied_adhoc": [
@@ -3455,6 +3605,22 @@
           "asc"
         ]
       ]
+    },
+    {
+      "name": "cf-string-history",
+      "login": "ada",
+      "message": "Operator ev is not valid for cf_1.",
+      "filters": {"cf_1": {"operator": "ev", "values": ["pin"]}},
+      "project_id": 1,
+      "sort": [["id", "asc"]]
+    },
+    {
+      "name": "hidden-cf-history",
+      "login": "bea",
+      "message": "Custom field is not visible: cf_3.",
+      "filters": {"cf_3": {"operator": "ev", "values": ["1"]}},
+      "project_id": 1,
+      "sort": [["id", "asc"]]
     },
     {
       "name": "gantt",

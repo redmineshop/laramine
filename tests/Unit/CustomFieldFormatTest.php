@@ -320,7 +320,7 @@ class CustomFieldFormatTest extends TestCase
         ])));
         $this->assertTrue($format->supportsMultiple());
         $this->assertTrue($format->supportsSearchable());
-        $this->assertSame('list_optional', $format->queryFilterType());
+        $this->assertSame('list_optional_with_history', $format->queryFilterType());
     }
 
     public function test_bool_stores_one_and_zero(): void
@@ -338,6 +338,6 @@ class CustomFieldFormatTest extends TestCase
         $this->assertSame(['Value must be 1 or 0.'], $format->validate($field, 'true', null));
         $this->assertSame([], $format->serialize($field, null));
         $this->assertFalse($format->supportsMultiple());
-        $this->assertSame('list_optional', $format->queryFilterType());
+        $this->assertSame('list_optional_with_history', $format->queryFilterType());
     }
 }

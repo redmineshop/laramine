@@ -1,3 +1,5 @@
 [
-    {"id": 1, "journal_id": 1, "property": "attr", "prop_key": "subject", "old_value": null, "value": "Parity pin parent"}
+    {"id": 1, "journal_id": 1, "property": "attr", "prop_key": "subject", "old_value": null, "value": "Parity pin parent"},
+    {"id": 2, "journal_id": 3, "property": "cf", "prop_key": "2", "old_value": "beta", "value": "alpha"},
+    {"id": 3, "journal_id": 4, "property": "cf", "prop_key": "2", "old_value": "gamma", "value": null}
 ]
