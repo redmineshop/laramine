@@ -45,7 +45,7 @@ class Redmine701FixtureHarnessTest extends TestCase
             }
         }
 
-        $this->assertSame(3, $loaded->nextId('issues'));
+        $this->assertSame(7, $loaded->nextId('issues'));
     }
 
     public function test_loaded_rows_match_the_pin_shape_without_verifying_a_domain(): void
@@ -116,7 +116,7 @@ class Redmine701FixtureHarnessTest extends TestCase
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/', $checklist);
         $this->assertDoesNotMatchRegularExpression(
-            '/^\| (?!P0 table and column layout \|)(?!Users and authentication \|)(?!Identity, membership, and permissions \|)(?!Projects and issue nested sets \|)(?!Workflows \|)(?!Custom fields \|)[^|\n]+\| VERIFIED \|/m',
+            '/^\| (?!P0 table and column layout \|)(?!Users and authentication \|)(?!Identity, membership, and permissions \|)(?!Projects and issue nested sets \|)(?!Workflows \|)(?!Custom fields \|)(?!Queries \|)[^|\n]+\| VERIFIED \|/m',
             $checklist,
         );
     }

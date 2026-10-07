@@ -1,6 +1,6 @@
 # Saved queries and issue filters
 
-Laramine stores saved queries in the Redmine 7.0.1 `queries` and `queries_roles` tables. This is not a Redmine parity claim. The HTTP API and the filter form are not part of this slice. `IssueQuery` is the only type that runs. `ProjectQuery`, `TimeEntryQuery`, `UserQuery`, and `ProjectAdminQuery` can be stored with empty filters and are not executed.
+Laramine stores saved queries in the Redmine 7.0.1 `queries` and `queries_roles` tables. The queries checklist row is **VERIFIED** only by `tests/Parity/IssueQueryParityTest.php` against the shared pin and `tests/Parity/fixtures/redmine-7.0.1/expectations/queries/results.json`. That comparison is not a 0.1 tag. Gantt, calendar, other query types, custom-field history operators, descendant hour columns, and repository or SCM data stay outside it. The HTTP API and the filter form are not part of this slice. `IssueQuery` is the only type that runs. `ProjectQuery`, `TimeEntryQuery`, `UserQuery`, and `ProjectAdminQuery` can be stored with empty filters and are not executed.
 
 ## JSON instead of YAML
 
@@ -234,7 +234,7 @@ An unknown operator or an unknown field is rejected.
 
 ## Still open
 
-These are Laramine gaps. They are not a parity verdict.
+These are Laramine gaps. They stay outside the pin comparison above. They are not a parity verdict for the rest of the product.
 
 | Item | Why it stays open |
 | --- | --- |

@@ -26,5 +26,64 @@
         "sort_criteria": [["id", "asc"]],
         "group_by": null,
         "options": {"display_type": "list"}
+    },
+    {
+        "id": 3,
+        "type": "IssueQuery",
+        "name": "Closed public",
+        "description": "Synthetic public query",
+        "project_id": 1,
+        "user_id": 4,
+        "visibility": 2,
+        "filters": {"status_id": {"operator": "c", "values": []}},
+        "column_names": ["subject"],
+        "sort_criteria": [["id", "asc"]],
+        "group_by": null,
+        "options": {"display_type": "list"}
+    },
+    {
+        "id": 4,
+        "type": "IssueQuery",
+        "name": "Ada global",
+        "description": "Synthetic private global query",
+        "project_id": null,
+        "user_id": 1,
+        "visibility": 0,
+        "filters": {},
+        "column_names": ["id"],
+        "sort_criteria": [["id", "asc"]],
+        "group_by": null,
+        "options": {"display_type": "list"}
+    },
+    {
+        "id": 5,
+        "type": "IssueQuery",
+        "name": "Open for managers",
+        "description": "Synthetic manager role query",
+        "project_id": 1,
+        "user_id": 4,
+        "visibility": 1,
+        "filters": {"status_id": {"operator": "o", "values": []}},
+        "column_names": ["subject", "priority"],
+        "sort_criteria": [["priority", "desc"], ["id", "asc"]],
+        "group_by": null,
+        "options": {"display_type": "list"}
+    },
+    {
+        "id": 6,
+        "type": "IssueQuery",
+        "name": "Open board",
+        "description": "Synthetic public board with totals",
+        "project_id": 1,
+        "user_id": 1,
+        "visibility": 2,
+        "filters": {"status_id": {"operator": "o", "values": []}},
+        "column_names": ["subject", "status", "tracker", "spent_hours"],
+        "sort_criteria": [["id", "asc"]],
+        "group_by": "tracker",
+        "options": {
+            "display_type": "board",
+            "totalable_names": ["estimated_hours", "spent_hours", "cf_6", "cf_7"]
+        }
     }
 ]

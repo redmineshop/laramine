@@ -82,5 +82,19 @@
         "time_entries_visibility": "all",
         "settings": null,
         "default_time_entry_activity_id": null
+    },
+    {
+        "id": 7,
+        "name": "Hour own",
+        "position": 7,
+        "builtin": 0,
+        "assignable": true,
+        "all_roles_managed": false,
+        "permissions": ["view_issues", "view_time_entries", "save_queries"],
+        "issues_visibility": "default",
+        "users_visibility": "members_of_visible_projects",
+        "time_entries_visibility": "own",
+        "settings": null,
+        "default_time_entry_activity_id": null
     }
 ]

@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Laramine
 
-Early MIT Laravel core. Domain goal is Redmine 7.0.1 semantics, reimplemented in original PHP. Read `AGENTS.md` before a large change. The P0 layout, users and authentication, identity, projects nested-set, workflows, and custom fields rows in `docs/parity-checklist.md` are **VERIFIED** by the tests named there. Every other row is **NOT VERIFIED**. Do not describe the project as production-ready.
+Early MIT Laravel core. Domain goal is Redmine 7.0.1 semantics, reimplemented in original PHP. Read `AGENTS.md` before a large change. The P0 layout, users and authentication, identity, projects nested-set, workflows, custom fields, and queries rows in `docs/parity-checklist.md` are **VERIFIED** by the tests named there. Every other row is **NOT VERIFIED**. Do not describe the project as production-ready.
 
 ## Architecture
 

@@ -14,5 +14,8 @@
     {"id": 13, "custom_field_id": 13, "customized_type": "Issue", "customized_id": 1, "value": "alpha"},
     {"id": 14, "custom_field_id": 13, "customized_type": "Issue", "customized_id": 1, "value": "beta"},
     {"id": 15, "custom_field_id": 14, "customized_type": "Issue", "customized_id": 1, "value": "example.test/a"},
-    {"id": 16, "custom_field_id": 15, "customized_type": "Issue", "customized_id": 1, "value": "https://already.test/a"}
+    {"id": 16, "custom_field_id": 15, "customized_type": "Issue", "customized_id": 1, "value": "https://already.test/a"},
+    {"id": 17, "custom_field_id": 1, "customized_type": "Issue", "customized_id": 6, "value": "lane"},
+    {"id": 18, "custom_field_id": 6, "customized_type": "Issue", "customized_id": 6, "value": "8"},
+    {"id": 19, "custom_field_id": 7, "customized_type": "Issue", "customized_id": 5, "value": "0.5"}
 ]
