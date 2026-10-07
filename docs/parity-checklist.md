@@ -15,3 +15,19 @@ No row below is VERIFIED. A row becomes VERIFIED only when a fixture-backed test
 | Queries | NOT VERIFIED | `tests/Unit/IssueQueryOperatorTest.php`, `tests/Unit/IssueQueryFieldTest.php`, `tests/Unit/IssueQueryDisplayTest.php`, `tests/Feature/IssueQueryTest.php`, `tests/Feature/IssueQuerySortTest.php`, and `tests/Feature/IssueQueryDepthTest.php` exercise Laramine operators, saved-query visibility, custom field filters, query totals, sort order, `list`/`board` display, column projection, and `spent_hours` / `spent_time` visibility on MySQL. They do not compare rows with a Redmine 7.0.1 database. Open result-depth items are listed in [queries.md](queries.md). |
 | Journals and private notes | NOT VERIFIED | `tests/Feature/IssueJournalSmokeTest.php`, `tests/Feature/IssueJournalBlockCTest.php`, `tests/Feature/IssueJournalNoteWriteTest.php`, `tests/Feature/IssueJournalHistoryLeftoversTest.php`, `tests/Unit/JournalPresentationTest.php`, and `tests/Unit/JournalQuoteTextTest.php` exercise Laramine journal writes, quote / edit / delete of a note, history presentation, private-note visibility, history-tab filters, `#note-n` hrefs, note-control permissions, download-all zips, thumbnail notes, absolute copy links, and the Spent time and Associated revisions tabs. They do not compare rows with a Redmine 7.0.1 database. Deferred rows stay in [journals-parity-gate.md](journals-parity-gate.md). |
 | Time entries and attachments | NOT VERIFIED | The issue history Spent time tab reads `time_entries` and applies `time_entries_visibility` (`tests/Feature/IssueJournalHistoryLeftoversTest.php`). IssueQuery `spent_hours` totals, the projected column, and the `spent_time` filter use that same `all` / `own` rule (`tests/Feature/IssueQueryDepthTest.php`, `tests/Unit/IssueQueryFieldTest.php`). `TimeEntryService` creates, updates, and deletes rows (`tests/Feature/TimeEntryWriteTest.php`). An attachment custom field can store a file on the local `attachments` disk and bind the row when the value is saved (`tests/Feature/CustomFieldAttachmentUploadTest.php`). `GET /custom-fields/attachments/{id}` serves that file while a custom value still stores the id (`tests/Feature/CustomFieldAssetHttpTest.php`). Download all files zips issue and journal attachments in the leftovers test. Those journal and issue files are not served over HTTP. There is no Redmine dump diff. |
+
+## Full smoke after slices 1–4
+
+Recorded **2026-10-07** on tip `56b74184e38388ab0fb1cc527f06067593e6adac`, after founder slices #23 (`spent_time`), #24 (custom-field HTTP), #22 (checklist smoke), and #25 (Inertia login) were on that tip.
+
+This is a Laramine quality-bar re-run on that checkout (PHP 8.3, MySQL 8.0, Node 22). **PASS** means those commands finished green. It is not a Redmine 7.0.1 comparison, it does not move any row above to **VERIFIED**, and it is not a 0.1 tag.
+
+| Check | Result |
+| --- | --- |
+| Pint (`composer lint`) | PASS |
+| PHPStan level 8 (`composer stan`, 186 files) | PASS |
+| PHPUnit on MySQL 8 (`composer test`) | PASS — 181 tests, 1960 assertions (Unit, Feature, and the Parity boot smoke) |
+| `tests/Feature/CoreChecklistSmokeTest.php` | PASS — 4 tests, in the same PHPUnit run |
+| Frontend (`npm run typecheck`, `npm run build`, client and SSR) | PASS |
+
+Custom fields, queries, journals, users and authentication, and UX stay **NOT VERIFIED**. The Inertia pages are not UI-ready ([ux-parity-notes.md](ux-parity-notes.md)). `tests/Parity` still only boots the application. Checklist **PASS** is not Redmine parity **VERIFIED**.
