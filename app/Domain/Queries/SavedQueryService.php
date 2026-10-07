@@ -33,6 +33,7 @@ final class SavedQueryService
         private readonly IssueQueryTotals $totals,
         private readonly UserQueryCatalog $userQueries,
         private readonly TimeEntryQueryRunner $timeEntries,
+        private readonly ProjectQueryFields $projectFields,
     ) {}
 
     /**
@@ -292,6 +293,13 @@ final class SavedQueryService
 
             return;
         }
+        if ($type === QueryType::PROJECT || $type === QueryType::PROJECT_ADMIN) {
+            foreach (QueryFilter::listFromMap($filters) as $filter) {
+                $this->projectFields->assertFilter($filter, $actor, $type === QueryType::PROJECT_ADMIN);
+            }
+
+            return;
+        }
         if ($type !== QueryType::ISSUE) {
             if ($filters !== []) {
                 throw new QueryValidationException('Only IssueQuery filters are implemented.');
@@ -319,12 +327,39 @@ final class SavedQueryService
 
             return;
         }
+        if ($type === QueryType::PROJECT || $type === QueryType::PROJECT_ADMIN) {
+            $this->assertProjectTotals($options, $actor);
+
+            return;
+        }
         if ($type !== QueryType::ISSUE) {
             return;
         }
 
         IssueQueryDisplay::resolve($options);
         $this->totals->columns($options, $actor, $project);
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $options
+     */
+    private function assertProjectTotals(?array $options, User $actor): void
+    {
+        if ($options === null || ! array_key_exists('totalable_names', $options)) {
+            return;
+        }
+        $raw = $options['totalable_names'];
+        if (! is_array($raw) || ! array_is_list($raw)) {
+            throw new QueryValidationException('Query totals must be a list.');
+        }
+        $names = [];
+        foreach ($raw as $item) {
+            if (! is_string($item) || $item === '') {
+                throw new QueryValidationException('Query totals must be a list of column names.');
+            }
+            $names[] = $item;
+        }
+        $this->projectFields->totals($actor, [], $names);
     }
 
     /**
@@ -357,6 +392,13 @@ final class SavedQueryService
         }
         if ($type === QueryType::TIME_ENTRY) {
             $this->timeEntries->assertStored([], null, $sort, null, $actor, $project);
+
+            return;
+        }
+        if ($type === QueryType::PROJECT || $type === QueryType::PROJECT_ADMIN) {
+            foreach ($sort as [$column, $direction]) {
+                $this->projectFields->assertSort($column, $direction, $actor, ProjectQueryRunner::COLUMNS);
+            }
 
             return;
         }

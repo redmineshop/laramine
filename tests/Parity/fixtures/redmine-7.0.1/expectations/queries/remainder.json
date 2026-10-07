@@ -1,0 +1,345 @@
+{
+    "remaining": {
+        "admin": {
+            "ids": [
+                1,
+                4,
+                5,
+                2,
+                3,
+                6
+            ],
+            "rows": [
+                {
+                    "issue_id": 1,
+                    "estimated_remaining_hours": "2.5",
+                    "estimated_hours": "2.5",
+                    "done_ratio": "0"
+                },
+                {
+                    "issue_id": 4,
+                    "estimated_remaining_hours": "1.25",
+                    "estimated_hours": "1.25",
+                    "done_ratio": "0"
+                },
+                {
+                    "issue_id": 5,
+                    "estimated_remaining_hours": "0.5",
+                    "estimated_hours": "0.5",
+                    "done_ratio": "0"
+                },
+                {
+                    "issue_id": 2,
+                    "estimated_remaining_hours": "0",
+                    "estimated_hours": null,
+                    "done_ratio": "0"
+                },
+                {
+                    "issue_id": 3,
+                    "estimated_remaining_hours": "0",
+                    "estimated_hours": "4",
+                    "done_ratio": "100"
+                },
+                {
+                    "issue_id": 6,
+                    "estimated_remaining_hours": "0",
+                    "estimated_hours": null,
+                    "done_ratio": "0"
+                }
+            ],
+            "totals": {
+                "estimated_remaining_hours": "4.25"
+            }
+        },
+        "finn": {
+            "ids": [
+                1,
+                2,
+                3,
+                6
+            ],
+            "rows": [
+                {
+                    "issue_id": 1,
+                    "estimated_remaining_hours": "2.5",
+                    "estimated_hours": "2.5",
+                    "done_ratio": "0"
+                },
+                {
+                    "issue_id": 2,
+                    "estimated_remaining_hours": "0",
+                    "estimated_hours": null,
+                    "done_ratio": "0"
+                },
+                {
+                    "issue_id": 3,
+                    "estimated_remaining_hours": "0",
+                    "estimated_hours": "4",
+                    "done_ratio": "100"
+                },
+                {
+                    "issue_id": 6,
+                    "estimated_remaining_hours": "0",
+                    "estimated_hours": null,
+                    "done_ratio": "0"
+                }
+            ],
+            "totals": {
+                "estimated_remaining_hours": "2.5"
+            }
+        }
+    },
+    "project_fields": {
+        "admin": {
+            "ids": [
+                1,
+                2
+            ],
+            "columns": [
+                "name",
+                "cf_22",
+                "cf_23",
+                "cf_24",
+                "cf_25",
+                "cf_26"
+            ],
+            "rows": [
+                {
+                    "name": "Parity Core",
+                    "cf_22": "core",
+                    "cf_23": "10.5",
+                    "cf_24": "hidden-core",
+                    "cf_25": "4",
+                    "cf_26": "alpha"
+                },
+                {
+                    "name": "Parity Child",
+                    "cf_22": "child",
+                    "cf_23": "2",
+                    "cf_24": "hidden-child",
+                    "cf_25": null,
+                    "cf_26": "beta"
+                }
+            ]
+        },
+        "ada": {
+            "ids": [
+                1,
+                2
+            ],
+            "columns": [
+                "name",
+                "cf_22",
+                "cf_23",
+                "cf_24",
+                "cf_25",
+                "cf_26"
+            ],
+            "rows": [
+                {
+                    "name": "Parity Core",
+                    "cf_22": "core",
+                    "cf_23": "10.5",
+                    "cf_24": "hidden-core",
+                    "cf_25": "4",
+                    "cf_26": "alpha"
+                },
+                {
+                    "name": "Parity Child",
+                    "cf_22": "child",
+                    "cf_23": "2",
+                    "cf_24": null,
+                    "cf_25": null,
+                    "cf_26": "beta"
+                }
+            ]
+        },
+        "bea": {
+            "ids": [
+                1
+            ],
+            "columns": [
+                "name",
+                "cf_22",
+                "cf_23",
+                "cf_24",
+                "cf_25",
+                "cf_26"
+            ],
+            "rows": [
+                {
+                    "name": "Parity Core",
+                    "cf_22": "core",
+                    "cf_23": "10.5",
+                    "cf_24": "hidden-core",
+                    "cf_25": "4",
+                    "cf_26": "alpha"
+                }
+            ]
+        },
+        "finn": {
+            "ids": [
+                1
+            ],
+            "columns": [
+                "name",
+                "cf_22",
+                "cf_23",
+                "cf_25",
+                "cf_26"
+            ],
+            "rows": [
+                {
+                    "name": "Parity Core",
+                    "cf_22": "core",
+                    "cf_23": "10.5",
+                    "cf_25": "4",
+                    "cf_26": "alpha"
+                }
+            ]
+        },
+        "admin_query": {
+            "ids": [
+                1,
+                2
+            ],
+            "columns": [
+                "name"
+            ],
+            "rows": [
+                {
+                    "name": "Parity Core"
+                },
+                {
+                    "name": "Parity Child"
+                }
+            ]
+        },
+        "admin_denied": "Permission denied: view_project",
+        "label_core": [
+            1
+        ],
+        "budget_at_least_10": [
+            1
+        ],
+        "lane_alpha": [
+            1
+        ],
+        "secret_child_admin": [
+            2
+        ],
+        "secret_core_ada": [
+            1
+        ],
+        "secret_child_ada": [],
+        "secret_blank_ada": [
+            2
+        ],
+        "secret_core_bea": [
+            1
+        ],
+        "finn_secret": "Custom field is not visible: cf_24.",
+        "seats_not_filter": "Custom field is not a filter: cf_25.",
+        "archived_status": "Project status is not available: 9.",
+        "admin_archived": [],
+        "budget_desc": [
+            1,
+            2
+        ],
+        "label_asc": [
+            2,
+            1
+        ],
+        "totals": {
+            "admin": {
+                "cf_23": "12.5",
+                "cf_25": "4"
+            },
+            "ada": {
+                "cf_23": "12.5",
+                "cf_25": "4"
+            },
+            "bea": {
+                "cf_23": "10.5",
+                "cf_25": "4"
+            }
+        },
+        "label_not_total": "Custom field is not totalable: cf_22.",
+        "finn_secret_total": "Custom field is not visible: cf_24."
+    },
+    "history": {
+        "ev_beta": [
+            1,
+            2
+        ],
+        "cf_beta": [
+            1
+        ],
+        "not_ev_alpha": [
+            2
+        ],
+        "ada_private": [],
+        "admin_private": [
+            1
+        ],
+        "bea_private": [
+            1
+        ]
+    },
+    "activity": {
+        "baseline_admin": {
+            "parity-core": "2026-09-01",
+            "parity-child": "2026-08-27"
+        },
+        "baseline_ada": {
+            "parity-core": "2026-08-27",
+            "parity-child": "2026-08-27"
+        },
+        "modules_admin": {
+            "parity-core": "2026-09-14",
+            "parity-child": "2026-09-15"
+        },
+        "modules_ada": {
+            "parity-core": "2026-08-27",
+            "parity-child": "2026-08-27"
+        },
+        "ada_news": {
+            "parity-core": "2026-09-10",
+            "parity-child": "2026-08-27"
+        },
+        "ada_documents": {
+            "parity-core": "2026-09-11",
+            "parity-child": "2026-08-27"
+        },
+        "ada_files": {
+            "parity-core": "2026-09-12",
+            "parity-child": "2026-09-15"
+        },
+        "ada_wiki": {
+            "parity-core": "2026-09-13",
+            "parity-child": "2026-09-15"
+        },
+        "ada_messages": {
+            "parity-core": "2026-09-14",
+            "parity-child": "2026-09-15"
+        },
+        "admin_without_boards": {
+            "parity-core": "2026-09-13",
+            "parity-child": "2026-09-15"
+        },
+        "admin_without_child_files": {
+            "parity-core": "2026-09-13",
+            "parity-child": "2026-08-27"
+        }
+    },
+    "changesets": {
+        "status": "n/a",
+        "excludes": [
+            "repositories",
+            "changesets",
+            "changes",
+            "changeset_parents",
+            "changesets_issues"
+        ]
+    }
+}

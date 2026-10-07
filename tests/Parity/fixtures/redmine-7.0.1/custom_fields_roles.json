@@ -1,4 +1,6 @@
 [
     {"custom_field_id": 3, "role_id": 1},
-    {"custom_field_id": 19, "role_id": 2}
+    {"custom_field_id": 19, "role_id": 2},
+    {"custom_field_id": 24, "role_id": 2},
+    {"custom_field_id": 24, "role_id": 5}
 ]

@@ -27,6 +27,8 @@ use App\Models\Wiki;
 use App\Models\WikiContent;
 use App\Models\WikiPage;
 use DateTimeInterface;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 /**
@@ -68,27 +70,7 @@ final class ActivityProvider
         [$start, $until] = $this->window($from, $days);
         $events = [];
         foreach ($this->projects($actor, $project) as $candidate) {
-            if ($this->moduleEnabled($candidate, 'issue_tracking')) {
-                array_push($events, ...$this->issueEvents($actor, $candidate, $start, $until));
-            }
-            if ($this->moduleEnabled($candidate, 'time_tracking')) {
-                array_push($events, ...$this->timeEvents($actor, $candidate, $start, $until));
-            }
-            if ($this->moduleEnabled($candidate, 'news')) {
-                array_push($events, ...$this->newsEvents($actor, $candidate, $start, $until));
-            }
-            if ($this->moduleEnabled($candidate, 'documents')) {
-                array_push($events, ...$this->documentEvents($actor, $candidate, $start, $until));
-            }
-            if ($this->moduleEnabled($candidate, 'files')) {
-                array_push($events, ...$this->fileEvents($actor, $candidate, $start, $until));
-            }
-            if ($this->moduleEnabled($candidate, 'wiki')) {
-                array_push($events, ...$this->wikiEvents($actor, $candidate, $start, $until));
-            }
-            if ($this->moduleEnabled($candidate, 'boards')) {
-                array_push($events, ...$this->messageEvents($actor, $candidate, $start, $until));
-            }
+            array_push($events, ...$this->gather($actor, $candidate, $start, $until));
         }
 
         usort($events, function (ActivityEvent $left, ActivityEvent $right): int {
@@ -103,6 +85,59 @@ final class ActivityProvider
 
             return $right->id <=> $left->id;
         });
+
+        return $events;
+    }
+
+    /**
+     * Calendar date of the latest visible activity event on one project.
+     *
+     * There is no day window. The providers are the same ones the activity
+     * feed uses. Changesets are not a provider.
+     */
+    public function latestDate(?User $actor, Project $project): ?string
+    {
+        $events = $this->gather($actor, $project, null, null);
+        $latest = null;
+        foreach ($events as $event) {
+            if ($latest === null || $event->at > $latest) {
+                $latest = $event->at;
+            }
+        }
+        if ($latest === null) {
+            return null;
+        }
+
+        return substr($latest, 0, 10);
+    }
+
+    /**
+     * @return list<ActivityEvent>
+     */
+    private function gather(?User $actor, Project $project, ?Carbon $start, ?Carbon $until): array
+    {
+        $events = [];
+        if ($this->moduleEnabled($project, 'issue_tracking')) {
+            array_push($events, ...$this->issueEvents($actor, $project, $start, $until));
+        }
+        if ($this->moduleEnabled($project, 'time_tracking')) {
+            array_push($events, ...$this->timeEvents($actor, $project, $start, $until));
+        }
+        if ($this->moduleEnabled($project, 'news')) {
+            array_push($events, ...$this->newsEvents($actor, $project, $start, $until));
+        }
+        if ($this->moduleEnabled($project, 'documents')) {
+            array_push($events, ...$this->documentEvents($actor, $project, $start, $until));
+        }
+        if ($this->moduleEnabled($project, 'files')) {
+            array_push($events, ...$this->fileEvents($actor, $project, $start, $until));
+        }
+        if ($this->moduleEnabled($project, 'wiki')) {
+            array_push($events, ...$this->wikiEvents($actor, $project, $start, $until));
+        }
+        if ($this->moduleEnabled($project, 'boards')) {
+            array_push($events, ...$this->messageEvents($actor, $project, $start, $until));
+        }
 
         return $events;
     }
@@ -179,7 +214,7 @@ final class ActivityProvider
     /**
      * @return list<ActivityEvent>
      */
-    private function issueEvents(User $actor, Project $project, Carbon $start, Carbon $until): array
+    private function issueEvents(?User $actor, Project $project, ?Carbon $start, ?Carbon $until): array
     {
         if (! $this->permissions->allowed($actor, 'view_issues', $project)) {
             return [];
@@ -199,11 +234,10 @@ final class ActivityProvider
         $events = [];
         $issues = Issue::query()
             ->whereIn('id', $ids)
-            ->where('created_on', '>=', $start->format('Y-m-d H:i:s'))
-            ->where('created_on', '<', $until->format('Y-m-d H:i:s'))
             ->with(['tracker', 'status', 'author'])
-            ->orderBy('id')
-            ->get();
+            ->orderBy('id');
+        $this->applyWindow($issues, 'created_on', $start, $until);
+        $issues = $issues->get();
         foreach ($issues as $issue) {
             $event = $this->issueEvent($issue, $project);
             if ($event instanceof ActivityEvent) {
@@ -214,12 +248,11 @@ final class ActivityProvider
         $journals = Journal::query()
             ->where('journalized_type', IssueJournalWriter::JOURNALIZED_ISSUE)
             ->whereIn('journalized_id', $ids)
-            ->where('created_on', '>=', $start->format('Y-m-d H:i:s'))
-            ->where('created_on', '<', $until->format('Y-m-d H:i:s'))
             ->withCount('details')
             ->with(['user'])
-            ->orderBy('id')
-            ->get();
+            ->orderBy('id');
+        $this->applyWindow($journals, 'created_on', $start, $until);
+        $journals = $journals->get();
         $issueRows = Issue::query()->whereIn('id', $ids)->with(['tracker', 'status'])->get()->keyBy('id');
         $canPrivate = $this->permissions->allowed($actor, 'view_private_notes', $project);
         foreach ($journals as $journal) {
@@ -283,13 +316,15 @@ final class ActivityProvider
     /**
      * @return list<ActivityEvent>
      */
-    private function timeEvents(User $actor, Project $project, Carbon $start, Carbon $until): array
+    private function timeEvents(?User $actor, Project $project, ?Carbon $start, ?Carbon $until): array
     {
+        if (! $actor instanceof User) {
+            return [];
+        }
         $query = $this->timeEntries->apply(TimeEntry::query()->where('project_id', $project->id), $actor, $project)
-            ->where('created_on', '>=', $start->format('Y-m-d H:i:s'))
-            ->where('created_on', '<', $until->format('Y-m-d H:i:s'))
             ->with(['user', 'activity'])
             ->orderBy('id');
+        $this->applyWindow($query, 'created_on', $start, $until);
         $events = [];
         foreach ($query->get() as $entry) {
             $event = $this->timeEvent($entry, $project);
@@ -329,7 +364,7 @@ final class ActivityProvider
     /**
      * @return list<ActivityEvent>
      */
-    private function newsEvents(User $actor, Project $project, Carbon $start, Carbon $until): array
+    private function newsEvents(?User $actor, Project $project, ?Carbon $start, ?Carbon $until): array
     {
         if (! $this->permissions->allowed($actor, 'view_news', $project)) {
             return [];
@@ -337,11 +372,10 @@ final class ActivityProvider
 
         $rows = News::query()
             ->where('project_id', $project->id)
-            ->where('created_on', '>=', $start->format('Y-m-d H:i:s'))
-            ->where('created_on', '<', $until->format('Y-m-d H:i:s'))
             ->with('author')
-            ->orderBy('id')
-            ->get();
+            ->orderBy('id');
+        $this->applyWindow($rows, 'created_on', $start, $until);
+        $rows = $rows->get();
         $events = [];
         foreach ($rows as $news) {
             $author = $news->author;
@@ -365,7 +399,7 @@ final class ActivityProvider
     /**
      * @return list<ActivityEvent>
      */
-    private function documentEvents(User $actor, Project $project, Carbon $start, Carbon $until): array
+    private function documentEvents(?User $actor, Project $project, ?Carbon $start, ?Carbon $until): array
     {
         if (! $this->permissions->allowed($actor, 'view_documents', $project)) {
             return [];
@@ -373,10 +407,9 @@ final class ActivityProvider
 
         $rows = Document::query()
             ->where('project_id', $project->id)
-            ->where('created_on', '>=', $start->format('Y-m-d H:i:s'))
-            ->where('created_on', '<', $until->format('Y-m-d H:i:s'))
-            ->orderBy('id')
-            ->get();
+            ->orderBy('id');
+        $this->applyWindow($rows, 'created_on', $start, $until);
+        $rows = $rows->get();
         $events = [];
         foreach ($rows as $document) {
             $at = $this->stamp($document->created_on);
@@ -399,7 +432,7 @@ final class ActivityProvider
     /**
      * @return list<ActivityEvent>
      */
-    private function fileEvents(User $actor, Project $project, Carbon $start, Carbon $until): array
+    private function fileEvents(?User $actor, Project $project, ?Carbon $start, ?Carbon $until): array
     {
         if (! $this->permissions->allowed($actor, 'view_files', $project)) {
             return [];
@@ -423,11 +456,10 @@ final class ActivityProvider
                     });
                 }
             })
-            ->where('created_on', '>=', $start->format('Y-m-d H:i:s'))
-            ->where('created_on', '<', $until->format('Y-m-d H:i:s'))
             ->with('author')
-            ->orderBy('id')
-            ->get();
+            ->orderBy('id');
+        $this->applyWindow($rows, 'created_on', $start, $until);
+        $rows = $rows->get();
         $events = [];
         foreach ($rows as $attachment) {
             $at = $this->stamp($attachment->created_on);
@@ -451,7 +483,7 @@ final class ActivityProvider
     /**
      * @return list<ActivityEvent>
      */
-    private function wikiEvents(User $actor, Project $project, Carbon $start, Carbon $until): array
+    private function wikiEvents(?User $actor, Project $project, ?Carbon $start, ?Carbon $until): array
     {
         if (! $this->permissions->allowed($actor, 'view_wiki_edits', $project)) {
             return [];
@@ -473,11 +505,10 @@ final class ActivityProvider
         $events = [];
         $contents = WikiContent::query()
             ->whereIn('page_id', $pageIds)
-            ->where('updated_on', '>=', $start->format('Y-m-d H:i:s'))
-            ->where('updated_on', '<', $until->format('Y-m-d H:i:s'))
             ->with(['author', 'page'])
-            ->orderBy('id')
-            ->get();
+            ->orderBy('id');
+        $this->applyWindow($contents, 'updated_on', $start, $until);
+        $contents = $contents->get();
         foreach ($contents as $content) {
             $page = $content->page;
             $author = $content->author;
@@ -501,7 +532,7 @@ final class ActivityProvider
     /**
      * @return list<ActivityEvent>
      */
-    private function messageEvents(User $actor, Project $project, Carbon $start, Carbon $until): array
+    private function messageEvents(?User $actor, Project $project, ?Carbon $start, ?Carbon $until): array
     {
         if (! $this->permissions->allowed($actor, 'view_messages', $project)) {
             return [];
@@ -519,11 +550,10 @@ final class ActivityProvider
         $events = [];
         $messages = Message::query()
             ->whereIn('board_id', $boardIds)
-            ->where('created_on', '>=', $start->format('Y-m-d H:i:s'))
-            ->where('created_on', '<', $until->format('Y-m-d H:i:s'))
             ->with(['author', 'board'])
-            ->orderBy('id')
-            ->get();
+            ->orderBy('id');
+        $this->applyWindow($messages, 'created_on', $start, $until);
+        $messages = $messages->get();
         foreach ($messages as $message) {
             $board = $message->board;
             $author = $message->author;
@@ -569,6 +599,21 @@ final class ActivityProvider
         $statusName = $status instanceof IssueStatus ? (string) $status->name : '';
 
         return $trackerName.' #'.$issue->id.' ('.$statusName.'): '.$issue->subject;
+    }
+
+    /**
+     * @template TModel of Model
+     *
+     * @param  Builder<TModel>  $query
+     */
+    private function applyWindow(Builder $query, string $column, ?Carbon $start, ?Carbon $until): void
+    {
+        if ($start instanceof Carbon) {
+            $query->where($column, '>=', $start->format('Y-m-d H:i:s'));
+        }
+        if ($until instanceof Carbon) {
+            $query->where($column, '<', $until->format('Y-m-d H:i:s'));
+        }
     }
 
     private function stamp(mixed $value): ?string
