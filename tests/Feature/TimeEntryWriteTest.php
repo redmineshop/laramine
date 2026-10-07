@@ -172,6 +172,7 @@ class TimeEntryWriteTest extends TestCase
         );
         $logged = $entries->create($actor, $world->project, [...$base, 'activity_id' => null]);
         $this->assertSame($system->id, (int) $logged->activity_id);
+        $logged->delete();
         $second = $this->activity('Support', ['position' => 2]);
         $this->expectInvalid(
             fn () => $entries->create($actor, $world->project, [...$base, 'activity_id' => null]),

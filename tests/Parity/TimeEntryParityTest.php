@@ -614,10 +614,16 @@ class TimeEntryParityTest extends TestCase
         Role::query()->whereIn('id', [1, 2])->update(['default_time_entry_activity_id' => 3]);
         $extra = Role::query()->where('name', 'like', 'parity-activity-%')->pluck('id');
         if ($extra->isNotEmpty()) {
-            MemberRole::query()->whereIn('role_id', $extra->all())->delete();
+            $memberRoleIds = MemberRole::query()->whereIn('role_id', $extra->all())->pluck('id');
+            if ($memberRoleIds->isNotEmpty()) {
+                MemberRole::query()->whereIn('inherited_from', $memberRoleIds->all())->update(['inherited_from' => null]);
+                MemberRole::query()->whereIn('id', $memberRoleIds->all())->update(['inherited_from' => null]);
+                MemberRole::query()->whereIn('id', $memberRoleIds->all())->delete();
+            }
             Role::query()->whereIn('id', $extra->all())->update(['default_time_entry_activity_id' => null]);
             Role::query()->whereIn('id', $extra->all())->delete();
         }
+        Enumeration::query()->where('type', 'TimeEntryActivity')->where('id', '!=', 3)->update(['parent_id' => null]);
         Enumeration::query()->where('type', 'TimeEntryActivity')->where('id', '!=', 3)->delete();
         Enumeration::query()->whereKey(3)->update(['active' => true, 'is_default' => true]);
     }

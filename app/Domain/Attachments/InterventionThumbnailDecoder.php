@@ -61,12 +61,6 @@ final class InterventionThumbnailDecoder implements ThumbnailDecoder
         }
         $width = imagesx($image);
         $height = imagesy($image);
-        if ($width < 1 || $height < 1) {
-            imagedestroy($image);
-
-            return null;
-        }
-
         $rgb = '';
         for ($y = 0; $y < $height; $y++) {
             for ($x = 0; $x < $width; $x++) {

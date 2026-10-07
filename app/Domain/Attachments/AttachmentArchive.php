@@ -235,10 +235,11 @@ final class AttachmentArchive
                 ->orderBy('id')
                 ->get() as $detail
         ) {
-            if (! is_string($detail->value) || $detail->value === '') {
+            $value = $detail->getAttribute('value');
+            if (! is_string($value) || $value === '') {
                 continue;
             }
-            $key = $detail->prop_key;
+            $key = $detail->getAttribute('prop_key');
             if (is_string($key) && preg_match('/^\d+$/', $key) === 1) {
                 $ids[] = (int) $key;
             }
@@ -257,7 +258,11 @@ final class AttachmentArchive
 
     private function isReadable(Attachment $attachment): bool
     {
-        $path = $this->files->absolutePath($attachment);
+        try {
+            $path = $this->files->absolutePath($attachment);
+        } catch (DomainException) {
+            return false;
+        }
 
         return is_file($path) && is_readable($path);
     }

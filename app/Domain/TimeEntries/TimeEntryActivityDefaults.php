@@ -88,14 +88,7 @@ final class TimeEntryActivityDefaults
             $query->whereNotIn('id', $overridden);
         }
 
-        $rows = [];
-        foreach ($query->get() as $row) {
-            if ($row instanceof Enumeration) {
-                $rows[] = $row;
-            }
-        }
-
-        return $rows;
+        return array_values($query->get()->all());
     }
 
     /**
@@ -131,12 +124,9 @@ final class TimeEntryActivityDefaults
             return [];
         }
 
-        $roles = [];
-        foreach (Role::query()->whereIn('id', $roleIds)->whereNotNull('default_time_entry_activity_id')->get() as $role) {
-            if ($role instanceof Role) {
-                $roles[] = $role;
-            }
-        }
+        $roles = array_values(
+            Role::query()->whereIn('id', $roleIds)->whereNotNull('default_time_entry_activity_id')->get()->all(),
+        );
         usort($roles, function (Role $left, Role $right): int {
             $builtin = ((int) $left->builtin) <=> ((int) $right->builtin);
             if ($builtin !== 0) {

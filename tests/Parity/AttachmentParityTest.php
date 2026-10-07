@@ -35,6 +35,24 @@ class AttachmentParityTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $directory = storage_path('app/attachments/thumbnails');
+        if (! is_dir($directory)) {
+            return;
+        }
+        $matches = glob($directory.'/*');
+        if ($matches === false) {
+            return;
+        }
+        foreach ($matches as $path) {
+            if (is_file($path)) {
+                unlink($path);
+            }
+        }
+    }
+
     public function test_http_download_thumbnail_and_journals_match_the_pin(): void
     {
         Redmine701Fixture::load();
@@ -365,6 +383,9 @@ class AttachmentParityTest extends TestCase
             ->assertJsonPath('message', $this->stringField($expected, 'not_image_message'));
 
         $this->app->instance(ThumbnailDecoder::class, new AbsentThumbnailDecoder);
+        foreach ($this->app->make('router')->getRoutes() as $route) {
+            $route->flushController();
+        }
         $jpeg = $this->raster('jpeg', $this->intField($expected, 'width'), $this->intField($expected, 'height'));
         $jpegId = $this->claimFile($ada, 'again.jpg', $jpeg, 'image/jpeg', $issueId);
         $this->actingAs($ada)->getJson('/attachments/'.$jpegId.'/thumbnail?size='.$edge)
@@ -395,6 +416,7 @@ class AttachmentParityTest extends TestCase
         $this->actingAs($ada)->getJson('/attachments/issues/'.$this->intField($expected, 'missing_id').'/download')
             ->assertNotFound()
             ->assertJsonPath('message', $this->stringField($expected, 'missing_message'));
+        $this->app['auth']->logout();
         $this->getJson('/attachments/issues/'.$issueId.'/download')
             ->assertStatus($this->intField($expected, 'guest_status'))
             ->assertJsonPath('message', 'Permission denied: '.$this->stringField($expected, 'guest_permission'));
