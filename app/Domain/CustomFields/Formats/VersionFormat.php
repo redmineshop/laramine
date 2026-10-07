@@ -4,20 +4,24 @@ namespace App\Domain\CustomFields\Formats;
 
 use App\Domain\CustomFields\CustomizedContext;
 use App\Domain\CustomFields\FieldValues;
+use App\Domain\Projects\VersionAvailability;
 use App\Models\CustomField;
 use App\Models\Version;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Stores a version id string. The version must belong to the record's project.
- * `format_store.version_status` optionally limits status (`open`, `locked`, `closed`).
- * Version sharing across projects is not applied.
+ * Stores a version id string. The version must be available on the record's
+ * project, including versions shared onto that project. `format_store.version_status`
+ * optionally limits status (`open`, `locked`, `closed`).
  */
 final class VersionFormat extends AbstractFormat
 {
     private const STATUSES = ['open', 'locked', 'closed'];
 
-    public function __construct(private readonly CustomizedContext $context) {}
+    public function __construct(
+        private readonly CustomizedContext $context,
+        private readonly VersionAvailability $versions,
+    ) {}
 
     public function key(): string
     {
@@ -85,7 +89,7 @@ final class VersionFormat extends AbstractFormat
                 $errors[] = 'Version does not exist.';
                 break;
             }
-            if ($project !== null && (int) $version->project_id !== (int) $project->id) {
+            if ($project !== null && ! $this->versions->available($version, $project)) {
                 $errors[] = 'Version is not available for this project.';
                 break;
             }

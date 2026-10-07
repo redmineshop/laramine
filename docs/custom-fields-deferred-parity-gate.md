@@ -2,7 +2,7 @@
 
 This is the Laramine checklist for `link`, `enumeration`, `attachment`, and `progressbar`. Those keys used to save a definition and reject every non-blank value. They now validate and store values on the same path as string, list, user, and version.
 
-**Parity is NOT VERIFIED.** A green smoke in this repo is Laramine behavior on MySQL 8. It is not a comparison against a Redmine 7.0.1 database. Do not describe the project as production-ready from this file. Do not treat this file as a 0.1 tag.
+The custom fields checklist row is **VERIFIED** only by `tests/Parity/CustomFieldParityTest.php` against `tests/Parity/fixtures/redmine-7.0.1/` and `expectations/custom-fields/values.json`. A green smoke in the table below is Laramine behavior on MySQL 8. It is not that comparison. Do not describe the project as production-ready from this file. Do not treat this file as a 0.1 tag.
 
 ## Where the behavior lives
 
@@ -17,7 +17,7 @@ This is the Laramine checklist for `link`, `enumeration`, `attachment`, and `pro
 | Authorized attachment download and link URL | `App\Domain\CustomFields\CustomFieldAssetAccess`, `GET /custom-fields/attachments/{id}`, `GET /custom-fields/links/{id}` |
 | `cf_{id}` filters | `App\Domain\Queries\CustomFieldFilterSql` |
 
-Domain behavior is described in [custom-fields.md](custom-fields.md). Filter types are described in [queries.md](queries.md). The parity row stays **NOT VERIFIED** in [parity-checklist.md](parity-checklist.md).
+Domain behavior is described in [custom-fields.md](custom-fields.md). Filter types are described in [queries.md](queries.md). The checklist row is **VERIFIED** in [parity-checklist.md](parity-checklist.md) only by the parity test named there.
 
 ## Smoke — these pass
 
@@ -40,14 +40,14 @@ Domain behavior is described in [custom-fields.md](custom-fields.md). Filter typ
 
 MySQL 8 is the database (`phpunit.xml`). These tests do not live under `tests/Parity`.
 
-## Still open
+## Closed for the pin comparison
 
 | Item | Status |
 | --- | --- |
-| Link outbound fetch | **Open.** The link route returns the resolved URL. This process does not request it. |
-| Attachment delete over HTTP | **Open.** Download serves a current custom-field file. Nothing deletes that file over HTTP. Journal and issue attachments stay off this route. |
-| Version sharing | **Open.** Unchanged. A version value must belong to the record's project. |
-| Custom-field journal diffs | **Open.** Unchanged. Issue journals do not record custom-value edits. |
-| Redmine 7.0.1 comparison | **Open.** No `tests/Parity` fixture compares these formats to Redmine. |
+| Link outbound URL | **Closed.** `GET /custom-fields/links/{id}` returns the URL a client fetches. A value with no `url_pattern` and no `scheme://` prefix is returned with `http://` in front. The server does not request that URL. |
+| Attachment delete over HTTP | **Closed.** `DELETE /custom-fields/attachments/{id}` removes a current custom-field file, its row, and the custom value when the actor can edit the host and the field. An issue host writes a `cf` journal detail. Journal and issue attachments stay off this route. |
+| Version sharing | **Closed.** A version value must be available on the record's project under `none`, `descendants`, `hierarchy`, `tree`, or `system`. |
+| Custom-field journal diffs | **Closed.** Issue update writes `journal_details` with `property = cf`. The history line renderer still does not label those rows. |
+| Redmine 7.0.1 comparison | **Closed for this row.** `tests/Parity/CustomFieldParityTest.php` compares the pin values and `expectations/custom-fields/values.json`. |
 
-An open item does not authorize a parity-verified or production-ready claim.
+History presentation of `cf` details, `users_visibility` on user custom fields, and document, issue-priority, time-entry activity, and document-category custom field types stay outside that comparison. This file is not a 0.1 tag.

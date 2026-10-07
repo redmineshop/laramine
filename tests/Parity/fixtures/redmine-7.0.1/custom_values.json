@@ -2,5 +2,17 @@
     {"id": 1, "custom_field_id": 1, "customized_type": "Issue", "customized_id": 1, "value": "pin"},
     {"id": 2, "custom_field_id": 2, "customized_type": "Issue", "customized_id": 1, "value": "alpha"},
     {"id": 3, "custom_field_id": 3, "customized_type": "Issue", "customized_id": 1, "value": "1"},
-    {"id": 4, "custom_field_id": 4, "customized_type": "Issue", "customized_id": 1, "value": "pin-link"}
+    {"id": 4, "custom_field_id": 4, "customized_type": "Issue", "customized_id": 1, "value": "pin-link"},
+    {"id": 5, "custom_field_id": 5, "customized_type": "Issue", "customized_id": 1, "value": "note"},
+    {"id": 6, "custom_field_id": 6, "customized_type": "Issue", "customized_id": 1, "value": "42"},
+    {"id": 7, "custom_field_id": 7, "customized_type": "Issue", "customized_id": 1, "value": "1.5"},
+    {"id": 8, "custom_field_id": 8, "customized_type": "Issue", "customized_id": 1, "value": "2026-08-26"},
+    {"id": 9, "custom_field_id": 9, "customized_type": "Issue", "customized_id": 1, "value": "1"},
+    {"id": 10, "custom_field_id": 10, "customized_type": "Issue", "customized_id": 1, "value": "1"},
+    {"id": 11, "custom_field_id": 11, "customized_type": "Issue", "customized_id": 1, "value": "1"},
+    {"id": 12, "custom_field_id": 12, "customized_type": "Issue", "customized_id": 1, "value": "50"},
+    {"id": 13, "custom_field_id": 13, "customized_type": "Issue", "customized_id": 1, "value": "alpha"},
+    {"id": 14, "custom_field_id": 13, "customized_type": "Issue", "customized_id": 1, "value": "beta"},
+    {"id": 15, "custom_field_id": 14, "customized_type": "Issue", "customized_id": 1, "value": "example.test/a"},
+    {"id": 16, "custom_field_id": 15, "customized_type": "Issue", "customized_id": 1, "value": "https://already.test/a"}
 ]

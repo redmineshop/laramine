@@ -10,5 +10,89 @@
         "wiki_page_title": null,
         "created_on": "2026-08-26 12:00:00",
         "updated_on": "2026-08-26 12:00:00"
+    },
+    {
+        "id": 2,
+        "project_id": 1,
+        "name": "Shared down",
+        "description": "Synthetic version shared with subprojects",
+        "status": "open",
+        "sharing": "descendants",
+        "effective_date": null,
+        "wiki_page_title": null,
+        "created_on": "2026-08-26 12:00:00",
+        "updated_on": "2026-08-26 12:00:00"
+    },
+    {
+        "id": 3,
+        "project_id": 2,
+        "name": "Shared up",
+        "description": "Synthetic version shared with the project hierarchy",
+        "status": "open",
+        "sharing": "hierarchy",
+        "effective_date": null,
+        "wiki_page_title": null,
+        "created_on": "2026-08-26 12:00:00",
+        "updated_on": "2026-08-26 12:00:00"
+    },
+    {
+        "id": 4,
+        "project_id": 2,
+        "name": "Child down",
+        "description": "Synthetic version shared only with descendants of the child",
+        "status": "open",
+        "sharing": "descendants",
+        "effective_date": null,
+        "wiki_page_title": null,
+        "created_on": "2026-08-26 12:00:00",
+        "updated_on": "2026-08-26 12:00:00"
+    },
+    {
+        "id": 5,
+        "project_id": 1,
+        "name": "Tree",
+        "description": "Synthetic version shared with the project tree",
+        "status": "open",
+        "sharing": "tree",
+        "effective_date": null,
+        "wiki_page_title": null,
+        "created_on": "2026-08-26 12:00:00",
+        "updated_on": "2026-08-26 12:00:00"
+    },
+    {
+        "id": 6,
+        "project_id": 1,
+        "name": "System",
+        "description": "Synthetic version shared with every project",
+        "status": "open",
+        "sharing": "system",
+        "effective_date": null,
+        "wiki_page_title": null,
+        "created_on": "2026-08-26 12:00:00",
+        "updated_on": "2026-08-26 12:00:00"
+    },
+    {
+        "id": 7,
+        "project_id": 2,
+        "name": "Child only",
+        "description": "Synthetic version that is not shared",
+        "status": "open",
+        "sharing": "none",
+        "effective_date": null,
+        "wiki_page_title": null,
+        "created_on": "2026-08-26 12:00:00",
+        "updated_on": "2026-08-26 12:00:00"
+    },
+    {
+        "id": 8,
+        "project_id": 1,
+        "name": "Locked",
+        "description": "Synthetic locked version shared with every project",
+        "status": "locked",
+        "sharing": "system",
+        "effective_date": null,
+        "wiki_page_title": null,
+        "created_on": "2026-08-26 12:00:00",
+        "updated_on": "2026-08-26 12:00:00"
     }
 ]

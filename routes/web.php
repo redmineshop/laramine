@@ -14,6 +14,10 @@ Route::get('/custom-fields/attachments/{attachment}', [CustomFieldAssetControlle
     ->whereNumber('attachment')
     ->name('custom-fields.attachments.download');
 
+Route::delete('/custom-fields/attachments/{attachment}', [CustomFieldAssetController::class, 'destroy'])
+    ->whereNumber('attachment')
+    ->name('custom-fields.attachments.destroy');
+
 Route::get('/custom-fields/links/{customValue}', [CustomFieldAssetController::class, 'show'])
     ->whereNumber('customValue')
     ->name('custom-fields.links.show');

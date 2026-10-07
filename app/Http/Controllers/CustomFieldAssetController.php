@@ -10,10 +10,11 @@ use App\Models\CustomValue;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
- * Serves a custom-field attachment and resolves a link custom value.
+ * Serves or deletes a custom-field attachment and resolves a link custom value.
  *
  * The signed-in user is the session user. A guest is a null actor. This
  * controller does not sign anyone in.
@@ -38,6 +39,19 @@ class CustomFieldAssetController extends Controller
         }
 
         return response()->download($file->absolutePath, $file->filename, $headers);
+    }
+
+    public function destroy(Request $request, Attachment $attachment): JsonResponse|Response
+    {
+        try {
+            $this->access->delete($this->actor($request), $attachment);
+        } catch (PermissionDeniedException $denied) {
+            return $this->denied($denied);
+        } catch (DomainException $exception) {
+            return $this->missing($exception);
+        }
+
+        return response()->noContent();
     }
 
     public function show(Request $request, CustomValue $customValue): JsonResponse

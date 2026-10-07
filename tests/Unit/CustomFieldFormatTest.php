@@ -76,6 +76,20 @@ class CustomFieldFormatTest extends TestCase
         $this->assertSame(['url_pattern must be a string.'], $format->validateDefinition(new CustomField([
             'format_store' => ['url_pattern' => 12],
         ])));
+        $this->assertSame([], $format->validateDefinition($field));
+        $this->assertSame(
+            ['url_pattern must use http, https, ftp, mailto, or a path.'],
+            $format->validateDefinition(new CustomField([
+                'format_store' => ['url_pattern' => 'javascript:alert(%value%)'],
+            ])),
+        );
+        $this->assertSame('http://example.test/a', $format->outboundUrl(new CustomField, 'example.test/a', 1));
+        $this->assertSame('https://already.test/a', $format->outboundUrl(new CustomField, 'https://already.test/a', 1));
+        $this->assertSame('http://mailto:a@b.test', $format->outboundUrl(new CustomField, 'mailto:a@b.test', 1));
+        $this->assertSame(
+            'https://links.test/9/https://example.test/a',
+            $format->outboundUrl($field, 'https://example.test/a', 9),
+        );
     }
 
     public function test_link_formatted_url_encodes_tokens_and_keeps_the_pattern(): void

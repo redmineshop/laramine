@@ -1,0 +1,95 @@
+{
+    "pin": "7.0.1",
+    "issue_id": 1,
+    "values": [
+        {"custom_field_id": 1, "field_format": "string", "raw": ["pin"]},
+        {"custom_field_id": 2, "field_format": "list", "raw": ["alpha"]},
+        {"custom_field_id": 3, "field_format": "enumeration", "raw": ["1"]},
+        {"custom_field_id": 4, "field_format": "link", "raw": ["pin-link"]},
+        {"custom_field_id": 5, "field_format": "text", "raw": ["note"]},
+        {"custom_field_id": 6, "field_format": "int", "raw": ["42"]},
+        {"custom_field_id": 7, "field_format": "float", "raw": ["1.5"]},
+        {"custom_field_id": 8, "field_format": "date", "raw": ["2026-08-26"]},
+        {"custom_field_id": 9, "field_format": "bool", "raw": ["1"]},
+        {"custom_field_id": 10, "field_format": "user", "raw": ["1"]},
+        {"custom_field_id": 11, "field_format": "version", "raw": ["1"]},
+        {"custom_field_id": 12, "field_format": "progressbar", "raw": ["50"]},
+        {"custom_field_id": 13, "field_format": "list", "raw": ["alpha", "beta"]},
+        {"custom_field_id": 14, "field_format": "link", "raw": ["example.test/a"]},
+        {"custom_field_id": 15, "field_format": "link", "raw": ["https://already.test/a"]}
+    ],
+    "hidden_login": "bea",
+    "hidden_field_id": 3,
+    "outbound": [
+        {"custom_value_id": 4, "url": "https://example.test/pin-link"},
+        {"custom_value_id": 15, "url": "http://example.test/a"},
+        {"custom_value_id": 16, "url": "https://already.test/a"}
+    ],
+    "outbound_rules": [
+        {"value": "mailto:a@b.test", "url": "http://mailto:a@b.test"}
+    ],
+    "rejected_patterns": ["javascript:alert(%value%)", "file:///tmp/x"],
+    "sharing": [
+        {"version_id": 1, "project_id": 1, "available": true},
+        {"version_id": 1, "project_id": 2, "available": false},
+        {"version_id": 2, "project_id": 2, "available": true},
+        {"version_id": 3, "project_id": 1, "available": true},
+        {"version_id": 4, "project_id": 1, "available": false},
+        {"version_id": 4, "project_id": 2, "available": true},
+        {"version_id": 5, "project_id": 2, "available": true},
+        {"version_id": 6, "project_id": 2, "available": true},
+        {"version_id": 7, "project_id": 1, "available": false},
+        {"version_id": 7, "project_id": 2, "available": true}
+    ],
+    "sharing_other_root": {
+        "name": "Parity Other",
+        "identifier": "parity-other",
+        "cases": [
+            {"version_id": 5, "available": false},
+            {"version_id": 6, "available": true},
+            {"version_id": 7, "available": false}
+        ]
+    },
+    "reject_version": {"login": "ada", "issue_id": 1, "field_id": 11, "version_id": 7, "message": "Version is not available"},
+    "reject_locked": {"login": "ada", "issue_id": 1, "field_id": 11, "version_id": 8, "message": "Version status is not allowed"},
+    "accept_shared": {
+        "login": "ada",
+        "issue_id": 1,
+        "field_id": 11,
+        "version_id": 3,
+        "journal": {"property": "cf", "prop_key": "11", "old_value": "1", "value": "3"}
+    },
+    "journal": {
+        "login": "ada",
+        "issue_id": 1,
+        "subject": "Renamed pin",
+        "unchanged_field_id": 6,
+        "unchanged_value": "42",
+        "details": [
+            {"property": "attr", "prop_key": "subject", "old_value": "Parity pin parent", "value": "Renamed pin"},
+            {"property": "cf", "prop_key": "1", "old_value": "pin", "value": "next"}
+        ]
+    },
+    "journal_multiple": {
+        "field_id": 13,
+        "value": ["beta"],
+        "property": "cf",
+        "prop_key": "13",
+        "old_value": "alpha,beta",
+        "value_text": "beta"
+    },
+    "journal_clear": {
+        "field_id": 1,
+        "property": "cf",
+        "prop_key": "1",
+        "old_value": "next",
+        "value": null
+    },
+    "attachment_delete": {
+        "login": "ada",
+        "denied_login": "erin",
+        "outsider_login": "cleo",
+        "property": "cf",
+        "value": null
+    }
+}
