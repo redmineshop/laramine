@@ -31,6 +31,10 @@ final class IssueHistoryPresenter
 
     public const TAB_PROPERTIES = 'Property changes';
 
+    public const TAB_SPENT_TIME = 'Spent time';
+
+    public const TAB_REVISIONS = 'Associated revisions';
+
     /**
      * @var array<string, string>
      */
@@ -65,6 +69,9 @@ final class IssueHistoryPresenter
         private readonly JournalDetailFormatter $details,
         private readonly JournalActionList $actions,
         private readonly TextileEmphasis $textile,
+        private readonly IssueCopyLink $copyLinks,
+        private readonly JournalAttachmentList $attachments,
+        private readonly IssueHistorySides $sides,
     ) {}
 
     /**
@@ -78,11 +85,14 @@ final class IssueHistoryPresenter
         }
 
         $entries = $this->entries($actor, $issue, $project);
+        $side = $this->sides->forIssue($actor, $issue, $project);
         [$notes, $properties] = $this->tabEntries($entries);
+        $issueId = (int) $issue->id;
+        $issueFiles = $this->attachments->forIssue($issue);
 
         return new IssueShowView(
-            $entries !== [],
-            $this->tabLabels($entries),
+            $entries !== [] || $side->spentTimeVisible || $side->changesets !== [],
+            $this->tabLabels($entries, $side),
             $entries,
             $notes,
             $properties,
@@ -91,6 +101,10 @@ final class IssueHistoryPresenter
             false,
             $justUpdated ? self::SUCCESSFUL_UPDATE : null,
             $justUpdated ? 'green' : null,
+            $issueFiles,
+            $this->attachments->downloadAllItem('Issue', $issueId, count($issueFiles)),
+            $side->spentTimeVisible ? $side->timeEntries : [],
+            $side->changesets,
         );
     }
 
@@ -98,34 +112,39 @@ final class IssueHistoryPresenter
      * @param  list<JournalEntryView>  $entries
      * @return list<string>
      */
-    private function tabLabels(array $entries): array
+    private function tabLabels(array $entries, IssueHistorySideView $side): array
     {
-        if ($entries === []) {
-            return [];
-        }
+        $labels = [];
+        if ($entries !== []) {
+            $hasNotes = false;
+            $hasDetails = false;
+            foreach ($entries as $entry) {
+                $hasNotes = $hasNotes || $entry->hasNote || $entry->hasThumbnails;
+                $hasDetails = $hasDetails || $entry->hasDetails;
+            }
 
-        $hasNotes = false;
-        $hasDetails = false;
-        foreach ($entries as $entry) {
-            $hasNotes = $hasNotes || $entry->hasNote;
-            $hasDetails = $hasDetails || $entry->hasDetails;
+            $labels[] = self::TAB_HISTORY;
+            if ($hasNotes) {
+                $labels[] = self::TAB_NOTES;
+            }
+            if ($hasDetails) {
+                $labels[] = self::TAB_PROPERTIES;
+            }
         }
-
-        $labels = [self::TAB_HISTORY];
-        if ($hasNotes) {
-            $labels[] = self::TAB_NOTES;
+        if ($side->spentTimeVisible) {
+            $labels[] = self::TAB_SPENT_TIME;
         }
-        if ($hasDetails) {
-            $labels[] = self::TAB_PROPERTIES;
+        if ($side->changesets !== []) {
+            $labels[] = self::TAB_REVISIONS;
         }
 
         return $labels;
     }
 
     /**
-     * Notes keeps journals with note text. Property changes keeps journals
-     * that stored a detail, and drops the note body plus every control except
-     * reaction.
+     * Notes keeps journals with note text or a thumbnail. Property changes keeps
+     * journals that stored a detail, and drops the note body plus every control
+     * except reaction.
      *
      * @param  list<JournalEntryView>  $entries
      * @return array{0: list<JournalEntryView>, 1: list<JournalEntryView>}
@@ -135,7 +154,7 @@ final class IssueHistoryPresenter
         $notes = [];
         $properties = [];
         foreach ($entries as $entry) {
-            if ($entry->hasNote) {
+            if ($entry->hasNote || $entry->hasThumbnails) {
                 $notes[] = $entry;
             }
             if ($entry->hasDetails) {
@@ -166,6 +185,8 @@ final class IssueHistoryPresenter
             $actions,
             $entry->privateNotes,
             $entry->hasDetails,
+            $entry->hasThumbnails,
+            $entry->attachments,
         );
     }
 
@@ -181,12 +202,29 @@ final class IssueHistoryPresenter
             ->with('details')
             ->get();
 
-        $entries = [];
+        $visible = [];
         foreach ($journals as $journal) {
-            if (! $this->visible($actor, $project, (bool) $journal->private_notes)) {
-                continue;
+            if ($this->visible($actor, $project, (bool) $journal->private_notes)) {
+                $visible[] = $journal;
             }
-            $entries[] = $this->entry($actor, $project, $journal, count($entries) + 1);
+        }
+
+        $ids = [];
+        foreach ($visible as $journal) {
+            $ids[] = (int) $journal->id;
+        }
+        $files = $this->attachments->grouped('Journal', $ids);
+
+        $entries = [];
+        foreach ($visible as $journal) {
+            $entries[] = $this->entry(
+                $actor,
+                $issue,
+                $project,
+                $journal,
+                count($entries) + 1,
+                $files[(int) $journal->id] ?? [],
+            );
         }
 
         return $entries;
@@ -197,8 +235,17 @@ final class IssueHistoryPresenter
         return $this->noteAccess->canView($actor, $project, $privateNotes);
     }
 
-    private function entry(User $actor, Project $project, Journal $journal, int $displayNumber): JournalEntryView
-    {
+    /**
+     * @param  list<JournalAttachmentView>  $files
+     */
+    private function entry(
+        User $actor,
+        Issue $issue,
+        Project $project,
+        Journal $journal,
+        int $displayNumber,
+        array $files,
+    ): JournalEntryView {
         $noteText = is_string($journal->notes) && trim($journal->notes) !== '' ? $journal->notes : null;
         $hasNote = $noteText !== null;
         $noteHtml = $noteText === null ? null : $this->textile->render($noteText);
@@ -211,10 +258,16 @@ final class IssueHistoryPresenter
             }
         }
 
+        $hasThumbnails = false;
+        foreach ($files as $file) {
+            $hasThumbnails = $hasThumbnails || $file->thumbnailable;
+        }
+
         $anchorHref = '#note-'.$displayNumber;
+        $journalId = (int) $journal->id;
 
         return new JournalEntryView(
-            (int) $journal->id,
+            $journalId,
             '#'.$displayNumber,
             $anchorHref,
             $hasNote,
@@ -225,10 +278,13 @@ final class IssueHistoryPresenter
                 $hasNote,
                 $hasNote && $this->noteAccess->canQuote($actor, $project),
                 $hasNote && $this->noteAccess->canEdit($actor, $project, $journal),
-                $anchorHref,
+                $this->copyLinks->forNote((int) $issue->id, $displayNumber),
+                $this->attachments->downloadAllItem('Journal', $journalId, count($files)),
             ),
             (bool) $journal->private_notes,
             $hasDetails,
+            $hasThumbnails,
+            $files,
         );
     }
 

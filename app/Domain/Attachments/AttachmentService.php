@@ -5,6 +5,7 @@ namespace App\Domain\Attachments;
 use App\Domain\CustomFields\CustomizedContext;
 use App\Domain\DomainException;
 use App\Models\Attachment;
+use App\Models\Journal;
 use App\Models\User;
 use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -77,6 +78,9 @@ final class AttachmentService
 
     /**
      * Point an unbound row at `$record`. A row already on that record is left as-is.
+     *
+     * Issue, Project, Version, TimeEntry, and User use the custom-field type
+     * name. A journal uses `Journal`. That row is not a custom value.
      */
     public function bind(Attachment $attachment, Model $record): void
     {
@@ -257,6 +261,15 @@ final class AttachmentService
      */
     private function containerOf(Model $record): array
     {
+        if ($record instanceof Journal) {
+            $journalId = $record->getKey();
+            if (! is_numeric($journalId)) {
+                throw new DomainException('This record cannot own an attachment.');
+            }
+
+            return ['Journal', (int) $journalId];
+        }
+
         $type = $this->context->customizedType($record);
         $id = $record->getKey();
         if ($type === null || ! is_numeric($id)) {

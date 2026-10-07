@@ -287,6 +287,8 @@ Generated via `rake db:migrate db:schema:dump` on image `redmine:7.0.1` (SQLite 
 
 `repositories`, `changesets`, `changes`, `changeset_parents`, `changesets_issues`, `boards`, `messages`, `news`, `documents`.
 
+`repositories`, `changesets`, and `changesets_issues` are migrated so the issue history tab can list associated revisions. `changes` and `changeset_parents` stay out. Commit sync and repository browse are not implemented. See [domain.md](domain.md) and [journals-parity-gate.md](journals-parity-gate.md).
+
 ---
 
 ## 9. Settings / Webhooks (supporting)
@@ -470,7 +472,7 @@ erDiagram
 
 ## Laramine migration notes (pin 7.0.1)
 
-Migrations in this repository create the **P0** tables only (41). Wiki (P1), SCM / forums / news (P2), and `settings` / `webhooks` / `projects_webhooks` are omitted.
+Migrations in this repository create the **P0** tables (41) plus `settings`, and the three SCM tables the issue history revisions tab reads: `repositories`, `changesets`, and `changesets_issues`. Wiki (P1), the rest of SCM (`changes`, `changeset_parents`), forums, news, and `webhooks` / `projects_webhooks` are omitted.
 
 PHPUnit and GitHub Actions apply these migrations on **MySQL 8**. SQLite is an optional local smoke path and is not the authoritative test database.
 

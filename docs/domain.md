@@ -65,15 +65,18 @@ Tracked details use `journal_details.property = attr` and `prop_key` set to the 
 
 `IssueHistoryPresenter` is the issue-show view model. It is not an HTTP response.
 
-- Zero visible journals: no History block and no tab labels.
-- Otherwise History is listed. Notes is listed when any visible journal has note text. Property changes is listed when any visible journal has a `journal_details` row. A journal with neither is History only.
-- History lists every visible journal. The Notes tab keeps journals with note text, including a journal that also has details, and it keeps those property lines. A detail-only journal is omitted. The Property changes tab keeps journals that have details, including a journal that also has a note. On that tab the note text is omitted and the only header control is reaction.
-- Anchors are `#1`, `#2`, … in visible order. They are not `journals.id`. The href is `#note-n` for that same index.
+- Zero visible journals, no spent time, and no associated revisions: no History block and no tab labels.
+- History is listed when any journal is visible. Notes is listed when any visible journal has note text or a thumbnail. Property changes is listed when any visible journal has a `journal_details` row. Spent time is listed when the actor has `view_time_entries` and the issue's time-entry hours sum is greater than zero. Associated revisions is listed when at least one linked changeset is visible. A journal with neither a note, a thumbnail, nor a detail is History only. Spent time and Associated revisions can appear without a History tab when the issue has no visible journals.
+- History lists every visible journal. The Notes tab keeps journals with note text or a thumbnail, including a journal that also has details, and it keeps those property lines. A detail-only journal without a thumbnail is omitted. The Property changes tab keeps journals that have details, including a journal that also has a note. On that tab the note text is omitted and the only header control is reaction. Attachment rows stay on that copy.
+- Anchors are `#1`, `#2`, … in visible order. They are not `journals.id`. The href is `#note-n` for that same index. Copy link is `{protocol}://{host_name}/issues/{id}#note-n` for that same visible index. `protocol` is `http` or `https` (blank means `http`). `host_name` is a host and optional port. A blank or unusable host uses `localhost:3000`. There is no issue HTTP route.
 - An attribute with both values reads `{label} changed from {old} to {new}`. The HTML line wraps those two values in `em`. Status uses the status name. Done ratio uses the integer string. A missing old value reads `set to`. A missing new value reads `deleted`.
 - A `relates` detail reads `Related to {tracker} #{id}: {subject} added`. That line is not italicized.
 - Note text is escaped. A textile `*emphasis*` span becomes `em`. Other textile marks stay plain text.
 - On History and Notes, a journal with note text exposes reaction (`thumbs-up`). Quote is added when the actor has `add_issue_notes`. Edit (pencil) is added when the actor has `edit_issue_notes`, or `edit_own_issue_notes` and `journals.user_id` is that actor. More (`⋯`) is always on those two tabs. A journal without note text exposes reaction and more only.
-- The more menu lists Copy link, then Delete when edit is allowed for that note. Copy link carries the same `#note-n` fragment as the anchor. Download all files is not listed. The show model records those controls. It does not write.
+- The more menu lists Download all files when that journal has more than one attachment, then Copy link, then Delete when edit is allowed for that note. The issue show model offers the same Download all files item when the issue container itself has more than one attachment. `AttachmentArchive` returns a zip named `issue-{id}.zip` or `journal-{id}.zip`. Repeated filenames keep the extension and insert `(2)`, `(3)`, and so on. One attachment is not an archive. A private journal stays hidden, and the zip is refused, without `view_private_notes`. The show model records the control. There is no HTTP route.
+- Image filenames (`bmp`, `gif`, `jpg`, `jpe`, `jpeg`, `png`, `webp`) are thumbnails when `thumbnails_enabled` is on. The default is off. `thumbnails_size` defaults to 100 and is stored on the show model. Thumbnail image bytes are not rendered. A non-image file does not put a detail-only journal on Notes.
+- Spent time rows are ordered by `spent_on` descending, then `created_on`, then `id`. Hours are rounded to two decimals. `time_entries_visibility` applies to those rows: `all`, or `own` where `user_id` is the actor. Only roles that grant `view_time_entries` count, and several of those roles use the most open value. The tab stays when the hours sum is above zero even if that filter leaves no rows. Active admins see every row. There is still no time-entry write service.
+- Associated revisions are `changesets` rows joined through `changesets_issues`, newest `committed_on` first. The actor needs `view_changesets` on the repository's project. The repository `type` string is stored and is not used to fetch commits.
 - After `IssueService::update` returns, the caller passes `justUpdated: true`. The show model then carries the flash `✓ Successful update.` with tone `green`.
 
 `JournalNoteService` persists quote, edit, and delete. The permission checks are `JournalNoteAccess`, the same rules the show model uses for the markers. Active admins pass through `PermissionService`.
@@ -107,7 +110,8 @@ No workflow matrix is seeded, because statuses and trackers are not created by t
 - Same-status saves do not require a workflow row that points at the current status.
 - Closing and reopening blockers (relations, open subtasks, a closed parent) are not applied.
 - `roles.settings` tracker masks are stored when they are JSON and are not applied.
-- `roles.time_entries_visibility` and `roles.users_visibility` are stored and are not applied. There is no time-entry write service, and user administration is outside this slice. Users and authentication are a spec hole in [users-auth-spec.md](users-auth-spec.md): **NOT VERIFIED**, not a 0.1 tag, and not an invitation to add login.
+- `roles.time_entries_visibility` is applied on the issue history Spent time tab. Issue query `spent_hours` totals do not use it. There is no time-entry write service.
+- `roles.users_visibility` is stored and is not applied. User administration is outside this slice. Users and authentication are a spec hole in [users-auth-spec.md](users-auth-spec.md): **NOT VERIFIED**, not a 0.1 tag, and not an invitation to add login.
 - `roles_managed_roles` is stored and is not checked when a role is assigned.
 - `MembershipService::assignRole` does not itself require `manage_members`.
 - Subtask parents must belong to the same project.
@@ -121,9 +125,10 @@ No workflow matrix is seeded, because statuses and trackers are not created by t
 - Quoting a private journal stores the new note as private. The actor does not need `set_notes_private` for that copy.
 - Edit rejects a blank note. Clearing a note is the delete action.
 - Delete removes a notes-only journal. A journal that also has details keeps the row and the details, with `notes` set to null.
-- Copy link carries the `#note-n` fragment. There is no issue URL, because the HTTP API is not in this slice.
-- The Notes tab does not keep a detail-only journal for thumbnail attachments. Journal file thumbnails are not implemented.
-- The journal menu does not list Download all files.
+- Copy link builds `/issues/{id}#note-n` from `protocol` and `host_name`. There is no issue HTTP route. A blank host uses `localhost:3000`.
+- Thumbnail files are marked on the show model. The image bytes are not rendered.
+- Download all files returns zip bytes from the domain service. It does not register an HTTP route.
+- Changeset rows can be listed on the history tab. Commit sync, diffs, and repository browse are not implemented.
 - Custom field workflow failures use `CustomFieldValidationException`. Core field workflow failures still use `WorkflowDeniedException`.
 
 ## Queries

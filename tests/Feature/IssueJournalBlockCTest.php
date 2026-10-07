@@ -222,7 +222,14 @@ class IssueJournalBlockCTest extends TestCase
             $this->menuLabels($adminNote),
             'criterion 17',
         );
-        $this->assertSame($adminNote->anchorHref, $this->menu($adminNote)[0]->fragment, 'criterion 17');
+        $copyLink = $this->menu($adminNote)[0];
+        $this->assertSame('copy_link', $copyLink->key, 'criterion 17');
+        $this->assertSame('#note-1', $adminNote->anchorHref, 'criterion 17');
+        $this->assertSame(
+            'http://localhost:3000/issues/'.$issue->id.$adminNote->anchorHref,
+            $copyLink->fragment,
+            'criterion 17',
+        );
 
         $detail = $adminShow->historyEntries[2];
         $this->assertFalse($detail->hasNote);

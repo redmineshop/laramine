@@ -6,8 +6,9 @@ namespace App\Domain\Issues\History;
  * Header controls for one journal on the History and Notes tabs.
  *
  * A note may show quote and edit. A property-only journal shows reaction and
- * more. The more menu always lists Copy link. Delete is listed only when the
- * note may be edited. The Property changes tab does not use this list.
+ * more. The more menu lists Download all files when the caller passes that
+ * item, then Copy link. Delete is listed only when the note may be edited.
+ * The Property changes tab does not use this list.
  */
 final class JournalActionList
 {
@@ -15,13 +16,20 @@ final class JournalActionList
 
     public const DELETE = 'Delete';
 
+    public const DOWNLOAD_ALL = 'Download all files';
+
     /**
      * @return list<JournalActionView>
      */
-    public function forJournal(bool $hasNote, bool $canQuote, bool $canEdit, string $anchorHref): array
-    {
+    public function forJournal(
+        bool $hasNote,
+        bool $canQuote,
+        bool $canEdit,
+        string $copyLink,
+        ?JournalMenuItemView $downloadAll = null,
+    ): array {
         $reaction = new JournalActionView('reaction', 'thumbs-up');
-        $more = new JournalActionView('more', '⋯', null, $this->menu($hasNote && $canEdit, $anchorHref));
+        $more = new JournalActionView('more', '⋯', null, $this->menu($hasNote && $canEdit, $copyLink, $downloadAll));
         if (! $hasNote) {
             return [$reaction, $more];
         }
@@ -41,11 +49,13 @@ final class JournalActionList
     /**
      * @return list<JournalMenuItemView>
      */
-    private function menu(bool $canDelete, string $anchorHref): array
+    private function menu(bool $canDelete, string $copyLink, ?JournalMenuItemView $downloadAll): array
     {
-        $items = [
-            new JournalMenuItemView('copy_link', self::COPY_LINK, $anchorHref),
-        ];
+        $items = [];
+        if ($downloadAll !== null) {
+            $items[] = $downloadAll;
+        }
+        $items[] = new JournalMenuItemView('copy_link', self::COPY_LINK, $copyLink);
         if ($canDelete) {
             $items[] = new JournalMenuItemView('delete', self::DELETE);
         }

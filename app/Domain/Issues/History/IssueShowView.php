@@ -6,8 +6,9 @@ namespace App\Domain\Issues\History;
  * Issue-show history and notes form markers for a later UI.
  *
  * historyEntries is the History list. notesEntries keeps journals with note
- * text. propertyChangeEntries keeps journals that have details, with the note
- * body omitted and only the reaction control left.
+ * text or a thumbnail. propertyChangeEntries keeps journals that have details,
+ * with the note body omitted and only the reaction control left. timeEntries
+ * and changesets fill the Spent time and Associated revisions tabs.
  */
 final readonly class IssueShowView
 {
@@ -16,6 +17,9 @@ final readonly class IssueShowView
      * @param  list<JournalEntryView>  $historyEntries
      * @param  list<JournalEntryView>  $notesEntries
      * @param  list<JournalEntryView>  $propertyChangeEntries
+     * @param  list<JournalAttachmentView>  $issueAttachments
+     * @param  list<HistoryTimeEntryView>  $timeEntries
+     * @param  list<HistoryChangesetView>  $changesets
      */
     public function __construct(
         public bool $historyBlockVisible,
@@ -28,5 +32,9 @@ final readonly class IssueShowView
         public bool $privateNotesChecked,
         public ?string $flashText,
         public ?string $flashTone,
+        public array $issueAttachments,
+        public ?JournalMenuItemView $issueDownloadAll,
+        public array $timeEntries,
+        public array $changesets,
     ) {}
 }
