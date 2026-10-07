@@ -37,7 +37,7 @@ An in-memory list is also accepted at the service edge and stored back as the ma
 
 Filters are AND-ed. There is no OR group.
 
-`column_names` null means the display default `tracker`, `status`, `priority`, `subject`, `assigned_to`, `updated_on`. The runner still returns full issue rows. `options.totalable_names` is summed over that set (see below). `options.display_type` is stored and not interpreted.
+`column_names` null means the display default listed under Columns. `options.display_type` is `list` or `board` (see Display). `options.totalable_names` is summed over the issue set (see Totals).
 
 ## Visibility
 
@@ -131,7 +131,7 @@ Relations are stored once. The canonical `relation_type` is `relates`, `blocks`,
 
 ## Sort
 
-When no sort is stored, the order is `issues.id` ascending. `group_by` adds a leading ascending order on the same kind of key and does not collapse rows. A missing priority, status, tracker, user, or custom value sorts as NULL. On MySQL, ASC places NULL before any position or name, and DESC places it last.
+When no sort is stored, the order is `issues.id` ascending. `group_by` adds a leading ascending order on the same kind of key and does not collapse rows. A missing priority, status, tracker, user, category, version, project row, or custom value sorts as NULL. On MySQL, ASC places NULL before any position or name, and DESC places it last.
 
 | Key | Order |
 | --- | --- |
@@ -140,7 +140,10 @@ When no sort is stored, the order is `issues.id` ascending. `group_by` adds a le
 | `tracker`, `tracker_id` | `trackers.position` |
 | `author`, `author_id`, `assigned_to`, `assigned_to_id` | `users.firstname`, then `users.lastname`. There is no `user_format` setting, so this is the default Redmine name order. A group is a `users` row; a blank firstname sorts before any letter. |
 | `cf_{id}` | One minimum per issue. See below. |
-| `id`, `project`, `subject`, dates, hours, `category`, `fixed_version`, `parent`, `is_private`, `description`, and the same names with `_id` where the table above does not already claim them | The issue column (`project_id`, `category_id`, `fixed_version_id`, and so on) |
+| `project` | `projects.name` |
+| `category` | `issue_categories.name`. No category sorts as NULL. |
+| `fixed_version` | `versions.name`. No version sorts as NULL. |
+| `id`, `subject`, dates, hours, `parent`, `is_private`, `description`, `project_id`, `category_id`, `fixed_version_id`, and the same names with `_id` where the table above does not already claim them | The issue column |
 
 `cf_{id}` must be an `IssueCustomField` the actor can see. `is_filter` is not required, and the name does not have to be listed in `column_names`. Several stored values become one key, the minimum:
 
@@ -163,12 +166,37 @@ An unknown field, a field that is not an `IssueCustomField`, a hidden field, or 
 | Name | Sum |
 | --- | --- |
 | `estimated_hours` | `SUM` of `issues.estimated_hours`. Null estimates add nothing. The sum is rounded to 2 decimal places. An empty set is `0`. |
-| `spent_hours` | Each issue contributes the same number the `spent_time` filter compares: `COALESCE(ROUND(SUM(time_entries.hours), 2), 0)`. The query total adds those per-issue numbers. Hours on issues outside the result set are not included. `time_entries_visibility` is not applied. |
+| `spent_hours` | Each issue contributes `COALESCE(ROUND(SUM(time_entries.hours), 2), 0)` for time entries whose `project_id` is that issue's project. The query total adds those per-issue numbers. Hours on issues outside the result set are not included. `time_entries_visibility` applies per issue project, the same rule as the Spent time tab: `all`, or `own` where `user_id` is the actor. Only roles that grant `view_time_entries` count, and several of those roles use the most open value. Any other stored value contributes nothing. Active admins see every entry. A user with no matching role contributes `0`. The projected `spent_hours` column uses that same per-issue number. |
 | `cf_{id}` | An `IssueCustomField` the actor can see, whose format reports `supportsTotal` (int and float). `is_filter` is not required. The name does not have to be listed in `column_names`. Int values matching an optional sign and digits are summed as whole numbers. Float values matching a decimal token are summed as decimals. Blank text and any other stored text are skipped. Every matching `custom_values` row is added, including more than one row on the same issue. |
 
 `spent_time` is the filter name, not a total name. Progress bar, list, and the other formats that do not report `supportsTotal` are rejected. An unknown name, a repeated name, a non-list `totalable_names`, a hidden field, or a custom field that is not an `IssueCustomField` is rejected. Saving an `IssueQuery` runs the same check. Other query types still store `options` and do not run, so their `totalable_names` are not checked.
 
 A public query that names a hidden field can be saved by an admin. Another user who can open that query still cannot total the field.
+
+## Display
+
+`options.display_type` selects how `IssueQueryRunner::present` lays out the same filtered issue set. A missing or null value is `list`. `list` and `board` are the only accepted values. Any other value is rejected when an IssueQuery is saved or run, including `execute` and `totals`. Other query types still store `options` and do not run, so their `display_type` is not checked.
+
+| Type | Result |
+| --- | --- |
+| `list` | Rows in query order. The view's `board` list is empty. |
+| `board` | The same rows, also grouped into status columns. Columns follow `issue_statuses.position`, then status id. Issues inside a column keep the query order. A status with no issue in the result is omitted. `group_by` still only adds a sort prefix. It does not choose the board axis. |
+
+Gantt, calendar, swimlanes, and a board grouped by another field are not implemented.
+
+## Columns
+
+`IssueQueryRunner::execute` still returns issue models so filters and sort keep using that set. `present` is the projected result. `Query::displayColumns` remains the stored list, or the default when `column_names` is null.
+
+Available built-in names are `id`, `project`, `tracker`, `parent`, `status`, `priority`, `subject`, `author`, `assigned_to`, `updated_on`, `category`, `fixed_version`, `start_date`, `due_date`, `estimated_hours`, `spent_hours`, `done_ratio`, `created_on`, `closed_on`, `is_private`, and `description`.
+
+`cf_{id}` is available when it is an `IssueCustomField` the actor can see. `is_filter` is not required. A hidden field is omitted for that actor and is not an error, unlike a hidden sort or total. An admin still sees it. Tracker limits and a per-project custom-field list are not applied, so a visible issue custom field stays available even when the issue has no value.
+
+A null `column_names` uses `tracker`, `status`, `priority`, `subject`, `assigned_to`, `updated_on`. An empty list projects no cells. The row still carries the issue id. Unknown names, including `total_estimated_hours` and `total_spent_hours`, stay stored and are left out of the projection. Repeated names keep the first.
+
+Cell values are plain text. Associations use the related name. Author and assignee use firstname, then lastname, then login. A missing association is null. `parent` is the parent issue id. Dates are `YYYY-MM-DD`. Datetimes are `YYYY-MM-DD HH:MM:SS`. `is_private` is `0` or `1`. `estimated_hours` is a plain decimal, or null when the issue has no estimate. `spent_hours` is the per-issue total described above, including `0`.
+
+Several custom values on one issue are joined with `, ` in `custom_values.id` order. Enumeration, user, and version values use the related name when that row exists, and the stored text otherwise. Attachment values stay the stored id. There is no yes/no label for bool, and no card layout.
 
 ## Deferred operators
 
@@ -193,15 +221,16 @@ An unknown operator or an unknown field is rejected.
 - `ev` / `cf` compare decimal id strings on `journal_details.old_value` and `value` for `property = attr` only. A private journal is hidden without `view_private_notes`, including from its author. Redmine also lets that author read their own private note.
 - `any_searchable` does not search attachment filenames. Those have their own filter. It uses the same quoted-phrase tokens as text `~`.
 - `me` expands to the actor's groups only on `assigned_to_id` and `watcher_id`. Group filters still take group ids.
-- Author and assignee sort by `firstname`, then `lastname`. There is no `user_format` setting. Custom-field user sort uses that same name order.
-- Custom-field sort keeps one minimum value per issue (text, number, enumeration position, version name, or the earliest user name). Attachment custom fields are not sort keys.
-- `project`, `category`, and `fixed_version` still sort by the foreign key.
+- Author and assignee sort by `firstname`, then `lastname`. There is no `user_format` setting. Custom-field user sort uses that same name order. The projected author and assignee cells use that same order, then login.
+- Custom-field sort keeps one minimum value per issue (text, number, enumeration position, version name, or the earliest user name). Attachment custom fields are not sort keys. The projected cell joins every stored value instead of keeping only the minimum.
+- `project_id`, `category_id`, and `fixed_version_id` sort by the foreign key. The names without `_id` sort by the related name.
 - `issues_visibility = all` includes other people's private issues. `default` hides them unless the user is the author or assignee.
 - Active admins can read private saved queries.
-- Execution returns full issue rows. `column_names` is a display list.
-- `options.display_type` is stored and not applied. `totalable_names` is summed even when those names are absent from `column_names`.
-- `spent_hours` totals each issue's own time entries. It does not roll descendant time into a parent that is outside the result, and it does not read `time_entries_visibility`.
-- Global queries check `view_issues` per project in PHP, then OR the visibility groups.
+- `execute` returns full issue rows. `present` projects the available columns. `totalable_names` is summed even when those names are absent from `column_names`.
+- `display_type` accepts `list` and `board` only. Board columns are statuses. `group_by` does not pick the board axis.
+- `spent_hours` totals and the projected column count time entries on the issue's own project after `time_entries_visibility`. They do not roll descendant time into a parent that is outside the result. The `spent_time` filter still sums every time entry on the issue and does not read visibility.
+- A hidden custom field is an error for sort and totals. The same name in `column_names` is omitted from the projection for an actor who cannot see the field.
+- Global queries check `view_issues` per project in PHP, then OR the visibility groups. Spent hours use each issue's project, not the query project alone.
 
 ## Still open
 
@@ -209,10 +238,11 @@ These are Laramine gaps. They are not a parity verdict.
 
 | Item | Why it stays open |
 | --- | --- |
-| `display_type` | Stored (`list`, `board`, and any other string). Nothing branches on it. |
-| Sort by project, category, or version name | `project`, `category`, and `fixed_version` still order by the foreign key. |
-| Column projection | `column_names` is a display list. Unknown names that match the token pattern are stored. The runner returns full issue rows. |
+| Gantt, calendar, and other display types | Only `list` and `board` run. Any other `display_type` is rejected for IssueQuery. |
+| Board grouped by a field other than status | Board columns are statuses. `group_by` only sorts. |
+| `spent_time` filter visibility | The filter still sums every time entry on the issue. Totals and the `spent_hours` column apply `time_entries_visibility`. |
 | `cf_N.*` other than `.due_date` and `.status` | Listed under deferred fields. |
 | Custom-field history | `ev` / `!ev` / `cf` are not compiled for custom fields. |
-| Descendant hour and estimate columns | `total_estimated_hours` and `total_spent_hours` are not totalable names. |
+| Descendant hour and estimate columns | `total_estimated_hours` and `total_spent_hours` are not totalable names and are not projected. |
+| Column layout | Inline versus block columns, tracker-limited column lists, attachment filenames, and bool labels are not applied. Unknown stored names are omitted. |
 | Other query types | `ProjectQuery`, `TimeEntryQuery`, `UserQuery`, and `ProjectAdminQuery` still do not run. |

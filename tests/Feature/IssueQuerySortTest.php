@@ -14,6 +14,7 @@ use App\Models\CustomFieldEnumeration;
 use App\Models\CustomValue;
 use App\Models\Enumeration;
 use App\Models\Issue;
+use App\Models\IssueCategory;
 use App\Models\IssueStatus;
 use App\Models\Tracker;
 use App\Models\User;
@@ -349,6 +350,97 @@ class IssueQuerySortTest extends TestCase
         } catch (DomainException $exception) {
             $this->assertSame('Saved query is not visible.', $exception->getMessage());
         }
+    }
+
+    public function test_sorts_project_category_and_fixed_version_by_name(): void
+    {
+        $world = $this->member();
+        $world->project->name = 'Zebra';
+        $world->project->save();
+        $projects = app(ProjectService::class);
+        $alpha = $projects->create([
+            'name' => 'Alpha',
+            'identifier' => 'query-sort-alpha',
+            'is_public' => true,
+        ]);
+        $projects->enableModule($alpha, 'issue_tracking');
+        $projects->attachTracker($alpha, $world->tracker);
+        app(MembershipService::class)->assignRole($alpha, $world->user, $world->role);
+
+        $zebraIssue = $this->issue($world, ['subject' => 'On Zebra']);
+        $alphaIssue = $this->issue($world, ['project_id' => $alpha->id, 'subject' => 'On Alpha']);
+        $runner = app(IssueQueryRunner::class);
+        $projectsFilter = ['subject' => ['operator' => '=', 'values' => ['On Zebra', 'On Alpha']]];
+        $this->assertSame(
+            [$alphaIssue->id, $zebraIssue->id],
+            $this->ids($runner->preview($world->user, null, $projectsFilter, [['project', 'asc'], ['id', 'asc']])),
+        );
+        $this->assertSame(
+            [$zebraIssue->id, $alphaIssue->id],
+            $this->ids($runner->preview($world->user, null, $projectsFilter, [['project', 'desc'], ['id', 'asc']])),
+        );
+        $this->assertSame(
+            [$zebraIssue->id, $alphaIssue->id],
+            $this->ids($runner->preview($world->user, null, $projectsFilter, [['project_id', 'asc'], ['id', 'asc']])),
+        );
+        $this->assertSame(
+            [$alphaIssue->id, $zebraIssue->id],
+            $this->ids($runner->preview($world->user, null, $projectsFilter, [['id', 'asc']], 'project')),
+        );
+
+        $zed = IssueCategory::query()->create([
+            'name' => 'Zed',
+            'project_id' => $world->project->id,
+        ]);
+        $amy = IssueCategory::query()->create([
+            'name' => 'Amy',
+            'project_id' => $world->project->id,
+        ]);
+        $noCategory = $this->issue($world, ['subject' => 'NoCat']);
+        $zedIssue = $this->issue($world, ['subject' => 'ZedIssue', 'category_id' => $zed->id]);
+        $amyIssue = $this->issue($world, ['subject' => 'AmyIssue', 'category_id' => $amy->id]);
+        $categories = ['subject' => ['operator' => '=', 'values' => ['NoCat', 'ZedIssue', 'AmyIssue']]];
+        $this->assertSame(
+            [$noCategory->id, $amyIssue->id, $zedIssue->id],
+            $this->ids($runner->preview($world->user, $world->project, $categories, [['category', 'asc'], ['id', 'asc']])),
+        );
+        $this->assertSame(
+            [$zedIssue->id, $amyIssue->id, $noCategory->id],
+            $this->ids($runner->preview($world->user, $world->project, $categories, [['category', 'desc'], ['id', 'asc']])),
+        );
+        $this->assertSame(
+            [$noCategory->id, $zedIssue->id, $amyIssue->id],
+            $this->ids($runner->preview($world->user, $world->project, $categories, [['category_id', 'asc'], ['id', 'asc']])),
+        );
+
+        $zebra = Version::query()->create([
+            'name' => 'Zebra',
+            'project_id' => $world->project->id,
+            'status' => 'open',
+            'sharing' => 'none',
+        ]);
+        $early = Version::query()->create([
+            'name' => 'Alpha',
+            'project_id' => $world->project->id,
+            'status' => 'open',
+            'sharing' => 'none',
+        ]);
+        $noVersion = $this->issue($world, ['subject' => 'NoVersion']);
+        $zebraVersion = $this->issue($world, ['subject' => 'ZebraVersion', 'fixed_version_id' => $zebra->id]);
+        $alphaVersion = $this->issue($world, ['subject' => 'AlphaVersion', 'fixed_version_id' => $early->id]);
+        $versions = ['subject' => ['operator' => '=', 'values' => ['NoVersion', 'ZebraVersion', 'AlphaVersion']]];
+        $this->assertSame(
+            [$noVersion->id, $alphaVersion->id, $zebraVersion->id],
+            $this->ids($runner->preview($world->user, $world->project, $versions, [['fixed_version', 'asc'], ['id', 'asc']])),
+        );
+        $this->assertSame(
+            [$zebraVersion->id, $alphaVersion->id, $noVersion->id],
+            $this->ids($runner->preview($world->user, $world->project, $versions, [['fixed_version', 'desc'], ['id', 'asc']])),
+        );
+        $this->assertSame(
+            [$noVersion->id, $zebraVersion->id, $alphaVersion->id],
+            $this->ids($runner->preview($world->user, $world->project, $versions, [['fixed_version_id', 'asc'], ['id', 'asc']])),
+        );
     }
 
     private function assertSortRejected(DomainFixture $world, string $name, string $message): void

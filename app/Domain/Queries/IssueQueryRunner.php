@@ -12,10 +12,10 @@ use Illuminate\Database\Eloquent\Builder;
 /**
  * Runs a saved IssueQuery or an ephemeral filter set.
  *
- * Rows stay inside the actor's issue visibility. Column names are not projected;
- * callers read full issue rows and use `column_names` only as a display list.
- * `totals` sums `options.totalable_names` over that same set. `display_type` is not applied.
- * Sort uses position, user name, or a custom-field value where those keys are defined.
+ * Rows stay inside the actor's issue visibility. `execute` returns issue models.
+ * `present` projects the available columns and applies `display_type`.
+ * `totals` sums `options.totalable_names` over that same set.
+ * Sort uses position, user name, related names, or a custom-field value.
  */
 final class IssueQueryRunner
 {
@@ -25,6 +25,8 @@ final class IssueQueryRunner
         private readonly IssueQuerySort $sort,
         private readonly IssueQueryTotals $totals,
         private readonly SavedQueryService $saved,
+        private readonly IssueQueryProjection $projection,
+        private readonly IssueQueryBoard $board,
     ) {}
 
     /**
@@ -39,6 +41,8 @@ final class IssueQueryRunner
         if (! $this->saved->canView($actor, $query)) {
             throw new DomainException('Saved query is not visible.');
         }
+
+        IssueQueryDisplay::resolve(QueryPayload::options($query->options));
 
         $project = $this->boundProject($query);
         if ($query->project_id !== null && $project === null) {
@@ -73,15 +77,37 @@ final class IssueQueryRunner
             throw new DomainException('Saved query is not visible.');
         }
 
+        $options = QueryPayload::options($query->options);
+        IssueQueryDisplay::resolve($options);
+
         $project = $this->boundProject($query);
-        $columns = $this->totals->columns(QueryPayload::options($query->options), $actor, $project);
+        $columns = $this->totals->columns($options, $actor, $project);
         if ($query->project_id !== null && $project === null) {
-            return $this->totals->sum(Issue::query()->whereRaw('1 = 0'), $columns);
+            return $this->totals->sum(Issue::query()->whereRaw('1 = 0'), $columns, $actor);
         }
 
         return $this->totals->sum(
             $this->filtered($actor, $project, QueryPayload::filters($query->filters)),
             $columns,
+            $actor,
+        );
+    }
+
+    /**
+     * Projected rows for a saved IssueQuery. `execute` is the same issue set.
+     */
+    public function present(?User $actor, Query $query): IssueQueryView
+    {
+        $issues = $this->execute($actor, $query)->get();
+        $project = $this->boundProject($query);
+        $display = IssueQueryDisplay::resolve(QueryPayload::options($query->options));
+        $columns = $this->projection->names($actor, $project, QueryPayload::columnNames($query->column_names));
+
+        return new IssueQueryView(
+            $display,
+            $columns,
+            $this->projection->rows($actor, $issues, $columns),
+            $display === IssueQueryDisplay::BOARD ? $this->board->columns($issues) : [],
         );
     }
 
