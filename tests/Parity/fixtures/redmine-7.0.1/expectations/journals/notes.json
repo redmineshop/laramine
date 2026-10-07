@@ -64,7 +64,7 @@
             "action": "quote",
             "login": "bea",
             "journal_id": 7,
-            "notes": "Bea Manager wrote:\n> Ada hid this remark.",
+            "notes": "Ada Lovelace wrote:\n> Ada hid this remark.",
             "private_notes": true,
             "user_id": 4
         },
