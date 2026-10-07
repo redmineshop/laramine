@@ -17,7 +17,7 @@ MIT Laravel project-management core, clean-room relative to Redmine. Full pointe
 - Permission names are the strings in `App\Domain\Acl\PermissionCatalog`.
 - Text columns that Redmine stores as YAML are JSON on write. YAML is read compatibility only, where the domain docs already say so.
 - Tests: `tests/Unit`, `tests/Feature` (often `RefreshDatabase` and `Tests\Support\DomainFixture`), `tests/Parity`.
-- Docs: `docs/domain.md`, `docs/custom-fields.md`, `docs/queries.md`, `docs/journals-parity-gate.md`, `docs/acl-workflow-parity-gate.md`. Update the matching doc when behavior changes.
+- Docs: `docs/domain.md`, `docs/custom-fields.md`, `docs/queries.md`, `docs/journals-parity-gate.md`, `docs/acl-workflow-parity-gate.md`, `docs/users-auth-spec.md`. Update the matching doc when behavior changes. Users/auth is a spec hole (**NOT VERIFIED**, not a 0.1 tag). Do not implement login from that file.
 
 ## Domain work
 
