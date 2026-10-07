@@ -51,7 +51,7 @@ Status changes read `workflows` rows with `type = WorkflowTransition` for the us
 
 Field rules (`type = WorkflowPermission`, `rule = readonly|required`) are enforced for the disablable core fields on create and update. On create they are read for the initial status id. Across every applicable role, a missing row leaves the field unconstrained. If every role has a row and one of them is `required`, the field is required. Custom field ids are enforced by `CustomValueService` when values are written; see [custom-fields.md](custom-fields.md).
 
-The MVP smoke for projects, membership, workflow, and issues is [acl-workflow-parity-gate.md](acl-workflow-parity-gate.md). A green smoke is Laramine behavior. Parity is **NOT VERIFIED**. This slice is not a 0.1 tag.
+The MVP smoke for projects, membership, workflow, and issues is [acl-workflow-parity-gate.md](acl-workflow-parity-gate.md). The core checklist acceptance section there marks **PASS** only for the happy paths stored by `tests/Feature/CoreChecklistSmokeTest.php`. A green smoke is Laramine behavior. Parity is **NOT VERIFIED**. This slice is not a 0.1 tag.
 
 ## Journals
 
