@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\DB;
  * on that issue's project. `time_entries_visibility` then keeps `all`, `own`
  * (`user_id` is the actor), or nothing. Active admins see every entry.
  * Several roles use the most open value, and only roles that grant
- * `view_time_entries` count. The `spent_time` filter does not use this scope.
+ * `view_time_entries` count. The `spent_time` filter compares this same sum.
  */
 final class SpentHoursQuery
 {
@@ -55,6 +55,22 @@ final class SpentHoursQuery
     }
 
     /**
+     * Correlated sum the `spent_time` filter compares. Same rows as {@see self::perIssue()}.
+     *
+     * @param  Builder<Issue>  $issues
+     * @return array{0: string, 1: list<int>}
+     */
+    public function correlatedSum(Builder $issues, ?User $actor): array
+    {
+        [$constraint, $bindings] = $this->visibilityPredicate($issues, $actor);
+
+        return [
+            'COALESCE((SELECT ROUND(CAST(SUM(time_entries.hours) AS DECIMAL(30,3)), 2) FROM time_entries WHERE time_entries.issue_id = issues.id AND time_entries.project_id = issues.project_id AND ('.$constraint.')), 0)',
+            $bindings,
+        ];
+    }
+
+    /**
      * @param  Builder<Issue>  $issues
      */
     private function perIssueSelect(Builder $issues, ?User $actor): QueryBuilder
@@ -75,21 +91,31 @@ final class SpentHoursQuery
      */
     private function constrain(JoinClause $join, ?User $actor, Builder $issues): void
     {
+        [$sql, $bindings] = $this->visibilityPredicate($issues, $actor);
+        $join->whereRaw('('.$sql.')', $bindings);
+    }
+
+    /**
+     * SQL that keeps time entries the actor may see on each issue's project.
+     *
+     * @param  Builder<Issue>  $issues
+     * @return array{0: string, 1: list<int>}
+     */
+    private function visibilityPredicate(Builder $issues, ?User $actor): array
+    {
         if ($actor !== null && $actor->admin && $actor->isActive()) {
-            return;
+            return ['1 = 1', []];
         }
 
         if (! $actor instanceof User) {
-            $join->whereRaw('1 = 0');
-
-            return;
+            return ['1 = 0', []];
         }
 
         $all = [];
         $own = [];
         $projectIds = $this->projectIds($issues);
         if ($projectIds !== []) {
-            foreach (Project::query()->whereIn('id', $projectIds)->get() as $project) {
+            foreach (Project::query()->whereIn('id', $projectIds)->orderBy('id')->get() as $project) {
                 $mode = $this->visibility->mode($actor, $project);
                 $projectId = (int) $project->id;
                 if ($mode === TimeEntryVisibility::ALL) {
@@ -101,32 +127,33 @@ final class SpentHoursQuery
         }
 
         if ($all === [] && $own === []) {
-            $join->whereRaw('1 = 0');
-
-            return;
+            return ['1 = 0', []];
         }
 
         $userId = (int) $actor->id;
-        $join->where(function (QueryBuilder $inner) use ($all, $own, $userId): void {
-            if ($all !== []) {
-                $inner->whereIn('issues.project_id', $all);
-            }
-            if ($own === []) {
-                return;
-            }
+        if ($own === []) {
+            return ['issues.project_id IN ('.$this->placeholders($all).')', $all];
+        }
 
-            $ownScope = function (QueryBuilder $query) use ($own, $userId): void {
-                $query->whereIn('issues.project_id', $own)
-                    ->where('time_entries.user_id', $userId);
-            };
-            if ($all === []) {
-                $ownScope($inner);
+        if ($all === []) {
+            return [
+                'issues.project_id IN ('.$this->placeholders($own).') AND time_entries.user_id = ?',
+                [...$own, $userId],
+            ];
+        }
 
-                return;
-            }
+        return [
+            'issues.project_id IN ('.$this->placeholders($all).') OR (issues.project_id IN ('.$this->placeholders($own).') AND time_entries.user_id = ?)',
+            [...$all, ...$own, $userId],
+        ];
+    }
 
-            $inner->orWhere($ownScope);
-        });
+    /**
+     * @param  list<int>  $ids
+     */
+    private function placeholders(array $ids): string
+    {
+        return implode(', ', array_fill(0, count($ids), '?'));
     }
 
     /**

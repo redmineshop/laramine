@@ -13,7 +13,8 @@ use Illuminate\Database\Eloquent\Builder;
  * Only roles that grant `view_time_entries` count. `all` shows every row.
  * `own` keeps rows whose `user_id` is the actor. Several roles use the most
  * open value. Any other stored value contributes nothing. Active admins are
- * not filtered. Issue query `spent_hours` uses {@see self::mode}.
+ * not filtered. Issue query `spent_hours` and the `spent_time` filter use
+ * {@see self::mode}.
  */
 final class TimeEntryVisibility
 {

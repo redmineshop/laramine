@@ -281,6 +281,9 @@ class IssueQueryFieldTest extends TestCase
             'tyear' => 2026,
         ]);
 
+        // The operator matrix assumes the actor can see every entry on the issue.
+        $this->grantTimeVisibility('all');
+
         // Redmine spent_time COALESCE(ROUND(SUM(hours), 2), 0). * is > 0. !* is = 0, including a missing sum.
         $this->assertIds(['spent_time' => $this->clause('=', ['5'])], [$logged->id]);
         $this->assertIds(['spent_time' => $this->clause('=', ['0'])], [$empty->id, $zero->id]);
@@ -289,6 +292,43 @@ class IssueQueryFieldTest extends TestCase
         $this->assertIds(['spent_time' => $this->clause('><', ['1', '4'])], []);
         $this->assertIds(['spent_time' => $this->clause('!*', [])], [$empty->id, $zero->id]);
         $this->assertIds(['spent_time' => $this->clause('*', [])], [$logged->id]);
+    }
+
+    public function test_spent_time_filter_follows_time_entries_visibility(): void
+    {
+        $activity = Enumeration::query()->create([
+            'name' => 'Design',
+            'type' => 'TimeEntryActivity',
+            'active' => true,
+            'position' => 1,
+        ]);
+        $other = User::factory()->create();
+        $shared = $this->issue(['subject' => 'Shared']);
+        $this->hours($shared, $this->world->user, $activity, 2);
+        $this->hours($shared, $other, $activity, 3);
+
+        // No view_time_entries: the sum is 0, the same as a missing row.
+        $this->assertIds(['spent_time' => $this->clause('*', [])], []);
+        $this->assertIds(['spent_time' => $this->clause('!*', [])], [$shared->id]);
+        $this->assertIds(['spent_time' => $this->clause('=', ['0'])], [$shared->id]);
+        $this->assertIds(['spent_time' => $this->clause('>=', ['1'])], []);
+
+        $this->grantTimeVisibility('own');
+        $this->assertIds(['spent_time' => $this->clause('=', ['2'])], [$shared->id]);
+        $this->assertIds(['spent_time' => $this->clause('>=', ['3'])], []);
+        $this->assertIds(['spent_time' => $this->clause('*', [])], [$shared->id]);
+        $this->assertIds(['spent_time' => $this->clause('!*', [])], []);
+
+        $this->grantTimeVisibility('all');
+        $this->assertIds(['spent_time' => $this->clause('=', ['5'])], [$shared->id]);
+        $this->assertIds(['spent_time' => $this->clause('>=', ['4'])], [$shared->id]);
+        $this->assertIds(['spent_time' => $this->clause('=', ['2'])], []);
+
+        // A stored value other than all or own contributes nothing.
+        $this->grantTimeVisibility('none');
+        $this->assertIds(['spent_time' => $this->clause('*', [])], []);
+        $this->assertIds(['spent_time' => $this->clause('=', ['0'])], [$shared->id]);
+        $this->assertIds(['spent_time' => $this->clause('!*', [])], [$shared->id]);
     }
 
     public function test_any_searchable_uses_subject_description_and_visible_custom_fields(): void
@@ -485,6 +525,33 @@ class IssueQueryFieldTest extends TestCase
             'user_id' => $userId ?? $this->world->user->id,
             'notes' => $notes,
             'private_notes' => $private,
+        ]);
+    }
+
+    private function grantTimeVisibility(string $visibility): void
+    {
+        $permissions = $this->world->role->permissions;
+        if (! in_array('view_time_entries', $permissions, true)) {
+            $permissions[] = 'view_time_entries';
+        }
+        $this->world->role->permissions = $permissions;
+        $this->world->role->time_entries_visibility = $visibility;
+        $this->world->role->save();
+    }
+
+    private function hours(Issue $issue, User $user, Enumeration $activity, float $amount): void
+    {
+        TimeEntry::query()->create([
+            'project_id' => $issue->project_id,
+            'issue_id' => $issue->id,
+            'user_id' => $user->id,
+            'author_id' => $user->id,
+            'activity_id' => $activity->id,
+            'hours' => $amount,
+            'spent_on' => '2026-09-29',
+            'tmonth' => 9,
+            'tweek' => 40,
+            'tyear' => 2026,
         ]);
     }
 }

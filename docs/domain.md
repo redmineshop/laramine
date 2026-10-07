@@ -101,7 +101,7 @@ Create requires `log_time` on the project. `time_tracking` must be enabled unles
 
 Update and delete require `edit_time_entries`, or `edit_own_time_entries` when `user_id` is the actor. Delete removes the row and `custom_values` whose `customized_type` is `TimeEntry` for that id. This service does not write custom field values.
 
-Spent hours are not a column on `issues`. After a write, IssueQuery `spent_hours` totals and the projected column read these rows. That visibility is the one already described in [queries.md](queries.md). The `spent_time` filter does not use it. The Spent time tab is still listed from the unfiltered hours sum.
+Spent hours are not a column on `issues`. After a write, IssueQuery `spent_hours` totals, the projected column, and the `spent_time` filter read these rows. That visibility is the one already described in [queries.md](queries.md). The Spent time tab is still listed from the unfiltered hours sum.
 
 ## Seed
 
@@ -124,7 +124,7 @@ No workflow matrix is seeded, because statuses and trackers are not created by t
 - Same-status saves do not require a workflow row that points at the current status.
 - Closing and reopening blockers (relations, open subtasks, a closed parent) are not applied.
 - `roles.settings` tracker masks are stored when they are JSON and are not applied.
-- `roles.time_entries_visibility` is applied on the issue history Spent time tab and on IssueQuery `spent_hours` totals and the projected column. The `spent_time` filter does not use it. `TimeEntryService` writes rows. `roles.default_time_entry_activity_id` is stored and is not applied. The spent user's membership is not checked.
+- `roles.time_entries_visibility` is applied on the issue history Spent time tab and on IssueQuery `spent_hours` totals, the projected column, and the `spent_time` filter. `TimeEntryService` writes rows. `roles.default_time_entry_activity_id` is stored and is not applied. The spent user's membership is not checked.
 - `roles.users_visibility` is stored and is not applied. Account administration is not in this slice. Web sign-in is Phase 1 in [users-auth-spec.md](users-auth-spec.md). That row is **NOT VERIFIED** and is not a 0.1 tag.
 - `roles_managed_roles` is stored and is not checked when a role is assigned.
 - `MembershipService::assignRole` does not itself require `manage_members`.
