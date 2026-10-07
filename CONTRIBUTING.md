@@ -84,6 +84,7 @@ If a change needs a new semantic note, write it in your own words in the matchin
 | Saved queries or filter operators | [docs/queries.md](docs/queries.md) |
 | P0 tables or columns | [docs/schema-inventory.md](docs/schema-inventory.md) and a migration |
 | A real Redmine comparison | [docs/parity-checklist.md](docs/parity-checklist.md) and `tests/Parity` |
+| Users or authentication | [docs/users-auth-spec.md](docs/users-auth-spec.md). Spec hole only. Do not implement login until a founder unlock. |
 | Install, database, or CI commands | [README.md](README.md) and this file |
 
 Skip new docs for a change that does not alter behavior, setup, or the quality bar. Do not add marketing pages.

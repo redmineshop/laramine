@@ -18,6 +18,7 @@ Early MIT Laravel core. Domain goal is Redmine 7.0.1 semantics, reimplemented in
 - `app/Models` — Eloquent over Redmine 7.0.1 table and column names. Timestamp columns are `created_on` / `updated_on` where the schema says so. STI `type` values are Redmine class names.
 - `app/Policies` — project and issue view/update/delete only.
 - `routes/web.php` — placeholder. There is no HTTP API in this slice.
+- Users and authentication — spec hole only: `docs/users-auth-spec.md`. Do not add login, sessions, password hashing, OAuth, or user-administration runtime. Parity stays **NOT VERIFIED**. Not a 0.1 tag.
 - Schema pin: `docs/schema-inventory.md` and `docs/sources/redmine-7.0.1-schema.rb` (structure dump only).
 
 Intentional differences belong in the matching doc. Do not silently “correct” them toward an unverified reading of Redmine.

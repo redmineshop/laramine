@@ -70,13 +70,13 @@ These checks already pass in existing tests. This change does not rewrite them.
 | Item | Status |
 | --- | --- |
 | `time_entries_visibility` | **Open.** The column is stored. No time-entry list uses it. There is no time-entry write service for `log_time` or `edit_time_entries`. |
-| `users_visibility` and user authentication | **Open.** User administration and auth behavior stay deferred. |
+| `users_visibility` and user authentication | **Open.** Spec hole in [users-auth-spec.md](users-auth-spec.md). `users_visibility` is stored and not applied. Login, password checks, tokens, and account administration are not implemented. Founder unlock is required before an auth slice. |
 | Per-tracker permission masks | **Open.** `roles.settings` is stored. `allowed` does not read it. Criterion 18 locks that deferral. |
 | Managed-role enforcement | **Open.** `roles_managed_roles` is stored. `assignRole` does not read it. Criterion 19 locks that deferral. |
 | Wiki, news, documents, files, repository, boards, calendar, gantt | **Open.** Names exist in the catalog. No behavior beyond the permission registry. |
 | `copy_issues`, import, watchers, categories | **Open.** Names exist in the catalog. No write service. |
 | Close / reopen blockers | **Open.** Relations, open subtasks, and a closed parent do not block a transition. |
-| Users auth pack, HTTP, front end, MCP | **Open.** Not part of this slice. |
+| Users auth pack, HTTP, front end, MCP | **Open.** Not part of this slice. The users/auth pack is the spec hole in [users-auth-spec.md](users-auth-spec.md): **NOT VERIFIED**, not a 0.1 tag. |
 | Journal Block C criteria 16–19 | **Covered by Laramine tests.** Parity is NOT VERIFIED. Quote, edit, and delete now write through `JournalNoteService`. That write path is also Laramine-only. See [journals-parity-gate.md](journals-parity-gate.md). |
 | Redmine parity VERIFIED, tag 0.1 | **Open.** Not claimed. |
 

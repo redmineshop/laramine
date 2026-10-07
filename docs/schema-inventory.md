@@ -75,7 +75,7 @@ Generated via `rake db:migrate db:schema:dump` on image `redmine:7.0.1` (SQLite 
 | Role permissions | `roles.permissions` is a **serialized list of permission name symbols**, not a join table | **P0c** |
 | acts_as patterns | watchable, attachable, customizable, event, search, activity, tree/nested_set — app-layer | parity notes |
 | Visibility | `roles.issues_visibility` / `users_visibility` / `time_entries_visibility`; query `visibility` enum | **P0c** |
-| Mailer / tokens | `tokens.action` (session, api, feeds, recovery, …) | Auth design |
+| Mailer / tokens | `tokens.action` (session, api, feeds, recovery, …) | Spec hole: [users-auth-spec.md](users-auth-spec.md). Not an auth implementation. |
 
 ---
 
