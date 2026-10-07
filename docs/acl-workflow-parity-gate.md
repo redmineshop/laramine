@@ -18,6 +18,21 @@ This is the Laramine checklist for projects, membership, issue workflow, and iss
 
 Domain behavior is described in [domain.md](domain.md). The parity rows stay **NOT VERIFIED** in [parity-checklist.md](parity-checklist.md).
 
+## Core checklist acceptance
+
+There is no separate `docs/core-checklist-acceptance.md`. This section is that checklist for Issues, Projects, Membership, and Workflow.
+
+**PASS** means the named MySQL 8 Feature smoke stored the rows in that row. **PASS** is Laramine behavior. It is not **VERIFIED**, it is not a Redmine 7.0.1 comparison, and it is not a 0.1 tag. `tests/Feature/CoreChecklistSmokeTest.php` does not live under `tests/Parity`.
+
+| Area | What the smoke stored | Status | Evidence |
+| --- | --- | --- | --- |
+| Projects | A child created under a parent has `lft`/`rgt` inside the parent. `issue_tracking` is enabled once. The tracker is attached on `projects_trackers`. | PASS | `test_projects_child_module_and_tracker` |
+| Membership | `assignRole` stores `members` and one `member_roles` row with `inherited_from` null. That member is allowed `add_issues` and can create an issue. A user with no membership is denied `add_issues` and stores nothing. | PASS | `test_membership_assigns_role_and_allows_add_issues` |
+| Workflow | A `WorkflowTransition` with `old_status_id = 0` allows create at In Progress when the tracker default is New. A second row from In Progress to Resolved, with `author` and `assignee` false, makes `allowsTransition` true and the update stores Resolved. | PASS | `test_workflow_allows_non_default_initial_status_and_next_status` |
+| Issues | Create stores the project, tracker, author, tracker default status, `lft = 1`, `rgt = 2`, `root_id` equal to the issue id, and no journal. Update along New → In Progress stores that status and one `attr` / `status_id` journal detail. | PASS | `test_issue_create_stores_nested_set_and_update_writes_status_journal` |
+
+This smoke does not move a project, does not walk `inherit_members`, and does not merge field rules. Rows in **Already covered on main** and **Smoke added for the holes** stay as written there. They are not given this **PASS** mark. The **Open, not passed** list stays open. Parity rows stay **NOT VERIFIED**.
+
 ## Already covered on main
 
 These checks already pass in existing tests. This change does not rewrite them.
