@@ -30,6 +30,7 @@ final class CustomValueService
         private readonly CustomizedContext $context,
         private readonly WorkflowService $workflows,
         private readonly AttachmentService $attachments,
+        private readonly UserFieldOptions $userOptions,
     ) {}
 
     /**
@@ -136,8 +137,20 @@ final class CustomValueService
             $raw = $inputs[(int) $field->id];
             $messages = $format->validate($field, $raw, $record);
             $rows = $messages === [] ? $format->serialize($field, $raw) : $previous;
+            if ($messages !== [] && $this->unchangedUserValue($field, $format, $raw, $previous)) {
+                $messages = [];
+                $rows = $previous;
+            }
             if ($messages === [] && ! $this->visibility->canEdit($actor, $field) && $rows !== $previous) {
                 $messages[] = 'Custom field is not editable.';
+                $rows = $previous;
+            }
+        }
+
+        if ($messages === []) {
+            $unlisted = $this->unlistedUsers($actor, $field, $record, $rows, $previous);
+            if ($unlisted !== []) {
+                $messages = $unlisted;
                 $rows = $previous;
             }
         }
@@ -151,6 +164,51 @@ final class CustomValueService
         }
 
         return ['rows' => $rows, 'messages' => $messages];
+    }
+
+    /**
+     * A user id that is already stored may be submitted again after that user
+     * leaves the project, loses the role limit, or drops out of the offered list.
+     *
+     * @param  list<string>  $previous
+     */
+    private function unchangedUserValue(CustomField $field, FieldFormat $format, mixed $raw, array $previous): bool
+    {
+        if ((string) $field->field_format !== 'user' || $previous === []) {
+            return false;
+        }
+
+        return $format->serialize($field, $raw) === $previous;
+    }
+
+    /**
+     * A new user id must be offered to the actor. A previously stored id may stay.
+     *
+     * @param  list<string>  $rows
+     * @param  list<string>  $previous
+     * @return list<string>
+     */
+    private function unlistedUsers(User $actor, CustomField $field, Model $record, array $rows, array $previous): array
+    {
+        if ((string) $field->field_format !== 'user') {
+            return [];
+        }
+
+        $offered = [];
+        foreach ($this->userOptions->offered($actor, $field, $record) as $id) {
+            $offered[(string) $id] = true;
+        }
+        $kept = [];
+        foreach ($previous as $value) {
+            $kept[$value] = true;
+        }
+        foreach ($rows as $row) {
+            if (! isset($offered[$row]) && ! isset($kept[$row])) {
+                return ['User is not a possible value.'];
+            }
+        }
+
+        return [];
     }
 
     private function issueRule(User $actor, Issue $issue, CustomField $field): ?string

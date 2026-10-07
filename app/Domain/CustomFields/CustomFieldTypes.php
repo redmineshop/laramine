@@ -19,8 +19,19 @@ final class CustomFieldTypes
 
     public const VERSION = 'Version';
 
+    public const DOCUMENT = 'Document';
+
+    public const ISSUE_PRIORITY = 'IssuePriority';
+
+    public const TIME_ENTRY_ACTIVITY = 'TimeEntryActivity';
+
+    public const DOCUMENT_CATEGORY = 'DocumentCategory';
+
     /**
-     * Types this engine can read and write. Exotic enumeration STI fields are omitted.
+     * Types this engine can read and write.
+     *
+     * Document values use `customized_type` Document. The `documents` table
+     * stays unmigrated. Enumeration hosts are rows in `enumerations`.
      *
      * @var array<string, string>
      */
@@ -31,6 +42,10 @@ final class CustomFieldTypes
         'GroupCustomField' => self::GROUP,
         'TimeEntryCustomField' => self::TIME_ENTRY,
         'VersionCustomField' => self::VERSION,
+        'DocumentCustomField' => self::DOCUMENT,
+        'IssuePriorityCustomField' => self::ISSUE_PRIORITY,
+        'TimeEntryActivityCustomField' => self::TIME_ENTRY_ACTIVITY,
+        'DocumentCategoryCustomField' => self::DOCUMENT_CATEGORY,
     ];
 
     public static function customizedType(string $sti): ?string

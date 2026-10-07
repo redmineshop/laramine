@@ -14,6 +14,9 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * Stores a user id string. With a project, the user must be a member.
  * `format_store.user_role` limits which of that project's roles qualify.
+ *
+ * Which of those users are offered to a viewer is `UserFieldOptions`.
+ * This format does not read `users_visibility` by itself.
  */
 final class UserFormat extends AbstractFormat
 {
@@ -138,6 +141,17 @@ final class UserFormat extends AbstractFormat
         }
 
         return $rows;
+    }
+
+    /**
+     * Role ids in `format_store.user_role`. An empty list means no role limit.
+     * Null means the stored value is not a list of role ids.
+     *
+     * @return list<int>|null
+     */
+    public function roleLimit(CustomField $field): ?array
+    {
+        return $this->roleIds($field);
     }
 
     /**

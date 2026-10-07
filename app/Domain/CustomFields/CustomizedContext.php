@@ -2,6 +2,8 @@
 
 namespace App\Domain\CustomFields;
 
+use App\Models\Document;
+use App\Models\Enumeration;
 use App\Models\Issue;
 use App\Models\Project;
 use App\Models\TimeEntry;
@@ -40,6 +42,21 @@ final class CustomizedContext
             };
         }
 
+        if ($record instanceof Document) {
+            return CustomFieldTypes::DOCUMENT;
+        }
+
+        if ($record instanceof Enumeration) {
+            $type = (string) $record->type;
+
+            return match ($type) {
+                CustomFieldTypes::ISSUE_PRIORITY,
+                CustomFieldTypes::TIME_ENTRY_ACTIVITY,
+                CustomFieldTypes::DOCUMENT_CATEGORY => $type,
+                default => null,
+            };
+        }
+
         return null;
     }
 
@@ -49,7 +66,7 @@ final class CustomizedContext
             return $record;
         }
 
-        if ($record instanceof Issue || $record instanceof TimeEntry || $record instanceof Version) {
+        if ($record instanceof Issue || $record instanceof TimeEntry || $record instanceof Version || $record instanceof Document || $record instanceof Enumeration) {
             $project = $record->project;
 
             return $project instanceof Project ? $project : null;

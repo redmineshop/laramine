@@ -1,0 +1,96 @@
+{
+    "pin": "7.0.1",
+    "edit": [
+        {"login": "ada", "project_id": 1, "field_id": 10, "ids": [1, 4, 8, 9, 2], "me_label": true},
+        {"login": "erin", "project_id": 1, "field_id": 10, "ids": [1, 4, 8, 9, 2], "me_label": true},
+        {"login": "erin", "project_id": 1, "field_id": 17, "ids": [4, 2], "me_label": false},
+        {"login": "bea", "project_id": 2, "field_id": 10, "ids": [1], "me_label": false},
+        {"login": "ada", "project_id": 2, "field_id": 10, "ids": [1, 7], "me_label": true},
+        {"login": "erin", "project_id": 2, "field_id": 10, "ids": [1, 7], "me_label": false},
+        {"login": "cleo", "project_id": 2, "field_id": 10, "ids": [1], "me_label": false},
+        {"login": null, "project_id": 1, "field_id": 10, "ids": [1, 4, 8, 9, 2], "me_label": false},
+        {"login": "ada", "project_id": null, "field_id": 10, "ids": [], "me_label": false}
+    ],
+    "filter": [
+        {"login": "ada", "project_id": 1, "field_id": 10, "ids": [1, 4, 7, 8, 9, 2], "me": true},
+        {"login": "bea", "project_id": 1, "field_id": 10, "ids": [1, 4, 8, 9, 2], "me": true},
+        {"login": "bea", "project_id": 2, "field_id": 10, "ids": [1], "me": true},
+        {"login": "erin", "project_id": 1, "field_id": 10, "ids": [1, 4, 8, 9, 2], "me": true},
+        {"login": "admin", "project_id": 1, "field_id": 10, "ids": [1, 4, 7, 8, 9, 2, 6], "me": true},
+        {"login": "cleo", "project_id": 1, "field_id": 10, "ids": [1, 4, 8, 9, 2], "me": true},
+        {"login": "cleo", "project_id": 2, "field_id": 10, "ids": [1], "me": true},
+        {"login": null, "project_id": 1, "field_id": 10, "ids": [1, 4, 8, 9, 2], "me": false},
+        {"login": null, "project_id": 2, "field_id": 10, "ids": [1], "me": false},
+        {"login": "dora", "project_id": 1, "field_id": 10, "ids": [1, 4, 7, 8, 9, 2], "me": true},
+        {"login": "ada", "project_id": null, "field_id": 10, "ids": [1, 4, 7, 8, 9, 2], "me": true},
+        {"login": "erin", "project_id": null, "field_id": 10, "ids": [1, 4, 8, 9, 2], "me": true},
+        {"login": "admin", "project_id": null, "field_id": 10, "ids": [1, 4, 7, 8, 9, 2, 6], "me": true}
+    ],
+    "filter_ignores_role": {"login": "ada", "project_id": 1, "field_id": 17, "ids": [1, 4, 7, 8, 9, 2], "me": true},
+    "reject_format_field_id": 1,
+    "intersection": {"login": "ada", "issue_ids": [1, 5], "field_id": 10, "ids": [1]},
+    "writes": [
+        {"login": "ada", "issue_id": 5, "field_id": 10, "user_id": 7, "error": null},
+        {"login": "bea", "issue_id": 5, "field_id": 10, "user_id": 7, "error": "not a possible value"},
+        {"login": "erin", "issue_id": 5, "field_id": 10, "user_id": 7, "error": null},
+        {"login": "ada", "issue_id": 1, "field_id": 10, "user_id": 5, "error": "not a member"}
+    ],
+    "keep_previous": {"login": "ada", "issue_id": 5, "field_id": 10, "stored_user_id": 5},
+    "stored": [
+        {"id": 20, "custom_field_id": 18, "customized_type": "IssuePriority", "customized_id": 1, "value": "pinned"},
+        {"id": 21, "custom_field_id": 19, "customized_type": "TimeEntryActivity", "customized_id": 3, "value": "dev"},
+        {"id": 22, "custom_field_id": 20, "customized_type": "DocumentCategory", "customized_id": 4, "value": "guides"},
+        {"id": 23, "custom_field_id": 21, "customized_type": "Document", "customized_id": 1, "value": "alpha"}
+    ],
+    "indexes": {
+        "issue_priorities": {
+            "issue_priorities": [
+                {"id": 1, "name": "Normal", "is_default": true, "active": true, "custom_fields": [{"id": 18, "name": "Priority note", "value": "pinned"}]},
+                {"id": 2, "name": "High", "is_default": false, "active": true, "custom_fields": [{"id": 18, "name": "Priority note", "value": null}]}
+            ]
+        },
+        "time_entry_activities": {
+            "time_entry_activities": [
+                {"id": 3, "name": "Development", "is_default": true, "active": true, "custom_fields": []}
+            ]
+        },
+        "document_categories": {
+            "document_categories": [
+                {"id": 4, "name": "User guide", "is_default": true, "active": true, "custom_fields": [{"id": 20, "name": "Category tag", "value": "guides"}]}
+            ]
+        }
+    },
+    "activity_edit": {
+        "enumeration_id": 3,
+        "admin": [{"id": 19, "name": "Activity code", "field_format": "string", "value": "dev", "raw": ["dev"]}],
+        "manager_login": "bea",
+        "hidden_login": "ada"
+    },
+    "priority_edit": {
+        "enumeration_id": 1,
+        "fields": [{"id": 18, "name": "Priority note", "field_format": "string", "value": "pinned", "raw": ["pinned"]}],
+        "clear_error": "required"
+    },
+    "new_priority": {"name": "Low", "default": "normal"},
+    "project_activity": {"name": "Override", "project_id": 1, "parent_id": 3},
+    "document_grant": {
+        "role_id": 1,
+        "project_id": 1,
+        "module": "documents",
+        "permissions": ["view_documents", "add_documents", "edit_documents"]
+    },
+    "document": {
+        "project_id": 1,
+        "document_id": 1,
+        "field_id": 21,
+        "reader": "ada",
+        "denied": ["cleo", "bea"],
+        "admin_sees": true,
+        "value": "alpha",
+        "replacement": "beta",
+        "clear_error": "required",
+        "create_id": 2,
+        "default": "unset",
+        "fields": [{"id": 21, "name": "Doc label", "field_format": "string", "value": "alpha", "raw": ["alpha"]}]
+    }
+}
