@@ -317,7 +317,7 @@
     {
         "id": 16,
         "type": "IssueCustomField",
-        "name": "Pin file",
+        "name": "History file",
         "field_format": "attachment",
         "possible_values": null,
         "regexp": "",
