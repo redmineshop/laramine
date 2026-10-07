@@ -61,3 +61,25 @@ jobs:
 
       - name: Tests
         run: composer test
+
+  # Client typecheck and Vite build. Does not replace the PHP gates above.
+  # The smoke page is not a product UI. See docs/ux-parity-notes.md.
+  frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install npm deps
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build client and SSR bundles
+        run: npm run build

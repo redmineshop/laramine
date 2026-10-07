@@ -45,5 +45,7 @@
         <env name="PULSE_ENABLED" value="false" force="true"/>
         <env name="TELESCOPE_ENABLED" value="false" force="true"/>
         <env name="NIGHTWATCH_ENABLED" value="false" force="true"/>
+        <!-- The frontend job compiles the SSR bundle. PHPUnit must not call Node. -->
+        <env name="INERTIA_SSR_ENABLED" value="false" force="true"/>
     </php>
 </phpunit>

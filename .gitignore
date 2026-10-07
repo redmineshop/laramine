@@ -15,9 +15,11 @@
 /node_modules
 /public/build
 /public/hot
+/bootstrap/ssr
 /public/storage
 /storage/*.key
 /storage/pail
+/storage/inertia-devtools
 /vendor
 Homestead.json
 Homestead.yaml

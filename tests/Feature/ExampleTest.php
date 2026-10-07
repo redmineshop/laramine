@@ -2,20 +2,21 @@
 
 namespace Tests\Feature;
 
-// use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class ExampleTest extends TestCase
 {
-    /**
-     * A basic test example.
-     */
-    public function test_the_application_returns_a_successful_response(): void
+    public function test_the_root_route_renders_the_inertia_smoke_page(): void
     {
+        $this->withoutVite();
+
         $response = $this->get('/');
 
         $response->assertOk();
-        $response->assertSee('Laramine');
-        $response->assertSee('not implemented yet');
+        $response->assertInertia(fn (Assert $page) => $page
+            ->component('Health')
+            ->where('status', 'ok')
+        );
     }
 }
