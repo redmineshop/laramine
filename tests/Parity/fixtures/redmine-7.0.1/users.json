@@ -1,0 +1,53 @@
+[
+    {
+        "id": 1,
+        "login": "ada",
+        "hashed_password": "922e9e1d8810f5e7bcc3f593a8f74f8af73a36f0",
+        "salt": "00112233445566778899aabbccddeeff",
+        "firstname": "Ada",
+        "lastname": "Lovelace",
+        "admin": false,
+        "status": 1,
+        "type": "User",
+        "language": "en",
+        "mail_notification": "only_my_events",
+        "must_change_passwd": false,
+        "auth_source_id": null,
+        "created_on": "2026-08-26 12:00:00",
+        "updated_on": "2026-08-26 12:00:00"
+    },
+    {
+        "id": 2,
+        "login": "admin",
+        "hashed_password": "0000000000000000000000000000000000000000",
+        "salt": null,
+        "firstname": "Pin",
+        "lastname": "Admin",
+        "admin": true,
+        "status": 1,
+        "type": "User",
+        "language": "en",
+        "mail_notification": "all",
+        "must_change_passwd": false,
+        "auth_source_id": null,
+        "created_on": "2026-08-26 12:00:00",
+        "updated_on": "2026-08-26 12:00:00"
+    },
+    {
+        "id": 3,
+        "login": "platform",
+        "hashed_password": "0000000000000000000000000000000000000000",
+        "salt": null,
+        "firstname": "",
+        "lastname": "Platform",
+        "admin": false,
+        "status": 1,
+        "type": "Group",
+        "language": "",
+        "mail_notification": "",
+        "must_change_passwd": false,
+        "auth_source_id": null,
+        "created_on": "2026-08-26 12:00:00",
+        "updated_on": "2026-08-26 12:00:00"
+    }
+]

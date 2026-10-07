@@ -1,0 +1,30 @@
+[
+    {
+        "id": 1,
+        "type": "IssueQuery",
+        "name": "Open on parity-core",
+        "description": "Synthetic private query",
+        "project_id": 1,
+        "user_id": 1,
+        "visibility": 0,
+        "filters": {"status_id": {"operator": "o", "values": []}},
+        "column_names": ["subject", "status", "tracker"],
+        "sort_criteria": [["id", "desc"]],
+        "group_by": null,
+        "options": {"display_type": "list", "totalable_names": ["estimated_hours"]}
+    },
+    {
+        "id": 2,
+        "type": "IssueQuery",
+        "name": "Open for developers",
+        "description": "Synthetic role-visible query",
+        "project_id": 1,
+        "user_id": 2,
+        "visibility": 1,
+        "filters": {"status_id": {"operator": "o", "values": []}},
+        "column_names": ["subject", "status"],
+        "sort_criteria": [["id", "asc"]],
+        "group_by": null,
+        "options": {"display_type": "list"}
+    }
+]

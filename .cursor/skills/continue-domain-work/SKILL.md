@@ -65,9 +65,11 @@ A green Unit or Feature test is Laramine behavior. It is not a Redmine compariso
 
 Change a `docs/parity-checklist.md` row to **VERIFIED** only when all of these are true:
 
-- a test under `tests/Parity` compares this tree to a pinned Redmine 7.0.1 fixture or recorded result
-- the checklist **Evidence** cell cites that test
+- a test under `tests/Parity` compares this tree to the pin at `tests/Parity/fixtures/redmine-7.0.1/` (loaded by `Tests\Parity\Support\Redmine701Fixture`) or to a recorded result at `tests/Parity/fixtures/redmine-7.0.1/expectations/<area>/<case>.json`
+- the checklist **Evidence** cell cites that test and the fixture or expectation path
 - the pull request does not say the whole product matches Redmine
+
+`tests/Parity/Redmine701FixtureHarnessTest.php` only proves the pin loads on MySQL 8. It does not satisfy the rules above.
 
 Otherwise leave **NOT VERIFIED**. **INCONCLUSIVE** is for a comparison that ran and did not decide, with the evidence path filled in. Do not use it as a soft pass.
 

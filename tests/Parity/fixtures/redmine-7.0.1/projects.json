@@ -1,0 +1,38 @@
+[
+    {
+        "id": 1,
+        "name": "Parity Core",
+        "identifier": "parity-core",
+        "description": "Synthetic parent project for the parity pin.",
+        "homepage": "",
+        "is_public": true,
+        "status": 1,
+        "inherit_members": false,
+        "parent_id": null,
+        "lft": 1,
+        "rgt": 4,
+        "default_assigned_to_id": 1,
+        "default_version_id": null,
+        "default_issue_query_id": null,
+        "created_on": "2026-08-26 12:00:00",
+        "updated_on": "2026-08-26 12:00:00"
+    },
+    {
+        "id": 2,
+        "name": "Parity Child",
+        "identifier": "parity-child",
+        "description": "Synthetic child project nested inside Parity Core.",
+        "homepage": "",
+        "is_public": false,
+        "status": 1,
+        "inherit_members": true,
+        "parent_id": 1,
+        "lft": 2,
+        "rgt": 3,
+        "default_assigned_to_id": null,
+        "default_version_id": null,
+        "default_issue_query_id": null,
+        "created_on": "2026-08-26 12:00:00",
+        "updated_on": "2026-08-26 12:00:00"
+    }
+]

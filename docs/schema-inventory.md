@@ -10,6 +10,8 @@
 **Local schema dump:** [`sources/redmine-7.0.1-schema.rb`](sources/redmine-7.0.1-schema.rb) (structure dump only; checked in with this inventory)  
 Generated via `rake db:migrate db:schema:dump` on image `redmine:7.0.1` (SQLite adapter dump). Upstream **gitignores** `db/schema.rb`; this file is a regenerated **structure dump only** (no application Ruby copied into Laravel artifacts).
 
+Row data for parity tests is a separate pin at `tests/Parity/fixtures/redmine-7.0.1/`. This schema file is not that data fixture.
+
 **Schema AR version stamp:** `2026_05_20_164915`  
 **Total core tables in dump:** **58** (no plugin tables in this inventory)  
 **Product:** **Laramine** (MIT). **Strategy:** isomorphic P0 schema — keep Redmine-like table/column names for ETL/parity.

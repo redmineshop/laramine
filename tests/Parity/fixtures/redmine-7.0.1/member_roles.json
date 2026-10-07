@@ -1,0 +1,6 @@
+[
+    {"id": 1, "member_id": 1, "role_id": 1, "inherited_from": null},
+    {"id": 2, "member_id": 2, "role_id": 1, "inherited_from": null},
+    {"id": 3, "member_id": 3, "role_id": 2, "inherited_from": null},
+    {"id": 4, "member_id": 4, "role_id": 1, "inherited_from": null}
+]
