@@ -3,5 +3,6 @@
     {"id": 2, "type": "WorkflowTransition", "tracker_id": 1, "role_id": 1, "old_status_id": 1, "new_status_id": 2, "author": false, "assignee": false, "field_name": null, "rule": null},
     {"id": 3, "type": "WorkflowTransition", "tracker_id": 1, "role_id": 1, "old_status_id": 2, "new_status_id": 4, "author": false, "assignee": false, "field_name": null, "rule": null},
     {"id": 4, "type": "WorkflowTransition", "tracker_id": 1, "role_id": 2, "old_status_id": 0, "new_status_id": 1, "author": false, "assignee": false, "field_name": null, "rule": null},
-    {"id": 5, "type": "WorkflowPermission", "tracker_id": 1, "role_id": 1, "old_status_id": 1, "new_status_id": 0, "author": false, "assignee": false, "field_name": "estimated_hours", "rule": "required"}
+    {"id": 5, "type": "WorkflowPermission", "tracker_id": 1, "role_id": 1, "old_status_id": 1, "new_status_id": 0, "author": false, "assignee": false, "field_name": "estimated_hours", "rule": "required"},
+{"id": 6, "type": "WorkflowTransition", "tracker_id": 1, "role_id": 5, "old_status_id": 1, "new_status_id": 3, "author": false, "assignee": false, "field_name": null, "rule": null}
 ]

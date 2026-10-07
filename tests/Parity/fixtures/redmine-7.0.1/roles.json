@@ -26,5 +26,61 @@
         "time_entries_visibility": "all",
         "settings": null,
         "default_time_entry_activity_id": 3
+    },
+    {
+        "id": 3,
+        "name": "Non member",
+        "position": 3,
+        "builtin": 1,
+        "assignable": false,
+        "all_roles_managed": false,
+        "permissions": [],
+        "issues_visibility": "default",
+        "users_visibility": "members_of_visible_projects",
+        "time_entries_visibility": "all",
+        "settings": null,
+        "default_time_entry_activity_id": null
+    },
+    {
+        "id": 4,
+        "name": "Anonymous",
+        "position": 4,
+        "builtin": 2,
+        "assignable": false,
+        "all_roles_managed": false,
+        "permissions": [],
+        "issues_visibility": "default",
+        "users_visibility": "members_of_visible_projects",
+        "time_entries_visibility": "all",
+        "settings": null,
+        "default_time_entry_activity_id": null
+    },
+    {
+        "id": 5,
+        "name": "Observer",
+        "position": 5,
+        "builtin": 0,
+        "assignable": true,
+        "all_roles_managed": false,
+        "permissions": ["view_issues"],
+        "issues_visibility": "default",
+        "users_visibility": "members_of_visible_projects",
+        "time_entries_visibility": "all",
+        "settings": null,
+        "default_time_entry_activity_id": null
+    },
+    {
+        "id": 6,
+        "name": "Directory",
+        "position": 6,
+        "builtin": 0,
+        "assignable": true,
+        "all_roles_managed": false,
+        "permissions": ["view_issues"],
+        "issues_visibility": "default",
+        "users_visibility": "all",
+        "time_entries_visibility": "all",
+        "settings": null,
+        "default_time_entry_activity_id": null
     }
 ]

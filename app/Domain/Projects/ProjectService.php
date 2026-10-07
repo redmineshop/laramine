@@ -8,6 +8,7 @@ use App\Domain\DomainException;
 use App\Models\EnabledModule;
 use App\Models\Project;
 use App\Models\Tracker;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Project writes: nested set, enabled modules, and tracker links.
@@ -60,7 +61,16 @@ final class ProjectService
 
     public function move(Project $project, ?Project $newParent): Project
     {
-        return $this->trees->move($project, $newParent);
+        return DB::transaction(function () use ($project, $newParent): Project {
+            $previousParentId = $project->parent_id !== null ? (int) $project->parent_id : null;
+            $moved = $this->trees->move($project, $newParent);
+            $nextParentId = $moved->parent_id !== null ? (int) $moved->parent_id : null;
+            if ($previousParentId !== $nextParentId) {
+                $this->memberships->resyncInheritedMembers($moved);
+            }
+
+            return $moved->refresh();
+        });
     }
 
     public function setInheritMembers(Project $project, bool $inherit): Project

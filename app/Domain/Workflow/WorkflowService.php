@@ -6,6 +6,7 @@ use App\Domain\Acl\PermissionService;
 use App\Models\Issue;
 use App\Models\IssueStatus;
 use App\Models\Project;
+use App\Models\Role;
 use App\Models\Tracker;
 use App\Models\User;
 use App\Models\Workflow;
@@ -71,10 +72,7 @@ final class WorkflowService
             return $ids;
         }
 
-        $roleIds = [];
-        foreach ($this->permissions->rolesFor($user, $project) as $role) {
-            $roleIds[] = (int) $role->id;
-        }
+        $roleIds = $this->workflowRoleIds($user, $project);
         if ($roleIds === []) {
             return [];
         }
@@ -162,11 +160,27 @@ final class WorkflowService
     }
 
     /**
+     * Roles on the project that may add or edit issues.
+     *
+     * @return Collection<int, Role>
+     */
+    public function workflowRoles(?User $user, Project $project): Collection
+    {
+        /** @var Collection<int, Role> $roles */
+        $roles = $this->permissions->rolesFor($user, $project)
+            ->filter(static fn (Role $role): bool => $role->considersWorkflow())
+            ->values();
+
+        return $roles;
+    }
+
+    /**
      * Merged field rule for the issue's current status.
      *
-     * Null means the field is not constrained. Conflicting readonly/required
-     * rules across every role resolve to required. A role with no row leaves
-     * the field unconstrained.
+     * Null means the field is not constrained. Only roles from
+     * {@see self::workflowRoles} take part. A missing row among those roles
+     * leaves the field unconstrained. When every such role has a row, one
+     * `required` row wins over `readonly`, including two rows on the same role.
      */
     public function fieldRule(?User $user, Issue $issue, string $fieldName): ?string
     {
@@ -179,14 +193,9 @@ final class WorkflowService
             return null;
         }
 
-        $roles = $this->permissions->rolesFor($user, $project);
-        if ($roles->isEmpty()) {
+        $roleIds = $this->workflowRoleIds($user, $project);
+        if ($roleIds === []) {
             return null;
-        }
-
-        $roleIds = [];
-        foreach ($roles as $role) {
-            $roleIds[] = (int) $role->id;
         }
 
         $rows = Workflow::query()
@@ -197,12 +206,25 @@ final class WorkflowService
             ->where('field_name', $fieldName)
             ->get();
 
+        return $this->mergeFieldRules($rows, $roleIds);
+    }
+
+    /**
+     * @param  Collection<int, Workflow>  $rows
+     * @param  list<int>  $roleIds
+     */
+    public function mergeFieldRules(Collection $rows, array $roleIds): ?string
+    {
         $ruleByRole = [];
         foreach ($rows as $row) {
             if ($row->rule !== self::RULE_READONLY && $row->rule !== self::RULE_REQUIRED) {
                 continue;
             }
-            $ruleByRole[(int) $row->role_id] = $row->rule;
+            $roleId = (int) $row->role_id;
+            if (($ruleByRole[$roleId] ?? null) === self::RULE_REQUIRED) {
+                continue;
+            }
+            $ruleByRole[$roleId] = $row->rule;
         }
 
         $collected = [];
@@ -218,6 +240,19 @@ final class WorkflowService
         }
 
         return self::RULE_READONLY;
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function workflowRoleIds(?User $user, Project $project): array
+    {
+        $roleIds = [];
+        foreach ($this->workflowRoles($user, $project) as $role) {
+            $roleIds[] = (int) $role->id;
+        }
+
+        return $roleIds;
     }
 
     private function rowApplies(Workflow $row, bool $isAuthor, bool $isAssignee): bool

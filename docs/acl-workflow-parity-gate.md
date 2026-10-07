@@ -2,7 +2,7 @@
 
 This is the Laramine checklist for projects, membership, issue workflow, and issue visibility against the P0c MVP: permission registry, builtin roles, module gating, group and `inherit_members` cascade, `issues_visibility`, transitions, field rules, and admin bypass.
 
-**Parity is NOT VERIFIED.** A green smoke in this repo is Laramine behavior on MySQL 8. It is not a comparison against a Redmine 7.0.1 database. Do not describe the project as production-ready from this file. Do not treat this file as a 0.1 tag.
+**Smoke PASS is not the checklist.** A green smoke in this repo is Laramine behavior on MySQL 8. The identity, projects nested-set, and workflows rows in [parity-checklist.md](parity-checklist.md) are **VERIFIED** only by the tests named there. Do not describe the project as production-ready from this file. Do not treat this file as a 0.1 tag.
 
 ## Where the behavior lives
 
@@ -16,7 +16,7 @@ This is the Laramine checklist for projects, membership, issue workflow, and iss
 | Transitions and field-rule merge | `App\Domain\Workflow\WorkflowService` |
 | Issue create / update | `App\Domain\Issues\IssueService` |
 
-Domain behavior is described in [domain.md](domain.md). The parity rows stay **NOT VERIFIED** in [parity-checklist.md](parity-checklist.md).
+Domain behavior is described in [domain.md](domain.md). Checklist rows that are **VERIFIED** cite a `tests/Parity` comparison. This file's **PASS** marks do not.
 
 ## Core checklist acceptance
 
@@ -31,7 +31,7 @@ There is no separate `docs/core-checklist-acceptance.md`. This section is that c
 | Workflow | A `WorkflowTransition` with `old_status_id = 0` allows create at In Progress when the tracker default is New. A second row from In Progress to Resolved, with `author` and `assignee` false, makes `allowsTransition` true and the update stores Resolved. | PASS | `test_workflow_allows_non_default_initial_status_and_next_status` |
 | Issues | Create stores the project, tracker, author, tracker default status, `lft = 1`, `rgt = 2`, `root_id` equal to the issue id, and no journal. Update along New → In Progress stores that status and one `attr` / `status_id` journal detail. | PASS | `test_issue_create_stores_nested_set_and_update_writes_status_journal` |
 
-This smoke does not move a project, does not walk `inherit_members`, and does not merge field rules. Rows in **Already covered on main** and **Smoke added for the holes** stay as written there. They are not given this **PASS** mark. The **Open, not passed** list stays open. Parity rows stay **NOT VERIFIED**.
+This smoke does not move a project, does not walk `inherit_members`, and does not merge field rules. Rows in **Already covered on main** and **Smoke added for the holes** stay as written there. They are not given this **PASS** mark. The parent-change walk and the view-only field-rule merge are compared by the parity tests named in the checklist. The **Open, not passed** list stays open.
 
 ## Already covered on main
 
@@ -85,7 +85,7 @@ These checks already pass in existing tests. This change does not rewrite them.
 | Item | Status |
 | --- | --- |
 | `time_entries_visibility` | **Open for a Redmine comparison.** The issue history Spent time tab applies `all` and `own`. IssueQuery `spent_hours` totals, the projected column, and the `spent_time` filter do too (`tests/Feature/IssueQueryDepthTest.php`, `tests/Unit/IssueQueryFieldTest.php`). `TimeEntryService` writes with `log_time`, `edit_time_entries`, `edit_own_time_entries`, and `log_time_for_other_users` (`tests/Feature/TimeEntryWriteTest.php`). Not a parity pass. |
-| `users_visibility` and user authentication | **Open for this gate.** `users_visibility` is still not applied. Phase 2 account gates live on the users and authentication checklist row, not here. LDAP, two-factor, OAuth, API tokens, and account administration stay deferred. This gate is not a 0.1 tag. |
+| `users_visibility` and user authentication | **Predicate compared.** `UserVisibility` applies `all` and `members_of_visible_projects`, and a new assignee must be visible. The comparison is the identity checklist row. The user directory and `UserQuery` stay deferred (Phase 7). LDAP, two-factor, OAuth, API tokens, and account administration stay deferred. This gate is not a 0.1 tag. |
 | Per-tracker permission masks | **Open.** `roles.settings` is stored. `allowed` does not read it. Criterion 18 locks that deferral. |
 | Managed-role enforcement | **Open.** `roles_managed_roles` is stored. `assignRole` does not read it. Criterion 19 locks that deferral. |
 | Wiki, news, documents, files, repository, boards, calendar, gantt | **Open.** Names exist in the catalog. No behavior beyond the permission registry. |

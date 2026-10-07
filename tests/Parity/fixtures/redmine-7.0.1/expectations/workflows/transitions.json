@@ -1,0 +1,67 @@
+{
+    "pin": "7.0.1",
+    "allows": [
+        {"login": "ada", "issue_id": 1, "status_id": 1, "allowed": true},
+        {"login": "ada", "issue_id": 1, "status_id": 2, "allowed": true},
+        {"login": "ada", "issue_id": 1, "status_id": 3, "allowed": false},
+        {"login": "ada", "issue_id": 1, "status_id": 4, "allowed": false},
+        {"login": "bea", "issue_id": 1, "status_id": 2, "allowed": false},
+        {"login": "erin", "issue_id": 1, "status_id": 2, "allowed": false},
+        {"login": "admin", "issue_id": 1, "status_id": 4, "allowed": true}
+    ],
+    "rules": [
+        {"login": "ada", "issue_id": 1, "field": "estimated_hours", "rule": "required"},
+        {"login": "ada", "issue_id": 1, "field": "start_date", "rule": null},
+        {"login": "bea", "issue_id": 1, "field": "estimated_hours", "rule": null},
+        {"login": "admin", "issue_id": 1, "field": "estimated_hours", "rule": null}
+    ],
+    "deny_clear_estimated_hours": {
+        "login": "ada",
+        "issue_id": 1,
+        "message": "estimated_hours",
+        "estimated_hours": 2.5
+    },
+    "deny_observer_status": {
+        "login": "ada",
+        "issue_id": 1,
+        "status_id": 3,
+        "message": "Status",
+        "stored_status_id": 1
+    },
+    "allow_next_status": {
+        "login": "ada",
+        "issue_id": 1,
+        "status_id": 2,
+        "stored_status_id": 2
+    },
+    "deny_manager_status": {
+        "login": "bea",
+        "issue_id": 1,
+        "status_id": 2,
+        "message": "Status",
+        "stored_status_id": 1
+    },
+    "member_create_without_hours": {
+        "login": "ada",
+        "project_id": 1,
+        "tracker_id": 1,
+        "subject": "Needs hours",
+        "message": "estimated_hours",
+        "issue_count": 2
+    },
+    "member_create_with_hours": {
+        "login": "ada",
+        "project_id": 1,
+        "tracker_id": 1,
+        "subject": "Has hours",
+        "estimated_hours": 1,
+        "status_id": 1
+    },
+    "admin_create_without_hours": {
+        "login": "admin",
+        "project_id": 1,
+        "tracker_id": 1,
+        "subject": "Admin skips hours",
+        "status_id": 1
+    }
+}

@@ -4,7 +4,7 @@ Laramine services in `app/Domain` maintain the P0 tables. This is not a Redmine 
 
 ## Projects
 
-`ProjectService` creates and moves the project nested set (`parent_id`, `lft`, `rgt`). A move appends the subtree as the last child of the new parent, or as a new root when the parent is null. Moving a project under itself or under a descendant is rejected and rolled back.
+`ProjectService` creates and moves the project nested set (`parent_id`, `lft`, `rgt`). A move appends the subtree as the last child of the new parent, or as a new root when the parent is null. Moving a project under itself or under a descendant is rejected and rolled back. When the parent changes, roles this project inherited from another project are removed and the chain on descendants is removed with them. If `inherit_members` is still on and the new parent exists, that parent's roles are copied again. The copy walks descendants that also inherit. A user's copy on a child inherits from the group's row on that child, because descendants are copied before the group's users on the same project.
 
 `enableModule` / `disableModule` use `enabled_modules.name`. Names are the ten module keys in `PermissionCatalog::ENABLED_MODULES`. The `project` permission bucket is not a module row.
 
@@ -43,15 +43,24 @@ Applicable roles are memberships of the user and of the user's groups. With no m
 
 Several roles use the most open value. This follows the usual Redmine `Issue.visible` split between `all` and `default`.
 
+`users_visibility` filters which users and groups a viewer can see. `UserVisibility` is that check. A new issue assignee must pass it. The previously stored assignee may stay. The user directory and `UserQuery` are still deferred.
+
+| Value | Effect |
+| --- | --- |
+| `all` | Every active user and group. Locked accounts stay hidden. |
+| `members_of_visible_projects` | Active users and groups who have a membership on a project the viewer can see, plus the viewer when that viewer is logged in. |
+
+Several roles use the most open value (`all` over `members_of_visible_projects`). Membership roles are used when the viewer has any membership, including through a group. A logged-in user with no membership uses the Non member role. A guest uses the Anonymous role. An active admin sees every user and group, including locked accounts. `AnonymousUser` rows are omitted. Inactive users are hidden from everyone except an active admin, even when they still have a membership.
+
 ## Workflow and issues
 
 `IssueService::create` and `update` require `add_issues`, or `edit_issues` / `edit_own_issues`. Parent changes also require `manage_subtasks`. Subtasks stay in the same project. Each issue tree uses `parent_id`, `root_id`, `lft`, and `rgt`, with the root at `lft = 1`.
 
 Status changes read `workflows` rows with `type = WorkflowTransition` for the user's roles and the tracker. A new issue uses `old_status_id = 0`. Rows with `author = 0` and `assignee = 0` always apply. `author = 1` also applies to the issue author. `assignee = 1` also applies to the assignee or to a member of an assignee group. The assignee considered for that flag is the assignee already stored on the issue, not a new assignee sent in the same update. If no initial row matches, the tracker's default status is allowed. Admins skip the matrix. Saving without a status change does not need a self-transition row.
 
-Field rules (`type = WorkflowPermission`, `rule = readonly|required`) are enforced for the disablable core fields on create and update. On create they are read for the initial status id. Across every applicable role, a missing row leaves the field unconstrained. If every role has a row and one of them is `required`, the field is required. Custom field ids are enforced by `CustomValueService` when values are written; see [custom-fields.md](custom-fields.md).
+Field rules (`type = WorkflowPermission`, `rule = readonly|required`) are enforced for the disablable core fields on create and update. On create they are read for the initial status id. Only roles that grant `add_issues`, `edit_issues`, or `edit_own_issues` take part in transitions and field rules. A role outside that set does not add a transition and does not loosen a rule by lacking a row. Across the roles that remain, a missing row leaves the field unconstrained. If every such role has a row and one of them is `required`, the field is required. Two rows for the same role resolve to `required` when either row is `required`. Custom field ids are enforced by `CustomValueService` when values are written; see [custom-fields.md](custom-fields.md).
 
-The MVP smoke for projects, membership, workflow, and issues is [acl-workflow-parity-gate.md](acl-workflow-parity-gate.md). The core checklist acceptance section there marks **PASS** only for the happy paths stored by `tests/Feature/CoreChecklistSmokeTest.php`. A green smoke is Laramine behavior. Parity is **NOT VERIFIED**. This slice is not a 0.1 tag.
+The MVP smoke for projects, membership, workflow, and issues is [acl-workflow-parity-gate.md](acl-workflow-parity-gate.md). The core checklist acceptance section there marks **PASS** only for the happy paths stored by `tests/Feature/CoreChecklistSmokeTest.php`. A green smoke is Laramine behavior. The identity, nested-set, and workflows checklist rows are **VERIFIED** only by the parity tests named in [parity-checklist.md](parity-checklist.md). This slice is not a 0.1 tag.
 
 ## Journals
 
@@ -125,7 +134,7 @@ No workflow matrix is seeded, because statuses and trackers are not created by t
 - Closing and reopening blockers (relations, open subtasks, a closed parent) are not applied.
 - `roles.settings` tracker masks are stored when they are JSON and are not applied.
 - `roles.time_entries_visibility` is applied on the issue history Spent time tab and on IssueQuery `spent_hours` totals, the projected column, and the `spent_time` filter. `TimeEntryService` writes rows. `roles.default_time_entry_activity_id` is stored and is not applied. The spent user's membership is not checked.
-- `roles.users_visibility` is stored and is not applied. Account administration is not in this slice. Web sign-in is in [users-auth-spec.md](users-auth-spec.md). `users_visibility` stays open on the ACL gate and is not a 0.1 tag.
+- `roles.users_visibility` is applied by `UserVisibility`. A new assignee must be visible to the actor. The assignee does not have to be a member of the issue's project. Account administration and the user directory are not in this slice. Web sign-in is in [users-auth-spec.md](users-auth-spec.md). This is not a 0.1 tag.
 - `roles_managed_roles` is stored and is not checked when a role is assigned.
 - `MembershipService::assignRole` does not itself require `manage_members`.
 - Subtask parents must belong to the same project.

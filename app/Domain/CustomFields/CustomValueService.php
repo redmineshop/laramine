@@ -2,7 +2,6 @@
 
 namespace App\Domain\CustomFields;
 
-use App\Domain\Acl\PermissionService;
 use App\Domain\Attachments\AttachmentService;
 use App\Domain\DomainException;
 use App\Domain\Workflow\WorkflowService;
@@ -29,7 +28,6 @@ final class CustomValueService
         private readonly CustomFieldScope $scope,
         private readonly CustomFieldVisibility $visibility,
         private readonly CustomizedContext $context,
-        private readonly PermissionService $permissions,
         private readonly WorkflowService $workflows,
         private readonly AttachmentService $attachments,
     ) {}
@@ -169,7 +167,7 @@ final class CustomValueService
             return WorkflowService::RULE_READONLY;
         }
 
-        $roles = $this->permissions->rolesFor($actor, $project);
+        $roles = $this->workflows->workflowRoles($actor, $project);
         if ($roles->isEmpty()) {
             return WorkflowService::RULE_READONLY;
         }
@@ -188,20 +186,27 @@ final class CustomValueService
                 continue;
             }
 
-            $row = Workflow::query()
+            $rows = Workflow::query()
                 ->where('type', WorkflowService::TYPE_FIELD_PERMISSION)
                 ->where('tracker_id', $issue->tracker_id)
                 ->where('role_id', $roleId)
                 ->where('old_status_id', $issue->status_id)
                 ->where('field_name', (string) $field->id)
-                ->first();
-            if (! $row instanceof Workflow) {
+                ->get();
+            $picked = null;
+            foreach ($rows as $row) {
+                if ($row->rule === WorkflowService::RULE_REQUIRED) {
+                    $picked = WorkflowService::RULE_REQUIRED;
+                    break;
+                }
+                if ($row->rule === WorkflowService::RULE_READONLY) {
+                    $picked = WorkflowService::RULE_READONLY;
+                }
+            }
+            if ($picked === null) {
                 return null;
             }
-            if ($row->rule !== WorkflowService::RULE_READONLY && $row->rule !== WorkflowService::RULE_REQUIRED) {
-                return null;
-            }
-            $collected[] = $row->rule;
+            $collected[] = $picked;
         }
 
         if (in_array(WorkflowService::RULE_REQUIRED, $collected, true)) {

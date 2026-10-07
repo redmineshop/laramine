@@ -1,0 +1,41 @@
+{
+    "pin": "7.0.1",
+    "reject_descendant": {"project_id": 1, "under_id": 2},
+    "move": {
+        "side": {"name": "Parity Side", "identifier": "parity-side"},
+        "grandchild": {"name": "Parity Grand", "identifier": "parity-grand", "parent_id": 2, "inherit_members": true},
+        "membership": {"login": "bea", "role_id": 1, "project": "parity-side"},
+        "move_project_id": 2,
+        "move_under": "parity-side",
+        "projects": [
+            {"id": 1, "parent_id": null, "lft": 1, "rgt": 2},
+            {"identifier": "parity-side", "parent_id": null, "lft": 3, "rgt": 8},
+            {"id": 2, "parent_identifier": "parity-side", "lft": 4, "rgt": 7},
+            {"identifier": "parity-grand", "parent_id": 2, "lft": 5, "rgt": 6}
+        ],
+        "inherited": [
+            {
+                "project_id": 2,
+                "login": "bea",
+                "role_id": 1,
+                "inherited_from": {"identifier": "parity-side", "login": "bea", "role_id": 1}
+            },
+            {
+                "identifier": "parity-grand",
+                "login": "bea",
+                "role_id": 1,
+                "inherited_from": {"project_id": 2, "login": "bea", "role_id": 1}
+            }
+        ],
+        "direct": [
+            {"project_id": 2, "login": "ada", "role_id": 1, "inherited_from": null}
+        ]
+    },
+    "issue_extract": {
+        "issue_id": 2,
+        "issues": [
+            {"id": 1, "parent_id": null, "root_id": 1, "lft": 1, "rgt": 2},
+            {"id": 2, "parent_id": null, "root_id": 2, "lft": 1, "rgt": 2}
+        ]
+    }
+}

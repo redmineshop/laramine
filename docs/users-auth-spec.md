@@ -1,6 +1,6 @@
 # Users and authentication spec
 
-**Status: founder lock 2026-10-07. Phase 1 web sign-in and Phase 2 account gates are implemented.** The users and authentication checklist row is **VERIFIED** only for the comparison in `tests/Parity/UsersAuthParityTest.php`. This is not a 0.1 tag and it is not production-ready. A green feature test by itself is Laramine behavior. LDAP, two-factor, OAuth, API tokens, account administration, outbound mail, and `users_visibility` stay out of that comparison.
+**Status: founder lock 2026-10-07. Phase 1 web sign-in and Phase 2 account gates are implemented.** The users and authentication checklist row is **VERIFIED** only for the comparison in `tests/Parity/UsersAuthParityTest.php`. This is not a 0.1 tag and it is not production-ready. A green feature test by itself is Laramine behavior. LDAP, two-factor, OAuth, API tokens, account administration, and outbound mail stay out of that comparison. `users_visibility` is compared on the identity row.
 
 Column lists stay in [schema-inventory.md](schema-inventory.md) (section “1. Identity / ACL”) and in the structure dump [sources/redmine-7.0.1-schema.rb](sources/redmine-7.0.1-schema.rb). This file does not copy that inventory and does not copy Redmine Ruby.
 
@@ -62,7 +62,7 @@ The sixteen decisions below are closed. A later slice follows them. If a new pro
 
 10. **API and feed tokens.** In scope, phased (Phase 6), via `tokens` actions `api` and `feeds`. Phase 1 does not issue or accept them.
 
-11. **`users_visibility`.** Legal values are `all` and `members_of_visible_projects`. The migration default is `members_of_visible_projects`. Enforcement stays with the user directory (Phase 7) and the ACL gate. Phase 2 does not read the column and does not block on it. It remains an open item on the ACL gate.
+11. **`users_visibility`.** Legal values are `all` and `members_of_visible_projects`. The migration default is `members_of_visible_projects`. `UserVisibility` applies the column, including a new issue assignee. Phase 2 sign-in does not read it. The user directory and `UserQuery` stay Phase 7.
 
 12. **Account administration.** `users.admin` on an active user is the account-admin flag: create, edit, lock, unlock, and delete accounts, and group membership outside project roles. `manage_members` stays project membership only. Deleting an account removes personal rows (preferences, tokens, memberships, private queries) and reassigns public authorship. That workflow is Phase 8. Phase 1 does not add it. The existing admin bypass of project permission checks is unchanged.
 
@@ -84,7 +84,7 @@ The sixteen decisions below are closed. A later slice follows them. If a new pro
 | 4 | Two-factor scheme, TOTP, backup codes | Deferred. Sign-in still fails closed. |
 | 5 | OAuth services on the existing `oauth_*` tables | Deferred. |
 | 6 | API and feed tokens | Deferred. |
-| 7 | `users_visibility`, user directory, running `UserQuery` | Deferred. Does not block Phase 2. Stays open on the ACL gate. |
+| 7 | User directory, running `UserQuery` | Deferred. `users_visibility` itself is applied by `UserVisibility` and compared on the identity row. The directory does not block Phase 2. |
 | 8 | Account administration under `users.admin` | Deferred. Manual registration stays status `2`. |
 | 9 | Mail-notification values and the `user_preferences.others` codec | Deferred. Registration stores `only_my_events` unless `default_notification_option` is one of the six legal values. Mail is not delivered. |
 | 10 | `session` and `autologin` token rows; operator-supplied administrator seed | Deferred. |
@@ -145,7 +145,7 @@ These forms are Blade. They are not Redmine screens. The Inertia sign-in page li
 | External auth | `auth_sources` | Phase 3. Phase 1 denies these users. |
 | Group membership | `groups_users` | Project role expansion stays in [domain.md](domain.md). |
 | Project membership | `members`, `member_roles` | `manage_members` is not account admin. |
-| Who can see which users | `roles.users_visibility` | Decision 11. Not applied. |
+| Who can see which users | `roles.users_visibility` | Decision 11. Applied by `UserVisibility`. The directory screen is Phase 7. |
 | OAuth | `oauth_applications`, `oauth_access_grants`, `oauth_access_tokens` | Decision 9. No authorization server yet. |
 | Watchers | `watchers.user_id` | A user id, not a credential. |
 
@@ -157,7 +157,7 @@ Laravel `sessions` is the Phase 1 web session store. `sessions.user_id` referenc
 - Accounts with `auth_source_id`, `twofa_required`, or a `twofa_scheme` cannot sign in yet. Redmine would continue into LDAP or the second factor. Those denials stay on the generic notice.
 - Outbound mail is not sent. Email registration and recovery still store the token. The HTTP notice does not include the token value.
 - Manual activation has no administrator screen. Those accounts stay status `2`.
-- `users_visibility` is still not applied.
+- `users_visibility` is applied by `UserVisibility` on the ACL path. This sign-in comparison does not read it. The user directory is still deferred.
 - The forty-zero placeholder never verifies, even if a digest collided with it.
 - Posted passwords are not trimmed. Identifiers are trimmed.
 - A wrong password stays on the generic notice. Locked and registered accounts get their own notice only after the digest matches.
@@ -165,12 +165,12 @@ Laravel `sessions` is the Phase 1 web session store. `sessions.user_id` referenc
 
 ## What the parity row covers
 
-`tests/Parity/UsersAuthParityTest.php` loads the shared pin and compares digest check, session login and logout, status notices, `must_change_passwd`, and the `recovery` / `register` token rules to `tests/Parity/fixtures/redmine-7.0.1/expectations/users-auth/sign-in.json`. The checklist evidence cites that test. Passing the ACL/workflow smoke does not close users and auth. Phases 3–6 and 8–10 are not part of the comparison.
+`tests/Parity/UsersAuthParityTest.php` loads the shared pin and compares digest check, session login and logout, status notices, `must_change_passwd`, and the `recovery` / `register` token rules to `tests/Parity/fixtures/redmine-7.0.1/expectations/users-auth/sign-in.json`. The checklist evidence cites that test. Passing the ACL/workflow smoke does not close users and auth. Phases 3–6 and 8–10 are not part of the comparison. `users_visibility` is part of the identity comparison, not this one.
 
 ## Checklist links
 
 | Checklist | Users / auth status |
 | --- | --- |
-| [parity-checklist.md](parity-checklist.md) | **VERIFIED** for the Phase 2 comparison cited in that row. LDAP, two-factor, OAuth, API tokens, account administration, outbound mail, and `users_visibility` are outside it. Not a 0.1 tag. |
-| [acl-workflow-parity-gate.md](acl-workflow-parity-gate.md) | Open. `users_visibility` is still not applied. Not a 0.1 tag. |
+| [parity-checklist.md](parity-checklist.md) | **VERIFIED** for the Phase 2 comparison cited in that row. LDAP, two-factor, OAuth, API tokens, account administration, and outbound mail are outside it. `users_visibility` is on the identity row. Not a 0.1 tag. |
+| [acl-workflow-parity-gate.md](acl-workflow-parity-gate.md) | Smoke **PASS** is not the checklist. `users_visibility` is applied by `UserVisibility`. The user directory stays deferred. Not a 0.1 tag. |
 | [QUALITY.md](../QUALITY.md) | No 0.1 tag. Phase 1 is not a production-ready claim. |

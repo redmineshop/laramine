@@ -46,6 +46,17 @@ class Role extends Model
     }
 
     /**
+     * Field rules and transitions use only roles that can add or edit issues.
+     * A view-only role must not loosen a missing row or add a transition.
+     */
+    public function considersWorkflow(): bool
+    {
+        return $this->grants('add_issues')
+            || $this->grants('edit_issues')
+            || $this->grants('edit_own_issues');
+    }
+
+    /**
      * @return BelongsTo<Enumeration, $this>
      */
     public function defaultTimeEntryActivity(): BelongsTo
