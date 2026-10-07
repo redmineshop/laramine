@@ -17,7 +17,7 @@ interface FieldFormat
     public function supportsSearchable(): bool;
 
     /**
-     * Whether a query total may include this format. IssueQuery does not sum custom fields.
+     * Whether IssueQuery may sum this format from `options.totalable_names`.
      */
     public function supportsTotal(): bool;
 

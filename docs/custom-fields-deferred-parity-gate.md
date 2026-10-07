@@ -30,6 +30,7 @@ Domain behavior is described in [custom-fields.md](custom-fields.md). Filter typ
 | Issue create/update writes the four formats, reads the cast shape, and rejects a bad value | `tests/Feature/CustomFieldValueTest.php` `test_link_enumeration_progressbar_and_attachment_round_trip` |
 | `cf_{id}` filters: link `string`, enumeration `list_optional`, attachment id `string`, progress bar `integer` | `tests/Unit/IssueQueryOperatorTest.php` `test_link_enumeration_attachment_and_progressbar_filters` |
 | `any_searchable` skips a link field even when `searchable` is set on the row | `tests/Unit/IssueQueryFieldTest.php` `test_any_searchable_uses_subject_description_and_visible_custom_fields` |
+| Query totals sum int and float custom fields. Progress bar is rejected. A hidden field is an error for a user who cannot see it | `tests/Feature/IssueQueryTest.php` `test_totals_sum_the_visible_issue_set` and `test_totals_reject_unknown_hidden_and_non_totalable_columns` |
 | Attachment upload writes the file, SHA-256 `digest`, and `YYYY/MM` `disk_directory`, then binds an unbound row when the custom value is saved. Extension rules stay in `AttachmentFormat`. Clearing the value leaves the file and the container | `tests/Feature/CustomFieldAttachmentUploadTest.php` `test_upload_writes_digest_and_binds_when_the_custom_value_is_set` and `test_upload_rejects_a_bad_extension_and_a_foreign_container` |
 | Enumeration options can be inserted, renamed, reordered, and activated or deactivated. Stored custom values keep the same ids. The current default cannot be deactivated | `tests/Feature/CustomFieldEnumerationOptionTest.php` `test_enumeration_options_reorder_and_values_stay_on_the_same_ids` |
 
@@ -42,7 +43,6 @@ MySQL 8 is the database (`phpunit.xml`). These tests do not live under `tests/Pa
 | Link HTTP view and live fetch | **Open.** `formattedUrl` builds an encoded URL and does not request it. There is no HTTP view. |
 | Enumeration option deletion | **Open.** Insert, rename, reorder, and activate/deactivate are implemented. Destroying an option and rewriting values that pointed at it are not. |
 | Attachment download | **Open.** Bytes are stored on the local `attachments` disk. Nothing serves or deletes that file over HTTP. |
-| Query totals | **Open.** Int and float report `supportsTotal`. Progress bar reports false. IssueQuery does not sum custom fields. |
 | Version sharing | **Open.** Unchanged. A version value must belong to the record's project. |
 | Custom-field journal diffs | **Open.** Unchanged. Issue journals do not record custom-value edits. |
 | Redmine 7.0.1 comparison | **Open.** No `tests/Parity` fixture compares these formats to Redmine. |

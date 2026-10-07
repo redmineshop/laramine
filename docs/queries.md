@@ -37,7 +37,7 @@ An in-memory list is also accepted at the service edge and stored back as the ma
 
 Filters are AND-ed. There is no OR group.
 
-`column_names` null means the display default `tracker`, `status`, `priority`, `subject`, `assigned_to`, `updated_on`. The runner still returns full issue rows. `options` is stored and not interpreted (totals, display mode).
+`column_names` null means the display default `tracker`, `status`, `priority`, `subject`, `assigned_to`, `updated_on`. The runner still returns full issue rows. `options.totalable_names` is summed over that set (see below). `options.display_type` is stored and not interpreted.
 
 ## Visibility
 
@@ -131,6 +131,20 @@ Relations are stored once. The canonical `relation_type` is `relates`, `blocks`,
 
 Sort keys (`priority`, `status`, `tracker`, `assigned_to`, …) order by the issue column (`priority_id`, and so on), then `id` when no sort is stored. `group_by` adds a leading `ORDER BY` and does not collapse rows.
 
+## Totals
+
+`IssueQueryRunner::totals` reads `options.totalable_names` and sums those columns over the same issues `execute` would return. Sort is ignored. An omitted key or an empty list returns an empty map. A missing query project returns zeros for the requested names. Visibility is the same check as `execute`: a query the actor cannot see is an error.
+
+| Name | Sum |
+| --- | --- |
+| `estimated_hours` | `SUM` of `issues.estimated_hours`. Null estimates add nothing. The sum is rounded to 2 decimal places. An empty set is `0`. |
+| `spent_hours` | Each issue contributes the same number the `spent_time` filter compares: `COALESCE(ROUND(SUM(time_entries.hours), 2), 0)`. The query total adds those per-issue numbers. Hours on issues outside the result set are not included. `time_entries_visibility` is not applied. |
+| `cf_{id}` | An `IssueCustomField` the actor can see, whose format reports `supportsTotal` (int and float). `is_filter` is not required. The name does not have to be listed in `column_names`. Int values matching an optional sign and digits are summed as whole numbers. Float values matching a decimal token are summed as decimals. Blank text and any other stored text are skipped. Every matching `custom_values` row is added, including more than one row on the same issue. |
+
+`spent_time` is the filter name, not a total name. Progress bar, list, and the other formats that do not report `supportsTotal` are rejected. An unknown name, a repeated name, a non-list `totalable_names`, a hidden field, or a custom field that is not an `IssueCustomField` is rejected. Saving an `IssueQuery` runs the same check. Other query types still store `options` and do not run, so their `totalable_names` are not checked.
+
+A public query that names a hidden field can be saved by an admin. Another user who can open that query still cannot total the field.
+
 ## Deferred operators
 
 None. The catalog operators above are compiled. `!` on integer, float, and hour is not a deferred operator: that catalog does not list it, so it is invalid. Blank numbers use `!*`.
@@ -158,5 +172,20 @@ An unknown operator or an unknown field is rejected.
 - `issues_visibility = all` includes other people's private issues. `default` hides them unless the user is the author or assignee.
 - Active admins can read private saved queries.
 - Execution returns full issue rows. `column_names` is a display list.
-- `options` is not applied.
+- `options.display_type` is stored and not applied. `totalable_names` is summed even when those names are absent from `column_names`.
+- `spent_hours` totals each issue's own time entries. It does not roll descendant time into a parent that is outside the result, and it does not read `time_entries_visibility`.
 - Global queries check `view_issues` per project in PHP, then OR the visibility groups.
+
+## Still open
+
+These are Laramine gaps. They are not a parity verdict.
+
+| Item | Why it stays open |
+| --- | --- |
+| `display_type` | Stored (`list`, `board`, and any other string). Nothing branches on it. |
+| Sort by position or name | `priority`, `status`, and `tracker` order by the foreign key. `assigned_to` and `author` order by user id. Custom fields are not sort keys. |
+| Column projection | `column_names` is a display list. Unknown names that match the token pattern are stored. The runner returns full issue rows. |
+| `cf_N.*` other than `.due_date` and `.status` | Listed under deferred fields. |
+| Custom-field history | `ev` / `!ev` / `cf` are not compiled for custom fields. |
+| Descendant hour and estimate columns | `total_estimated_hours` and `total_spent_hours` are not totalable names. |
+| Other query types | `ProjectQuery`, `TimeEntryQuery`, `UserQuery`, and `ProjectAdminQuery` still do not run. |

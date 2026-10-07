@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
  * Integer from 0 to 100. `format_store.ratio_interval` is an optional step.
  *
  * The step is a positive integer that divides 100, so 0 and 100 stay on the scale.
- * The format is not totalable. Query totals are not computed from custom fields.
+ * The format is not totalable, so IssueQuery rejects it in `totalable_names`.
  */
 final class ProgressbarFormat extends AbstractFormat
 {
