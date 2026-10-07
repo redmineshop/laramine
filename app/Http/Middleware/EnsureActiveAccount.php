@@ -2,10 +2,10 @@
 
 namespace App\Http\Middleware;
 
+use App\Domain\Auth\WebSession;
 use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -13,6 +13,10 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class EnsureActiveAccount
 {
+    public function __construct(
+        private readonly WebSession $sessions,
+    ) {}
+
     /**
      * @param  Closure(Request): Response  $next
      */
@@ -20,15 +24,7 @@ class EnsureActiveAccount
     {
         $user = $request->user();
         if ($user instanceof User && ! $user->canKeepWebSession()) {
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
-
-            if ($request->expectsJson()) {
-                return response()->json(['message' => 'Unauthenticated.'], 401);
-            }
-
-            return redirect()->route('login');
+            return $this->sessions->drop($request);
         }
 
         return $next($request);

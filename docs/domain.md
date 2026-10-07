@@ -52,7 +52,7 @@ Project visibility follows the same statuses. An archived project is visible onl
 
 Several roles use the most open value. This follows the usual Redmine `Issue.visible` split between `all` and `default`.
 
-`users_visibility` filters which users and groups a viewer can see. `UserVisibility` is that check. A new issue assignee must pass it. The previously stored assignee may stay. The user directory and `UserQuery` are still deferred.
+`users_visibility` filters which users and groups a viewer can see. `UserVisibility` is that check. A new issue assignee must pass it. The previously stored assignee may stay. The user directory and `UserQuery` use that same scope and are compared on the users and authentication checklist row.
 
 | Value | Effect |
 | --- | --- |
@@ -147,7 +147,7 @@ No workflow matrix is seeded, because statuses and trackers are not created by t
 - Same-status saves do not require a workflow row that points at the current status.
 - A permission check that omits the tracker does not apply `roles.settings` masks. `edit_own_issues` is not tracker-scoped.
 - `roles.time_entries_visibility` is applied on the issue history Spent time tab, on spent-time row lists, and on IssueQuery `spent_hours` totals, the projected column, and the `spent_time` filter. `TimeEntryService` writes rows. `roles.default_time_entry_activity_id` is stored and is not applied. The spent user's membership is not checked.
-- `roles.users_visibility` is applied by `UserVisibility`. A new assignee must be visible to the actor. The assignee does not have to be a member of the issue's project. Account administration and the user directory are not in this slice. Web sign-in is in [users-auth-spec.md](users-auth-spec.md). This is not a 0.1 tag.
+- `roles.users_visibility` is applied by `UserVisibility`. A new assignee must be visible to the actor. The assignee does not have to be a member of the issue's project. Account administration and the user directory are compared on the users and authentication row. Web sign-in is in [users-auth-spec.md](users-auth-spec.md). This is not a 0.1 tag.
 - `MembershipService::assignRole` does not itself require `manage_members` or `roles_managed_roles`. `ManagedRoleGuard` does.
 - An active admin still bypasses a disabled module after the project status gate. The status gate itself applies to that admin.
 - Subtask parents must belong to the same project.

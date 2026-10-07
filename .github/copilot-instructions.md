@@ -17,7 +17,7 @@ MIT Laravel project-management core, clean-room relative to Redmine. Full pointe
 - Permission names are the strings in `App\Domain\Acl\PermissionCatalog`.
 - Text columns that Redmine stores as YAML are JSON on write. YAML is read compatibility only, where the domain docs already say so.
 - Tests: `tests/Unit`, `tests/Feature` (often `RefreshDatabase` and `Tests\Support\DomainFixture`), `tests/Parity`.
-- Docs: `docs/domain.md`, `docs/custom-fields.md`, `docs/queries.md`, `docs/journals-parity-gate.md`, `docs/acl-workflow-parity-gate.md`, `docs/users-auth-spec.md`. Update the matching doc when behavior changes. Users/auth is locked there. Phase 2 is registration, `must_change_passwd`, and `recovery` / `register` tokens. Do not add LDAP, two-factor, OAuth, API tokens, or account administration from a side task. The compared row is not a 0.1 tag.
+- Docs: `docs/domain.md`, `docs/custom-fields.md`, `docs/queries.md`, `docs/journals-parity-gate.md`, `docs/acl-workflow-parity-gate.md`, `docs/users-auth-spec.md`. Update the matching doc when behavior changes. Users/auth is locked there. Phase 2 is registration, `must_change_passwd`, and `recovery` / `register` tokens. Phases 3–10 are LDAP through the in-memory directory, TOTP, OAuth authorization code, API and feed tokens, the user directory, account administration, preferences, and session / autologin tokens. Do not add a second auth stack, a bcrypt password column, Sanctum, Fortify, Jetstream, Passport, a live LDAP client, or OpenID Connect from a side task. The compared rows are not a 0.1 tag.
 
 ## Domain work
 

@@ -34,7 +34,8 @@ class SessionLoginTest extends TestCase
         $this->assertNotNull($fresh);
         $this->assertNotNull($fresh->last_login_on);
         $this->assertSame($digest, $fresh->hashed_password);
-        $this->assertSame(0, Token::query()->count());
+        $this->assertSame(1, Token::query()->where('action', Token::ACTION_SESSION)->count());
+        $this->assertSame(0, Token::query()->where('action', '!=', Token::ACTION_SESSION)->count());
 
         $this->post('/logout')->assertRedirect(route('login'));
         $this->assertGuest();
@@ -184,7 +185,7 @@ class SessionLoginTest extends TestCase
         $this->assertSame(LoginDecision::NotAccount, $checker->decide('ops', 'secret'));
     }
 
-    public function test_external_auth_and_two_factor_do_not_start_a_session(): void
+    public function test_external_auth_without_a_reachable_directory_does_not_start_a_session(): void
     {
         $source = AuthSource::query()->create([
             'name' => 'Directory',
@@ -194,28 +195,28 @@ class SessionLoginTest extends TestCase
             'login' => 'ldap-user',
             'auth_source_id' => $source->id,
         ]);
-        $this->account([
+
+        $this->from('/login')->post('/login', [
+            'login' => 'ldap-user',
+            'password' => 'secret',
+        ])->assertRedirect('/login');
+        $this->assertGuest();
+        $this->assertSame(LoginDecision::ExternalAuth, app(CredentialChecker::class)->decide('ldap-user', 'secret'));
+    }
+
+    public function test_two_factor_columns_are_ignored_while_the_setting_is_off(): void
+    {
+        $user = $this->account([
             'login' => 'totp-user',
             'twofa_scheme' => 'totp',
-        ]);
-        $this->account([
-            'login' => 'totp-required',
-            'twofa_required' => true,
+            'twofa_totp_key' => 'SECRET',
         ]);
 
-        foreach (['ldap-user', 'totp-user', 'totp-required'] as $login) {
-            $this->from('/login')->post('/login', [
-                'login' => $login,
-                'password' => 'secret',
-            ])->assertRedirect('/login');
-            $this->assertGuest();
-        }
-
-        $checker = app(CredentialChecker::class);
-        $this->assertSame(LoginDecision::ExternalAuth, $checker->decide('ldap-user', 'secret'));
-        $this->assertSame(LoginDecision::TwoFactor, $checker->decide('totp-user', 'secret'));
-        $this->assertSame(LoginDecision::TwoFactor, $checker->decide('totp-required', 'secret'));
-        $this->assertSame(LoginDecision::Password, $checker->decide('totp-user', 'wrong'));
+        $this->post('/login', [
+            'login' => 'totp-user',
+            'password' => 'secret',
+        ])->assertRedirect('/');
+        $this->assertAuthenticatedAs($user);
     }
 
     public function test_ambiguous_login_does_not_sign_in(): void

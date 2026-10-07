@@ -6,6 +6,8 @@ use App\Auth\RedmineUserProvider;
 use App\Domain\Acl\PermissionCatalog;
 use App\Domain\Acl\PermissionService;
 use App\Domain\Auth\CredentialChecker;
+use App\Domain\Auth\Ldap\LdapDirectory;
+use App\Domain\Auth\Ldap\MemoryLdapDirectory;
 use App\Models\Issue;
 use App\Models\Project;
 use App\Models\User;
@@ -28,6 +30,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(PermissionCatalog::class);
+        $this->app->singleton(LdapDirectory::class, MemoryLdapDirectory::class);
 
         Auth::provider('redmine', $this->redmineUserProvider(...));
     }

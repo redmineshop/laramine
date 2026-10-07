@@ -41,6 +41,10 @@
         {"status": 0, "password": "secret", "decision": "inactive", "message_key": "invalid"},
         {"status": 4, "password": "secret", "decision": "inactive", "message_key": "invalid"}
     ],
+    "session_on_login": {
+        "action": "session",
+        "count": 1
+    },
     "tokens": {
         "recovery_action": "recovery",
         "register_action": "register",

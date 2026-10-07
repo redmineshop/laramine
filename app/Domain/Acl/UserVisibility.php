@@ -16,7 +16,7 @@ use Illuminate\Support\Collection;
  * shows active principals who belong to a project the viewer can see, plus
  * the viewer. Several roles use the most open value. An active admin sees
  * every user and group, including locked accounts. AnonymousUser rows are
- * omitted. The user directory and UserQuery stay deferred.
+ * omitted. `UserQueryRunner` applies this same scope.
  */
 final class UserVisibility
 {

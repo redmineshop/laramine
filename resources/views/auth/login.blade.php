@@ -23,6 +23,12 @@
                 <label for="password">Password</label>
                 <input id="password" name="password" type="password" autocomplete="current-password" required>
             </p>
+            @if ($autologinDays > 0)
+                <p>
+                    <label for="autologin">Stay logged in</label>
+                    <input id="autologin" name="autologin" type="checkbox" value="1">
+                </p>
+            @endif
             <p>
                 <button type="submit">Sign in</button>
             </p>

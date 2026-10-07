@@ -66,6 +66,7 @@ class User extends Authenticatable
             'admin' => 'boolean',
             'must_change_passwd' => 'boolean',
             'twofa_required' => 'boolean',
+            'twofa_totp_last_used_at' => 'integer',
             'created_on' => 'datetime',
             'updated_on' => 'datetime',
             'last_login_on' => 'datetime',
@@ -79,26 +80,11 @@ class User extends Authenticatable
     }
 
     /**
-     * Whether this row may keep a web session. Password is checked only at sign-in.
+     * Whether this row may keep a web session. Password, LDAP, and TOTP are checked at sign-in.
      */
     public function canKeepWebSession(): bool
     {
-        return $this->type === self::TYPE_USER
-            && $this->auth_source_id === null
-            && $this->isActive()
-            && ! $this->twoFactorGate();
-    }
-
-    /**
-     * Phase 1 does not complete a second factor, so required or enrolled 2FA blocks sign-in.
-     */
-    public function twoFactorGate(): bool
-    {
-        if ($this->twofa_required === true) {
-            return true;
-        }
-
-        return is_string($this->twofa_scheme) && $this->twofa_scheme !== '';
+        return $this->type === self::TYPE_USER && $this->isActive();
     }
 
     public function getAuthPasswordName(): string

@@ -6,7 +6,7 @@ use App\Domain\Queries\QueryType;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * Stub STI row. User query filters are not executed.
+ * STI row for a user directory query. `UserQueryRunner` executes it.
  */
 class UserQuery extends Query
 {

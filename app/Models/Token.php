@@ -9,13 +9,24 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * Redmine 7.0.1 `tokens` row.
  *
  * Named actions: session, api, feeds, recovery, register, autologin, twofa_backup_code.
- * Phase 2 writes `recovery` and `register` only. The web session stays in `sessions`.
+ * `recovery` and `register` expire after one day. `api` and `feeds` do not.
+ * `session`, `autologin`, and `twofa_backup_code` keep at most ten rows.
  */
 class Token extends Model
 {
+    public const ACTION_SESSION = 'session';
+
+    public const ACTION_API = 'api';
+
+    public const ACTION_FEEDS = 'feeds';
+
     public const ACTION_RECOVERY = 'recovery';
 
     public const ACTION_REGISTER = 'register';
+
+    public const ACTION_AUTOLOGIN = 'autologin';
+
+    public const ACTION_TWOFA_BACKUP = 'twofa_backup_code';
 
     public const CREATED_AT = 'created_on';
 

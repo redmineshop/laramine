@@ -17,11 +17,13 @@ type LoginPageProps = {
     registerUrl: string | null;
     activationEmailUrl: string | null;
     notice: string | null;
+    autologinDays: number;
 };
 
 type LoginForm = {
     login: string;
     password: string;
+    autologin: boolean;
 };
 
 export default function Login({
@@ -30,10 +32,12 @@ export default function Login({
     registerUrl,
     activationEmailUrl,
     notice,
+    autologinDays,
 }: LoginPageProps) {
     const form = useForm<LoginForm>({
         login: '',
         password: '',
+        autologin: false,
     });
 
     function submit(event: FormEvent<HTMLFormElement>) {
@@ -110,6 +114,25 @@ export default function Login({
                                     </p>
                                 ) : null}
                             </div>
+                            {autologinDays > 0 ? (
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        id="autologin"
+                                        name="autologin"
+                                        type="checkbox"
+                                        checked={form.data.autologin}
+                                        onChange={(event) =>
+                                            form.setData(
+                                                'autologin',
+                                                event.target.checked,
+                                            )
+                                        }
+                                    />
+                                    <Label htmlFor="autologin">
+                                        Stay logged in
+                                    </Label>
+                                </div>
+                            ) : null}
                             <Button type="submit" disabled={form.processing}>
                                 Sign in
                             </Button>
