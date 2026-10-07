@@ -1,0 +1,15 @@
+{
+  "ada": [
+    {"kind": "message", "project": "parity-core", "author": "ada", "title": "General: Same", "at": "2026-10-07 14:00:00"},
+    {"kind": "wiki", "project": "parity-core", "author": "ada", "title": "Wiki edit: Cook book (#3)", "at": "2026-10-07 14:00:00"},
+    {"kind": "message", "project": "parity-core", "author": "bea", "title": "General: Re: Hello", "at": "2026-10-07 12:30:00"},
+    {"kind": "message", "project": "parity-core", "author": "ada", "title": "General: Hello", "at": "2026-10-07 12:00:00"}
+  ],
+  "finn": [
+    {"kind": "message", "project": "parity-core", "author": "ada", "title": "General: Same", "at": "2026-10-07 14:00:00"},
+    {"kind": "message", "project": "parity-core", "author": "bea", "title": "General: Re: Hello", "at": "2026-10-07 12:30:00"},
+    {"kind": "message", "project": "parity-core", "author": "ada", "title": "General: Hello", "at": "2026-10-07 12:00:00"}
+  ],
+  "cleo": [],
+  "modules_off": []
+}

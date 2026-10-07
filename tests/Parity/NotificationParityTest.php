@@ -6,6 +6,8 @@ use App\Domain\Attachments\AttachmentContainerService;
 use App\Domain\Auth\AccountAdminService;
 use App\Domain\Auth\AccountRecovery;
 use App\Domain\Auth\RegistrationService;
+use App\Domain\Boards\BoardService;
+use App\Domain\Boards\MessageService;
 use App\Domain\Documents\DocumentService;
 use App\Domain\Issues\IssueRelationService;
 use App\Domain\Issues\IssueService;
@@ -17,9 +19,11 @@ use App\Domain\Notifications\NotifiedEventCatalog;
 use App\Domain\Notifications\NotifiedEventSetting;
 use App\Domain\Projects\ProjectService;
 use App\Domain\Settings\SettingValue;
+use App\Domain\Wiki\WikiService;
 use App\Mail\RedmineNotificationMail;
 use App\Models\Attachment;
 use App\Models\EmailAddress;
+use App\Models\EnabledModule;
 use App\Models\Issue;
 use App\Models\Journal;
 use App\Models\JournalDetail;
@@ -31,6 +35,7 @@ use App\Models\Token;
 use App\Models\User;
 use App\Models\UserPreference;
 use App\Models\Watcher;
+use App\Models\WikiContent;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
@@ -40,7 +45,7 @@ use Tests\TestCase;
 /**
  * Compares outbound notification recipients, subjects, and headers to the pin.
  *
- * News, document, and file events are sent. Message and wiki events are named and not sent.
+ * News, document, file, message, and wiki events are sent.
  */
 class NotificationParityTest extends TestCase
 {
@@ -471,6 +476,90 @@ class NotificationParityTest extends TestCase
         $this->assertCount($this->intField($modules, 'issue_claim_count'), $this->queued());
     }
 
+    public function test_wiki_and_message_mail_match_the_pin(): void
+    {
+        $this->bootPin();
+        $this->enableModule('wiki');
+        $this->enableModule('boards');
+        $this->grant(1, ['view_wiki_pages', 'edit_wiki_pages', 'view_messages', 'add_messages']);
+        $this->grant(2, [
+            'view_wiki_pages',
+            'edit_wiki_pages',
+            'rename_wiki_pages',
+            'view_messages',
+            'add_messages',
+            'edit_messages',
+            'manage_boards',
+            'add_wiki_page_watchers',
+        ]);
+        $this->address($this->user('bea'), 'bea@parity.test');
+        $expected = $this->moduleExpectation();
+        $project = Project::query()->findOrFail(1);
+        $ada = $this->user('ada');
+        $wiki = app(WikiService::class);
+        $page = $wiki->createPage($ada, $project, 'cook_book', "h1. Raw heading\nalpha\n", 'first');
+        $content = WikiContent::query()->where('page_id', $page->id)->first();
+        $this->assertInstanceOf(WikiContent::class, $content);
+        $vars = [
+            'page' => (string) $page->id,
+            'content' => (string) $content->id,
+            'stamp' => self::STAMP,
+        ];
+        $this->assertMails($this->moduleCase($expected, 'wiki_added'), $vars);
+
+        Mail::fake();
+        Carbon::setTestNow('2026-10-07 13:00:00');
+        $wiki->updateContent($ada, $page, "h1. Raw heading\ngamma\n", 'second');
+        $vars['stamp'] = '20261007130000';
+        $this->assertMails($this->moduleCase($expected, 'wiki_updated'), $vars);
+
+        Mail::fake();
+        $this->setting(SettingValue::NOTIFIED_EVENTS, '["issue_added"]');
+        Carbon::setTestNow('2026-10-07 13:10:00');
+        $wiki->updateContent($ada, $page, "h1. Raw heading\nquiet\n", 'third');
+        $this->assertCount(0, $this->queued());
+
+        Setting::query()->where('name', SettingValue::NOTIFIED_EVENTS)->delete();
+        $this->preference($ada, 'only_my_events', true);
+        Mail::fake();
+        Carbon::setTestNow('2026-10-07 13:20:00');
+        $wiki->updateContent($ada, $page, "h1. Raw heading\ndelta\n", 'fourth');
+        $vars['stamp'] = '20261007132000';
+        $this->assertMails($this->moduleCase($expected, 'wiki_no_self'), $vars);
+
+        $this->preference($ada, 'only_my_events', false);
+        $wiki->addWatcher($this->user('admin'), $page, $this->user('bea'));
+        Mail::fake();
+        Carbon::setTestNow('2026-10-07 13:30:00');
+        $wiki->updateContent($ada, $page, "h1. Raw heading\nepsilon\n", 'fifth');
+        $vars['stamp'] = '20261007133000';
+        $this->assertMails($this->moduleCase($expected, 'wiki_watcher'), $vars);
+
+        Mail::fake();
+        $wiki->rename($this->user('bea'), $page->fresh() ?? $page, 'Pantry');
+        $this->assertCount(0, $this->queued());
+
+        $board = app(BoardService::class)->create($this->user('bea'), $project, 'General', null, null, null);
+        Mail::fake();
+        Carbon::setTestNow('2026-10-07 12:00:00');
+        $topic = app(MessageService::class)->postTopic($ada, $board, 'Hello', 'topic body');
+        $topicVars = [
+            'message' => (string) $topic->id,
+            'topic' => (string) $topic->id,
+            'stamp' => self::STAMP,
+        ];
+        $this->assertMails($this->moduleCase($expected, 'message_topic'), $topicVars);
+
+        Mail::fake();
+        Carbon::setTestNow('2026-10-07 12:30:00');
+        $reply = app(MessageService::class)->reply($this->user('bea'), $topic, null, 'reply body');
+        $this->assertMails($this->moduleCase($expected, 'message_reply'), [
+            'message' => (string) $reply->id,
+            'topic' => (string) $topic->id,
+            'stamp' => self::STAMP,
+        ]);
+    }
+
     public function test_checklist_evidence_cites_this_comparison(): void
     {
         $checklist = file_get_contents(base_path('docs/parity-checklist.md'));
@@ -480,35 +569,8 @@ class NotificationParityTest extends TestCase
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/notifications/mail.json', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/', $checklist);
         $this->assertMatchesRegularExpression('/^\| Notifications for news, documents, and files \| VERIFIED \|/m', $checklist);
-        $this->assertMatchesRegularExpression('/^\| Notifications for messages and wiki \| NOT VERIFIED \|/m', $checklist);
-    }
-
-    /**
-     * @param  list<string>  $names
-     */
-    private function grant(int $roleId, array $names): void
-    {
-        $role = Role::query()->find($roleId);
-        $this->assertInstanceOf(Role::class, $role);
-        $permissions = $role->permissions;
-        $this->assertIsArray($permissions);
-        foreach ($names as $name) {
-            $permissions[] = $name;
-        }
-        $role->permissions = array_values(array_unique($permissions));
-        $role->save();
-    }
-
-    /**
-     * @param  array<string, mixed>  $modules
-     * @return array<string, mixed>
-     */
-    private function moduleCase(array $modules, string $key): array
-    {
-        $case = $modules[$key] ?? null;
-        $this->assertIsArray($case);
-
-        return $case;
+        $this->assertMatchesRegularExpression('/^\| Notifications for messages and wiki \| VERIFIED \|/m', $checklist);
+        $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/notifications/modules.json', $checklist);
     }
 
     private function assertNoIssueHeader(): void
@@ -626,6 +688,47 @@ class NotificationParityTest extends TestCase
         }
 
         return $out;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function moduleExpectation(): array
+    {
+        $path = Redmine701Fixture::directory().'/expectations/notifications/modules.json';
+        $decoded = json_decode((string) file_get_contents($path), true);
+        $this->assertIsArray($decoded);
+
+        return $decoded;
+    }
+
+    /**
+     * @param  array<string, mixed>  $expected
+     * @return array<string, mixed>
+     */
+    private function moduleCase(array $expected, string $key): array
+    {
+        $case = $expected[$key] ?? null;
+        $this->assertIsArray($case);
+
+        return $case;
+    }
+
+    private function enableModule(string $name): void
+    {
+        EnabledModule::query()->create(['project_id' => 1, 'name' => $name]);
+    }
+
+    /**
+     * @param  list<string>  $names
+     */
+    private function grant(int $roleId, array $names): void
+    {
+        $role = Role::query()->findOrFail($roleId);
+        $permissions = $role->permissions;
+        $this->assertIsArray($permissions);
+        $role->permissions = array_values(array_unique([...$permissions, ...$names]));
+        $role->save();
     }
 
     /**

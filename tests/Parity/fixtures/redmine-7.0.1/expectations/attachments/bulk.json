@@ -40,7 +40,7 @@
     },
     "default_kilobytes": 102400,
     "downloads": 0,
-    "absent_object_types": ["files", "messages", "wiki_pages"],
+    "absent_object_types": ["files"],
     "news_file": {"filename": "brief.txt", "body": "BRIEF"},
     "news_permission": "view_news",
     "news_module": "news",

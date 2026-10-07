@@ -81,7 +81,14 @@ class P0SchemaTest extends TestCase
             $this->assertTrue(Schema::hasTable($table), $table);
         }
 
-        foreach (['wikis', 'wiki_pages', 'changes', 'changeset_parents', 'boards', 'messages', 'webhooks', 'projects_webhooks'] as $skipped) {
+        foreach (['wikis', 'wiki_pages', 'wiki_contents', 'wiki_content_versions', 'wiki_redirects', 'boards', 'messages'] as $table) {
+            $this->assertTrue(Schema::hasTable($table), $table);
+        }
+        $this->assertTrue(Schema::hasColumns('wiki_pages', ['wiki_id', 'title', 'parent_id', 'protected']));
+        $this->assertTrue(Schema::hasColumns('wiki_content_versions', ['data', 'compression', 'version']));
+        $this->assertTrue(Schema::hasColumns('messages', ['board_id', 'parent_id', 'sticky', 'locked']));
+
+        foreach (['changes', 'changeset_parents', 'webhooks', 'projects_webhooks'] as $skipped) {
             $this->assertFalse(Schema::hasTable($skipped), $skipped);
         }
 

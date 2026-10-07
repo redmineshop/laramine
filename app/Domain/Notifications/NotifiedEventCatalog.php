@@ -5,9 +5,7 @@ namespace App\Domain\Notifications;
 /**
  * Core notification event names.
  *
- * Issue, news, document, and file events are emitted by this tree. Message
- * and wiki events are named so the setting can store them, and nothing here
- * sends those messages.
+ * Issue, news, document, file, message, and wiki events are emitted by this tree.
  */
 final class NotifiedEventCatalog
 {
@@ -98,11 +96,7 @@ final class NotifiedEventCatalog
      */
     public static function unbuilt(): array
     {
-        return [
-            self::MESSAGE_POSTED,
-            self::WIKI_CONTENT_ADDED,
-            self::WIKI_CONTENT_UPDATED,
-        ];
+        return [];
     }
 
     public static function known(string $name): bool

@@ -6,10 +6,14 @@ use App\Domain\Activity\ActivityEvent;
 use App\Domain\Activity\ActivityProvider;
 use App\Domain\Attachments\AttachmentContainerService;
 use App\Domain\Auth\ActionToken;
+use App\Domain\Boards\BoardService;
+use App\Domain\Boards\MessageService;
 use App\Domain\Documents\DocumentService;
 use App\Domain\News\NewsService;
 use App\Domain\Projects\ProjectService;
 use App\Domain\Settings\SettingValue;
+use App\Domain\Wiki\WikiService;
+use App\Models\EnabledModule;
 use App\Models\JournalDetail;
 use App\Models\Project;
 use App\Models\Role;
@@ -22,9 +26,9 @@ use Tests\Parity\Support\Redmine701Fixture;
 use Tests\TestCase;
 
 /**
- * Compares activity for issues, journals, time entries, news, documents, and files to the pin.
+ * Compares activity for issues, journals, time entries, news, documents, files, wiki edits, and messages to the pin.
  *
- * Wiki, messages, and changesets stay out of this comparison.
+ * Changesets stay out of this comparison.
  */
 class ActivityParityTest extends TestCase
 {
@@ -216,6 +220,57 @@ class ActivityParityTest extends TestCase
         }
     }
 
+    public function test_wiki_and_message_events_match_the_pin(): void
+    {
+        Redmine701Fixture::load();
+        $this->setting(SettingValue::HOST_NAME, 'parity.test');
+        $this->setting(SettingValue::MAIL_FROM, 'laramine@parity.test');
+        $this->enableModule('wiki');
+        $this->enableModule('boards');
+        $this->grant(1, ['view_wiki_pages', 'view_wiki_edits', 'edit_wiki_pages', 'view_messages', 'add_messages']);
+        $this->grant(2, ['view_messages', 'add_messages', 'manage_boards']);
+        $this->grant(7, ['view_messages']);
+        $expected = $this->moduleExpectation();
+        $project = Project::query()->where('identifier', 'parity-core')->first();
+        $this->assertInstanceOf(Project::class, $project);
+        $ada = $this->user('ada');
+        $bea = $this->user('bea');
+        $wiki = app(WikiService::class);
+        $messages = app(MessageService::class);
+
+        Carbon::setTestNow('2026-10-07 12:00:00');
+        $page = $wiki->createPage($ada, $project, 'cook_book', "alpha\n", 'first', null, false, false);
+        $topic = $messages->postTopic($ada, app(BoardService::class)->create($bea, $project, 'General', null, null, null), 'Hello', 'hello', 0, false, false);
+        Carbon::setTestNow('2026-10-07 12:30:00');
+        $messages->reply($bea, $topic, null, 'answer', false);
+        Carbon::setTestNow('2026-10-07 13:00:00');
+        $wiki->updateContent($ada, $page, "beta\n", 'second', false);
+        Carbon::setTestNow('2026-10-07 14:00:00');
+        $wiki->updateContent($ada, $page, "gamma\n", 'third', false);
+        $messages->postTopic($ada, $topic->board()->firstOrFail(), 'Same', 'same', 0, false, false);
+
+        $provider = app(ActivityProvider::class);
+        $this->assertSame($expected['ada'], $this->bare($provider->events($ada, null, '2026-10-07', 0)));
+        $this->assertSame($expected['ada'], $this->bare($provider->events($this->user('admin'), null, '2026-10-07', 0)));
+        $this->assertSame($expected['finn'], $this->bare($provider->events($this->user('finn'), null, '2026-10-07', 0)));
+        $this->assertSame($expected['cleo'], $this->bare($provider->events($this->user('cleo'), null, '2026-10-07', 0)));
+
+        EnabledModule::query()->where('project_id', $project->id)->whereIn('name', ['wiki', 'boards'])->delete();
+        $this->assertSame($expected['modules_off'], $this->bare($provider->events($this->user('admin'), null, '2026-10-07', 0)));
+
+        $this->enableModule('wiki');
+        $this->enableModule('boards');
+        $key = app(ActionToken::class)->issueNamed($ada, Token::ACTION_FEEDS)->value;
+        $feed = $this->get('/activity.atom?from=2026-10-07&days=0&key='.$key);
+        $feed->assertOk();
+        $feed->assertSee('Wiki edit: Cook book (#3)', false);
+        $feed->assertSee('General: Hello', false);
+        $pageResponse = $this->get('/activity?from=2026-10-07&days=0&key='.$key);
+        $pageResponse->assertOk();
+        $pageResponse->assertSee('Wiki edit: Cook book (#3)', false);
+        $pageResponse->assertSee('General: Same', false);
+    }
+
     public function test_checklist_evidence_cites_this_comparison(): void
     {
         $checklist = file_get_contents(base_path('docs/parity-checklist.md'));
@@ -225,7 +280,9 @@ class ActivityParityTest extends TestCase
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/activity/events.json', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/', $checklist);
         $this->assertMatchesRegularExpression('/^\| Activity for news, documents, and files \| VERIFIED \|/m', $checklist);
-        $this->assertMatchesRegularExpression('/^\| Activity for wiki, messages, and changesets \| NOT VERIFIED \|/m', $checklist);
+        $this->assertMatchesRegularExpression('/^\| Activity for wiki and messages \| VERIFIED \|/m', $checklist);
+        $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/activity/modules.json', $checklist);
+        $this->assertMatchesRegularExpression('/^\| Activity for changesets \| NOT VERIFIED \|/m', $checklist);
         $this->assertMatchesRegularExpression('/^\| Users and authentication — full REST API \| NOT VERIFIED \|/m', $checklist);
     }
 
@@ -320,6 +377,58 @@ class ActivityParityTest extends TestCase
     /**
      * @return array<string, mixed>
      */
+    /**
+     * @return array<string, mixed>
+     */
+    private function moduleExpectation(): array
+    {
+        $path = Redmine701Fixture::directory().'/expectations/activity/modules.json';
+        $decoded = json_decode((string) file_get_contents($path), true);
+        $this->assertIsArray($decoded);
+
+        return $decoded;
+    }
+
+    /**
+     * @param  list<ActivityEvent>  $events
+     * @return list<array{kind: string, project: string, author: string, title: string, at: string}>
+     */
+    private function bare(array $events): array
+    {
+        $rows = [];
+        foreach ($events as $event) {
+            $rows[] = [
+                'kind' => $event->kind,
+                'project' => $event->project,
+                'author' => $event->author,
+                'title' => $event->title,
+                'at' => $event->at,
+            ];
+        }
+
+        return $rows;
+    }
+
+    private function enableModule(string $name): void
+    {
+        EnabledModule::query()->create(['project_id' => 1, 'name' => $name]);
+    }
+
+    /**
+     * @param  list<string>  $names
+     */
+    private function grant(int $roleId, array $names): void
+    {
+        $role = Role::query()->findOrFail($roleId);
+        $permissions = $role->permissions;
+        $this->assertIsArray($permissions);
+        $role->permissions = array_values(array_unique([...$permissions, ...$names]));
+        $role->save();
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
     private function expectation(): array
     {
         $path = Redmine701Fixture::directory().'/expectations/activity/events.json';
@@ -332,22 +441,6 @@ class ActivityParityTest extends TestCase
     private function setting(string $name, string $value): void
     {
         Setting::query()->updateOrCreate(['name' => $name], ['value' => $value]);
-    }
-
-    /**
-     * @param  list<string>  $names
-     */
-    private function grant(int $roleId, array $names): void
-    {
-        $role = Role::query()->find($roleId);
-        $this->assertInstanceOf(Role::class, $role);
-        $permissions = $role->permissions;
-        $this->assertIsArray($permissions);
-        foreach ($names as $name) {
-            $permissions[] = $name;
-        }
-        $role->permissions = array_values(array_unique($permissions));
-        $role->save();
     }
 
     private function user(string $login): User

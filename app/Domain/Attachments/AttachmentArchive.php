@@ -3,6 +3,7 @@
 namespace App\Domain\Attachments;
 
 use App\Domain\Acl\IssueVisibility;
+use App\Domain\Acl\ModuleGate;
 use App\Domain\Acl\PermissionService;
 use App\Domain\AttachmentArchiveLimitException;
 use App\Domain\DomainException;
@@ -11,14 +12,18 @@ use App\Domain\Issues\JournalNoteAccess;
 use App\Domain\PermissionDeniedException;
 use App\Domain\Settings\SettingValue;
 use App\Models\Attachment;
+use App\Models\Board;
 use App\Models\Document;
 use App\Models\Issue;
 use App\Models\Journal;
 use App\Models\JournalDetail;
+use App\Models\Message;
 use App\Models\News;
 use App\Models\Project;
 use App\Models\User;
 use App\Models\Version;
+use App\Models\Wiki;
+use App\Models\WikiPage;
 use Illuminate\Database\Eloquent\Model;
 use ZipArchive;
 
@@ -39,6 +44,7 @@ final class AttachmentArchive
         private readonly AttachmentService $files,
         private readonly ZipEntryNames $names,
         private readonly PermissionService $permissions,
+        private readonly ModuleGate $modules,
         private readonly SettingValue $settings,
     ) {}
 
@@ -54,14 +60,14 @@ final class AttachmentArchive
     }
 
     /**
-     * Zip every readable file on an issue, journal, project, version, news row, or document.
+     * Zip every readable file on an issue, journal, project, version, news row, document, wiki page, or message.
      *
      * Journal files are the attachment ids named by that journal's details.
      * A private note does not hide those files when the issue itself is visible.
      * News needs `view_news`. A document needs `view_documents`. The zip name
      * is the class name in lower case, so a document is `document-{id}-attachments.zip`.
+     * The wiki page label is `wiki_page` and the message label is `message`.
      * There is no `files` object type: project and version rows are those containers.
-     * Messages and wiki pages are not served here.
      */
     public function downloadBundle(?User $actor, string $objectType, int $objectId): AttachmentZip
     {
@@ -212,6 +218,30 @@ final class AttachmentArchive
             }
 
             return ['Document', $this->readable($this->containerAttachments('Document', $objectId))];
+        }
+
+        if ($objectType === 'wiki_pages') {
+            $page = WikiPage::query()->with('wiki.project')->find($objectId);
+            $wiki = $page instanceof WikiPage ? $page->wiki : null;
+            $project = $wiki instanceof Wiki ? $wiki->project : null;
+            if (! $page instanceof WikiPage || ! $project instanceof Project) {
+                throw new DomainException('Attachment container does not exist.');
+            }
+            $this->modules->allow($actor, $project, 'wiki', 'view_wiki_pages');
+
+            return ['wiki_page', $this->readable($this->containerAttachments('WikiPage', $objectId))];
+        }
+
+        if ($objectType === 'messages') {
+            $message = Message::query()->with('board.project')->find($objectId);
+            $board = $message instanceof Message ? $message->board : null;
+            $project = $board instanceof Board ? $board->project : null;
+            if (! $message instanceof Message || ! $project instanceof Project) {
+                throw new DomainException('Attachment container does not exist.');
+            }
+            $this->modules->allow($actor, $project, 'boards', 'view_messages');
+
+            return ['message', $this->readable($this->containerAttachments('Message', $objectId))];
         }
 
         throw new DomainException('This record has no attachment archive.');

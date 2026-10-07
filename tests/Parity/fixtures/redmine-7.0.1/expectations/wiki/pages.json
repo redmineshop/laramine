@@ -1,0 +1,37 @@
+{
+  "start_page": "Wiki",
+  "title_input": "cook_book",
+  "title": "Cook book",
+  "text": "h1. Raw heading\nalpha\nbeta\n",
+  "updated_text": "h1. Raw heading\nalpha\ngamma\n",
+  "diff": [
+    {"op": "equal", "text": "h1. Raw heading"},
+    {"op": "equal", "text": "alpha"},
+    {"op": "delete", "text": "beta"},
+    {"op": "insert", "text": "gamma"}
+  ],
+  "annotate": [
+    {"line": "h1. Raw heading", "version": 1},
+    {"line": "alpha", "version": 1},
+    {"line": "gamma", "version": 2}
+  ],
+  "renames": ["Kitchen notes", "Pantry"],
+  "redirects": [
+    {"title": "Cook book", "redirects_to": "Pantry"},
+    {"title": "Kitchen notes", "redirects_to": "Pantry"}
+  ],
+  "export_omits": "<h1>",
+  "zip_entries": {"note.txt": "alpha", "note(1).txt": "beta"},
+  "downloads": 0,
+  "empty_message": "Attachment archive is empty.",
+  "missing_message": "Attachment container does not exist.",
+  "only_version": "The only wiki version cannot be deleted.",
+  "empty_title": "Wiki page title is empty.",
+  "cycle": "Parent page would create a cycle.",
+  "protect_denied": "Permission denied: protect_wiki_pages",
+  "history_denied": "Permission denied: view_wiki_edits",
+  "export_denied": "Permission denied: export_wiki_pages",
+  "module_denied": "Permission denied: view_wiki_pages",
+  "edit_denied": "Permission denied: edit_wiki_pages",
+  "attachment_denied": "Permission denied: delete_wiki_pages_attachments"
+}
