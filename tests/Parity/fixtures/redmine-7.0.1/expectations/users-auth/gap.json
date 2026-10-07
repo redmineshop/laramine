@@ -1,0 +1,58 @@
+{
+    "pin": "7.0.1",
+    "directory": {
+        "ada": ["admin", "dora", "erin", "ada", "bea", "finn", "platform"],
+        "admin": ["admin", "dora", "erin", "lars", "ada", "bea", "cleo", "finn", "platform"],
+        "erin": ["admin", "dora", "erin", "ada", "bea", "cleo", "finn", "platform"],
+        "status_locked": ["lars"]
+    },
+    "ldap": {
+        "login": "gina",
+        "password": "directory-secret",
+        "firstname": "Gina",
+        "lastname": "Directory",
+        "mail": "gina@parity.test",
+        "filter_login": "a*b",
+        "filter": "(&(uid=a\\2ab)(objectClass=person))"
+    },
+    "tokens": {
+        "api": "api",
+        "feeds": "feeds",
+        "session": "session",
+        "autologin": "autologin",
+        "backup": "twofa_backup_code",
+        "value_length": 40,
+        "session_cap": 10,
+        "backup_count": 10,
+        "autologin_days": 7
+    },
+    "oauth": {
+        "redirect_uri": "https://client.example/callback",
+        "scope": "read",
+        "code_ttl": 600,
+        "token_ttl": 7200,
+        "verifier_length": 43
+    },
+    "preferences": {
+        "comments_sorting": "desc",
+        "hide_mail": false,
+        "mail_notification": "only_owner"
+    },
+    "admin": {
+        "lock_login": "bea",
+        "activate_login": "cleo",
+        "delete_login": "dora",
+        "group_login": "finn",
+        "group_name": "platform",
+        "locked_status": 3,
+        "active_status": 1,
+        "registered_status": 2
+    },
+    "holes": [
+        "openid_connect",
+        "live_ldap",
+        "outbound_mail",
+        "full_rest",
+        "atom_activity"
+    ]
+}

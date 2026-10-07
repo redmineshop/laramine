@@ -15,8 +15,9 @@ use Tests\TestCase;
 /**
  * Compares session sign-in, status notices, and Phase 2 tokens to the shared pin.
  *
- * This is the users and authentication comparison. It does not cover LDAP,
- * two-factor, OAuth, API tokens, account administration, or users_visibility.
+ * Sign-in writes one session token. LDAP, two-factor, OAuth, API tokens,
+ * the user directory, and account administration are compared by
+ * UsersAuthGapParityTest. This class does not cover users_visibility.
  */
 class UsersAuthParityTest extends TestCase
 {
@@ -46,7 +47,10 @@ class UsersAuthParityTest extends TestCase
         ])->assertRedirect('/');
         $this->assertAuthenticatedAs($user);
         $this->assertNotNull($user->fresh()?->last_login_on);
-        $this->assertSame(0, Token::query()->count());
+        $session = $expected['session_on_login'];
+        $this->assertIsArray($session);
+        $this->assertSame($session['action'], Token::query()->value('action'));
+        $this->assertSame($session['count'], Token::query()->count());
         $this->assertSame(0, DB::table('password_reset_tokens')->count());
 
         $this->post('/logout')->assertRedirect(route('login'));
@@ -280,7 +284,7 @@ class UsersAuthParityTest extends TestCase
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/users-auth/sign-in.json', $checklist);
         $this->assertDoesNotMatchRegularExpression(
-            '/^\| (?!P0 table and column layout \|)(?!Users and authentication \|)(?!Identity, membership, and permissions \|)(?!Projects and issue nested sets \|)(?!Workflows \|)(?!Custom fields \|)(?!Queries \|)(?!Journals and private notes \|)[^|\n]+\| VERIFIED \|/m',
+            '/^\| (?!P0 table and column layout \|)(?!Users and authentication)(?!Identity, membership, and permissions \|)(?!Projects and issue nested sets \|)(?!Workflows \|)(?!Custom fields \|)(?!Queries \|)(?!Journals and private notes \|)[^|\n]+\| VERIFIED \|/m',
             $checklist,
         );
     }

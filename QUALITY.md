@@ -42,7 +42,7 @@ First public / v1 ship must meet **all** gates below. Same spirit as Redmine cor
 
 There is no 0.1 tag. The ACL/workflow smoke above is not that tag.
 
-Users and authentication are locked in [docs/users-auth-spec.md](docs/users-auth-spec.md) (founder date 2026-10-07). Phase 2 is registration, `must_change_passwd`, and `recovery` / `register` tokens on the session guard. The checklist row is **VERIFIED** only for `tests/Parity/UsersAuthParityTest.php`. LDAP, two-factor, OAuth, API tokens, account administration, and outbound mail are not in that comparison. `users_visibility` is compared on the identity row. The identity, projects nested-set, workflows, custom fields, queries, and journals rows are **VERIFIED** only by the parity tests named in the checklist. This is not a 0.1 tag and not a production-ready claim. Time entries stay **NOT VERIFIED**.
+Users and authentication are locked in [docs/users-auth-spec.md](docs/users-auth-spec.md) (founder date 2026-10-07). Phase 2 is registration, `must_change_passwd`, and `recovery` / `register` tokens on the session guard, compared by `tests/Parity/UsersAuthParityTest.php`. Later phases are the users and authentication sub-rows, compared by `tests/Parity/UsersAuthGapParityTest.php` where that row is **VERIFIED**. OpenID Connect, live LDAP, outbound mail, and the rest of the REST API stay **NOT VERIFIED**. `users_visibility` is compared on the identity row. The identity, projects nested-set, workflows, custom fields, queries, and journals rows are **VERIFIED** only by the parity tests named in the checklist. This is not a 0.1 tag and not a production-ready claim. Time entries stay **NOT VERIFIED**.
 
 ## CI (every PR + default branch)
 

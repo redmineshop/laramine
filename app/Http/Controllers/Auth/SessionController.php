@@ -6,6 +6,8 @@ use App\Domain\Auth\AccountNotice;
 use App\Domain\Auth\CredentialChecker;
 use App\Domain\Auth\LoginDecision;
 use App\Domain\Auth\SelfRegistrationMode;
+use App\Domain\Auth\TwoFactorPolicy;
+use App\Domain\Auth\WebSession;
 use App\Domain\Settings\SettingValue;
 use App\Http\Auth\PasswordChangeResponse;
 use App\Http\Controllers\Controller;
@@ -14,7 +16,6 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Inertia\Inertia;
@@ -27,6 +28,8 @@ class SessionController extends Controller
         private readonly CredentialChecker $checker,
         private readonly AccountNotice $notices,
         private readonly SettingValue $settings,
+        private readonly WebSession $sessions,
+        private readonly TwoFactorPolicy $twoFactor,
     ) {}
 
     /**
@@ -47,16 +50,23 @@ class SessionController extends Controller
     {
         $identifier = $request->string('login')->toString();
         $password = $request->string('password')->toString();
-        $accepted = Auth::attempt([
-            'login' => $identifier,
-            'password' => $password,
-        ]);
+        $remember = $request->boolean('autologin');
+        $decision = $this->checker->decide($identifier, $password);
+        $user = $this->checker->findByIdentifier($identifier);
 
-        if (! $accepted) {
-            $user = $this->checker->findByIdentifier($identifier);
-            $decision = $user instanceof User
-                ? $this->checker->decideFor($user, $password)
-                : LoginDecision::Unknown;
+        if ($decision === LoginDecision::TwoFactor && $user instanceof User) {
+            $this->sessions->holdForTwoFactor($request, $user, $remember);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'two_factor' => true,
+                    'must_enroll' => $this->twoFactor->mustEnroll($user),
+                ], 401);
+            }
+
+            return redirect()->route('twofa.challenge');
+        }
+
+        if ($decision !== LoginDecision::Accepted || ! $user instanceof User) {
             $this->rememberRegisteredAccount($request, $user, $decision);
 
             throw ValidationException::withMessages([
@@ -64,8 +74,7 @@ class SessionController extends Controller
             ]);
         }
 
-        $request->session()->regenerate();
-        $request->session()->forget('registered_user_id');
+        $this->sessions->open($request, $user, $remember);
 
         $user = $request->user();
         $mustChange = $user instanceof User && $user->must_change_passwd === true;
@@ -89,9 +98,7 @@ class SessionController extends Controller
 
     public function destroy(Request $request): Response
     {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        $this->sessions->logout($request);
 
         if ($request->expectsJson()) {
             return response()->noContent();
@@ -106,7 +113,8 @@ class SessionController extends Controller
      *     lostPasswordUrl: string|null,
      *     registerUrl: string|null,
      *     activationEmailUrl: string|null,
-     *     notice: string|null
+     *     notice: string|null,
+     *     autologinDays: int
      * }
      */
     private function loginProps(Request $request): array
@@ -115,6 +123,7 @@ class SessionController extends Controller
 
         return [
             'submitUrl' => route('login', [], false),
+            'autologinDays' => $this->settings->autologinDays(),
             'lostPasswordUrl' => $this->settings->lostPasswordEnabled()
                 ? route('password.request', [], false)
                 : null,

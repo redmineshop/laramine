@@ -1,6 +1,6 @@
 # Saved queries and issue filters
 
-Laramine stores saved queries in the Redmine 7.0.1 `queries` and `queries_roles` tables. The queries checklist row is **VERIFIED** only by `tests/Parity/IssueQueryParityTest.php` against the shared pin and `tests/Parity/fixtures/redmine-7.0.1/expectations/queries/results.json`. That comparison is not a 0.1 tag. Gantt, calendar, other query types, descendant hour columns, and repository or SCM data stay outside it. Journal presentation of custom-field history stays on the journals row. The HTTP API and the filter form are not part of this slice. `IssueQuery` is the only type that runs. `ProjectQuery`, `TimeEntryQuery`, `UserQuery`, and `ProjectAdminQuery` can be stored with empty filters and are not executed.
+Laramine stores saved queries in the Redmine 7.0.1 `queries` and `queries_roles` tables. The queries checklist row is **VERIFIED** only by `tests/Parity/IssueQueryParityTest.php` against the shared pin and `tests/Parity/fixtures/redmine-7.0.1/expectations/queries/results.json`. That comparison is not a 0.1 tag. Gantt, calendar, other query types, descendant hour columns, and repository or SCM data stay outside it. Journal presentation of custom-field history stays on the journals row. The HTTP API and the filter form are not part of this slice. `IssueQuery` is the type compared on the queries checklist row. `UserQuery` runs a limited catalog inside `UserVisibility` and is compared on the users and authentication user-directory row. `ProjectQuery`, `TimeEntryQuery`, and `ProjectAdminQuery` can be stored with empty filters and are not executed.
 
 ## JSON instead of YAML
 
@@ -245,4 +245,4 @@ These are Laramine gaps. They stay outside the pin comparison above. They are no
 | `cf_N.*` other than `.due_date` and `.status` | Listed under deferred fields. |
 | Descendant hour and estimate columns | `total_estimated_hours` and `total_spent_hours` are not totalable names and are not projected. |
 | Column layout | Inline versus block columns, tracker-limited column lists, attachment filenames, and bool labels are not applied. Unknown stored names are omitted. |
-| Other query types | `ProjectQuery`, `TimeEntryQuery`, `UserQuery`, and `ProjectAdminQuery` still do not run. |
+| Other query types | `ProjectQuery`, `TimeEntryQuery`, and `ProjectAdminQuery` still do not run. `UserQuery` runs the catalog in `UserQueryCatalog` and is compared on the users and authentication row, not on this queries row. |

@@ -30,6 +30,7 @@ final class SavedQueryService
         private readonly IssueQueryCompiler $compiler,
         private readonly IssueQuerySort $sort,
         private readonly IssueQueryTotals $totals,
+        private readonly UserQueryCatalog $userQueries,
     ) {}
 
     /**
@@ -277,6 +278,12 @@ final class SavedQueryService
      */
     private function assertFilters(string $type, array $filters, User $actor, ?Project $project): void
     {
+        if ($type === QueryType::USER) {
+            $this->userQueries->assertFilters($filters);
+
+            return;
+        }
+
         if ($type !== QueryType::ISSUE) {
             if ($filters !== []) {
                 throw new QueryValidationException('Only IssueQuery filters are implemented.');
@@ -313,6 +320,14 @@ final class SavedQueryService
     private function assertSort(string $type, ?array $sort, User $actor, ?Project $project): void
     {
         if ($sort === null) {
+            return;
+        }
+
+        if ($type === QueryType::USER) {
+            foreach ($sort as [$column]) {
+                $this->userQueries->assertSortColumn($column);
+            }
+
             return;
         }
 
@@ -524,6 +539,12 @@ final class SavedQueryService
 
         if (! is_string($value)) {
             throw new QueryValidationException('Query group is invalid.');
+        }
+
+        if ($type === QueryType::USER) {
+            $this->userQueries->assertSortColumn($value);
+
+            return $value;
         }
 
         $this->sort->assertAvailable($value, $type, $actor, $project);

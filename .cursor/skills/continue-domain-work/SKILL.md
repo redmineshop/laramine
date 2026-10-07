@@ -82,7 +82,7 @@ PR text should list behavior changed, tests added or updated, and parity rows to
 ## Out of scope unless the task says otherwise
 
 - Copying upstream source into the repository
-- A public JSON API, or auth work beyond the locked spec. Users and authentication are locked in `docs/users-auth-spec.md` (Phase 2 account gates on the session guard, Inertia page at `GET /login`). Do not add LDAP, two-factor, OAuth, API tokens, or account admin from an issues, queries, or custom-fields task. That checklist row is not a 0.1 tag.
+- A public JSON API beyond the users and authentication routes, or a second auth stack. Users and authentication are locked in `docs/users-auth-spec.md`. Do not rework LDAP, two-factor, OAuth, API tokens, or account admin from an issues, queries, or custom-fields task. Those checklist rows are not a 0.1 tag.
 - Mail or full-text search
 - Wiki, SCM, forums, news, webhooks
 - Switching CI to SQLite or lowering PHPStan

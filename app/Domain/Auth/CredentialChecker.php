@@ -2,24 +2,33 @@
 
 namespace App\Domain\Auth;
 
+use App\Domain\Auth\Ldap\LdapAuthenticator;
 use App\Models\EmailAddress;
 use App\Models\User;
 
 /**
  * Resolves a sign-in identifier and decides whether a session may open.
  *
- * Login matches win over email matches. Phase 1 denies external-auth and
- * two-factor accounts instead of continuing those protocols.
+ * Login matches win over email matches. An `auth_source_id` is checked
+ * against that LDAP source. A second factor is reported after the password
+ * succeeds when the `twofa` setting requires it.
  */
 final class CredentialChecker
 {
     public function __construct(
         private readonly RedminePassword $passwords,
+        private readonly LdapAuthenticator $ldap,
+        private readonly TwoFactorPolicy $twoFactor,
     ) {}
 
     public function decide(string $identifier, string $password): LoginDecision
     {
-        $user = $this->findByIdentifier($identifier);
+        $existing = $this->findByIdentifier($identifier);
+        if (! $existing instanceof User) {
+            $this->ldap->provision($identifier, $password);
+        }
+
+        $user = $existing ?? $this->findByIdentifier($identifier);
         if (! $user instanceof User) {
             return LoginDecision::Unknown;
         }
@@ -52,16 +61,19 @@ final class CredentialChecker
         }
 
         if ($user->auth_source_id !== null) {
-            return LoginDecision::ExternalAuth;
-        }
-
-        $salt = $user->salt;
-        if (! $this->passwords->verify(
-            $password,
-            is_string($salt) ? $salt : null,
-            $user->hashed_password,
-        )) {
-            return LoginDecision::Password;
+            $external = $this->ldap->check($user, $password);
+            if ($external !== LoginDecision::Accepted) {
+                return $external;
+            }
+        } else {
+            $salt = $user->salt;
+            if (! $this->passwords->verify(
+                $password,
+                is_string($salt) ? $salt : null,
+                $user->hashed_password,
+            )) {
+                return LoginDecision::Password;
+            }
         }
 
         if (! $user->isActive()) {
@@ -72,7 +84,7 @@ final class CredentialChecker
             };
         }
 
-        if ($user->twoFactorGate()) {
+        if ($this->twoFactor->challengeRequired($user)) {
             return LoginDecision::TwoFactor;
         }
 

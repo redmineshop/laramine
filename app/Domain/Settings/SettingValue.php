@@ -30,6 +30,16 @@ final class SettingValue
 
     public const DEFAULT_NOTIFICATION_OPTION = 'default_notification_option';
 
+    public const TWOFA = 'twofa';
+
+    public const REST_API_ENABLED = 'rest_api_enabled';
+
+    public const AUTOLOGIN = 'autologin';
+
+    public const SESSION_LIFETIME = 'session_lifetime';
+
+    public const SESSION_TIMEOUT = 'session_timeout';
+
     /**
      * Redmine `display_subprojects_issues` defaults to 1.
      */
@@ -141,6 +151,61 @@ final class SettingValue
         }
 
         return 'only_my_events';
+    }
+
+    /**
+     * `0` disabled, `1` optional, `2` required for administrators, `3` required for every account.
+     * Anything else is disabled.
+     */
+    public function twoFactorMode(): int
+    {
+        $value = $this->integer(self::TWOFA, 0);
+
+        return in_array($value, [0, 1, 2, 3], true) ? $value : 0;
+    }
+
+    /**
+     * REST API authentication defaults to off.
+     */
+    public function restApiEnabled(): bool
+    {
+        return $this->boolean(self::REST_API_ENABLED, false);
+    }
+
+    /**
+     * Remember-me lifetime in days. Only 0, 1, 7, 30, and 365 are accepted.
+     */
+    public function autologinDays(): int
+    {
+        $value = $this->integer(self::AUTOLOGIN, 0);
+
+        return in_array($value, [0, 1, 7, 30, 365], true) ? $value : 0;
+    }
+
+    /**
+     * Maximum session age in minutes. Zero disables the cap.
+     */
+    public function sessionLifetimeMinutes(): int
+    {
+        return $this->integer(self::SESSION_LIFETIME, 0);
+    }
+
+    /**
+     * Idle session timeout in minutes. Zero disables the cap.
+     */
+    public function sessionTimeoutMinutes(): int
+    {
+        return $this->integer(self::SESSION_TIMEOUT, 0);
+    }
+
+    private function integer(string $name, int $default): int
+    {
+        $stored = $this->string($name);
+        if ($stored !== null && preg_match('/^\d+$/', $stored) === 1) {
+            return (int) $stored;
+        }
+
+        return $default;
     }
 
     public function boolean(string $name, bool $default): bool

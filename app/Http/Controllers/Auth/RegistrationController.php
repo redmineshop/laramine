@@ -8,12 +8,12 @@ use App\Domain\Auth\RegistrationClosedException;
 use App\Domain\Auth\RegistrationService;
 use App\Domain\Auth\SelfRegistrationMode;
 use App\Domain\Auth\TokenRejectedException;
+use App\Domain\Auth\WebSession;
 use App\Domain\Settings\SettingValue;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -22,6 +22,7 @@ class RegistrationController extends Controller
     public function __construct(
         private readonly SettingValue $settings,
         private readonly RegistrationService $registration,
+        private readonly WebSession $sessions,
     ) {}
 
     public function create(): View|RedirectResponse
@@ -51,8 +52,7 @@ class RegistrationController extends Controller
         }
 
         if ($result->mode === SelfRegistrationMode::Automatic) {
-            Auth::login($result->user);
-            $request->session()->regenerate();
+            $this->sessions->open($request, $result->user, false);
 
             return redirect('/');
         }

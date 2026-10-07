@@ -29,6 +29,7 @@ class InertiaLoginPageTest extends TestCase
                 ->where('registerUrl', '/account/register')
                 ->where('activationEmailUrl', null)
                 ->where('notice', null)
+                ->where('autologinDays', 0)
                 ->has('errors')
             );
     }

@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class AuthSource extends Model
 {
+    public const TYPE_LDAP = 'AuthSourceLdap';
+
     public $timestamps = false;
 
     /**

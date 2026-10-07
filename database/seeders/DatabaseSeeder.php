@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
+use App\Domain\Auth\AdministratorSeed;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -17,11 +17,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(DefaultAccessSeeder::class);
 
-        // Placeholder digest, admin = false. This row cannot sign in.
-        User::factory()->create([
-            'login' => 'admin',
-            'firstname' => 'Test',
-            'lastname' => 'User',
-        ]);
+        // Placeholder digest unless LARAMINE_ADMIN_PASSWORD is supplied outside the repository.
+        app(AdministratorSeed::class)->apply();
     }
 }
