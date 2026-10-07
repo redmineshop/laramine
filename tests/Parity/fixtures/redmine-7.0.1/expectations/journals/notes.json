@@ -1,0 +1,87 @@
+{
+    "pin": "7.0.1",
+    "steps": [
+        {
+            "action": "deny",
+            "op": "quote",
+            "login": "ada",
+            "journal_id": 2,
+            "permission": "view_private_notes"
+        },
+        {
+            "action": "deny",
+            "op": "quote",
+            "login": "ada",
+            "journal_id": 7,
+            "permission": "view_private_notes"
+        },
+        {
+            "action": "deny",
+            "op": "edit",
+            "login": "ada",
+            "journal_id": 8,
+            "permission": "edit_issue_notes"
+        },
+        {
+            "action": "deny",
+            "op": "delete",
+            "login": "ada",
+            "journal_id": 8,
+            "permission": "edit_issue_notes"
+        },
+        {
+            "action": "deny",
+            "op": "quote",
+            "login": "finn",
+            "journal_id": 1,
+            "permission": "add_issue_notes"
+        },
+        {
+            "action": "deny",
+            "op": "edit",
+            "login": "erin",
+            "journal_id": 1,
+            "permission": "edit_issue_notes"
+        },
+        {
+            "action": "deny",
+            "op": "quote",
+            "login": "bea",
+            "journal_id": 5,
+            "message": "Journal has no note to quote."
+        },
+        {
+            "action": "edit",
+            "login": "ada",
+            "journal_id": 1,
+            "notes": "Reworded opening.",
+            "user_id": 1,
+            "updated_by_id": 1,
+            "private_notes": false,
+            "detail_count": 1
+        },
+        {
+            "action": "quote",
+            "login": "bea",
+            "journal_id": 7,
+            "notes": "Ada Lovelace wrote:\n> Ada hid this remark.",
+            "private_notes": true,
+            "user_id": 4
+        },
+        {
+            "action": "delete",
+            "login": "bea",
+            "journal_id": 2,
+            "removed": true
+        },
+        {
+            "action": "delete",
+            "login": "ada",
+            "journal_id": 1,
+            "removed": false,
+            "user_id": 1,
+            "updated_by_id": 1,
+            "detail_count": 1
+        }
+    ]
+}

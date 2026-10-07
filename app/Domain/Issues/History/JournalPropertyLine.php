@@ -38,6 +38,31 @@ final readonly class JournalPropertyLine
         );
     }
 
+    public static function updated(string $label): self
+    {
+        $text = $label.' updated';
+
+        return new self($text, self::escape($text));
+    }
+
+    /**
+     * A value that was added, such as a file name or a multiple custom-field value.
+     *
+     * Relation-add lines use relationAdded. emphasizeValue wraps the value in em.
+     */
+    public static function added(string $label, string $value, bool $emphasizeValue = false): self
+    {
+        $text = $label.' '.$value.' added';
+        if (! $emphasizeValue) {
+            return new self($text, self::escape($text));
+        }
+
+        return new self(
+            $text,
+            self::escape($label).' <em>'.self::escape($value).'</em> added',
+        );
+    }
+
     public static function relationAdded(string $label, string $trackerName, int $issueId, string $subject): self
     {
         $text = $label.' '.$trackerName.' #'.$issueId.': '.$subject.' added';

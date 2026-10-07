@@ -12,6 +12,6 @@ This stack is not a 0.1 release.
 
 The sign-in screen uses the scaffold tokens (Card, Button, Input, Label). It does not reproduce a Redmine login view, stylesheet, or workflow. A green feature test is Laramine behavior. It is not a Redmine comparison.
 
-No row in [parity-checklist.md](parity-checklist.md) becomes **VERIFIED** because this page exists. The users and authentication behavior comparison is separate ([users-auth-spec.md](users-auth-spec.md)) and does not make this screen a Redmine login view. Journals and UX stay **NOT VERIFIED**. The queries checklist row is a separate comparison and is not this screen.
+No row in [parity-checklist.md](parity-checklist.md) becomes **VERIFIED** because this page exists. The users and authentication behavior comparison is separate ([users-auth-spec.md](users-auth-spec.md)) and does not make this screen a Redmine login view. UX stays **NOT VERIFIED**. The journals and queries checklist rows are separate comparisons and are not this screen.
 
 Do not copy Redmine CSS or views into this tree.

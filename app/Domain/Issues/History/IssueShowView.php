@@ -6,8 +6,9 @@ namespace App\Domain\Issues\History;
  * Issue-show history and notes form markers for a later UI.
  *
  * historyEntries is the History list. notesEntries keeps journals with note
- * text or a thumbnail. propertyChangeEntries keeps journals that have details,
- * with the note body omitted and only the reaction control left. timeEntries
+ * text or a thumbnail. propertyChangeEntries keeps journals that have a
+ * visible detail line, with the note body omitted and only the reaction
+ * control left. timeEntries
  * and changesets fill the Spent time and Associated revisions tabs.
  */
 final readonly class IssueShowView

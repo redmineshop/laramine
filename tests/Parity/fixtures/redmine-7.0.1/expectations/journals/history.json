@@ -1,0 +1,1494 @@
+{
+    "pin": "7.0.1",
+    "issues": [
+        {
+            "issue_id": 1,
+            "actors": [
+                {
+                    "login": "ada",
+                    "notes_journal_ids": [
+                        1,
+                        8
+                    ],
+                    "property_journal_ids": [
+                        1,
+                        5,
+                        6
+                    ],
+                    "journals": [
+                        {
+                            "journal_id": 1,
+                            "index": 1,
+                            "anchor": "#1",
+                            "href": "#note-1",
+                            "notes": "Opened from the parity pin.",
+                            "private_notes": false,
+                            "quote": true,
+                            "edit": true,
+                            "delete": true,
+                            "lines": [
+                                {
+                                    "text": "Subject set to Parity pin parent",
+                                    "html": "Subject set to <em>Parity pin parent</em>"
+                                }
+                            ]
+                        },
+                        {
+                            "journal_id": 5,
+                            "index": 2,
+                            "anchor": "#2",
+                            "href": "#note-2",
+                            "notes": null,
+                            "private_notes": false,
+                            "quote": false,
+                            "edit": false,
+                            "delete": false,
+                            "lines": [
+                                {
+                                    "text": "Status changed from New to In Progress",
+                                    "html": "Status changed from <em>New</em> to <em>In Progress</em>"
+                                },
+                                {
+                                    "text": "% Done changed from 0 to 30",
+                                    "html": "% Done changed from <em>0</em> to <em>30</em>"
+                                },
+                                {
+                                    "text": "Subject changed from Parity pin parent to Renamed parent",
+                                    "html": "Subject changed from <em>Parity pin parent</em> to <em>Renamed parent</em>"
+                                },
+                                {
+                                    "text": "Description updated",
+                                    "html": "Description updated"
+                                },
+                                {
+                                    "text": "Priority changed from Normal to High",
+                                    "html": "Priority changed from <em>Normal</em> to <em>High</em>"
+                                },
+                                {
+                                    "text": "Assignee changed from Ada Lovelace to Bea Manager",
+                                    "html": "Assignee changed from <em>Ada Lovelace</em> to <em>Bea Manager</em>"
+                                },
+                                {
+                                    "text": "Start date changed from 2026-08-26 to 2026-09-01",
+                                    "html": "Start date changed from <em>2026-08-26</em> to <em>2026-09-01</em>"
+                                },
+                                {
+                                    "text": "Due date set to 2026-09-30",
+                                    "html": "Due date set to <em>2026-09-30</em>"
+                                },
+                                {
+                                    "text": "Estimated time changed from 2.5 to 3",
+                                    "html": "Estimated time changed from <em>2.5</em> to <em>3</em>"
+                                },
+                                {
+                                    "text": "Private changed from No to Yes",
+                                    "html": "Private changed from <em>No</em> to <em>Yes</em>"
+                                },
+                                {
+                                    "text": "Parent task set to #2",
+                                    "html": "Parent task set to <em>#2</em>"
+                                },
+                                {
+                                    "text": "Tracker changed from Bug to Feature",
+                                    "html": "Tracker changed from <em>Bug</em> to <em>Feature</em>"
+                                },
+                                {
+                                    "text": "Category deleted (Backend)",
+                                    "html": "Category deleted (<em>Backend</em>)"
+                                },
+                                {
+                                    "text": "Target version changed from 1.0 to Shared down",
+                                    "html": "Target version changed from <em>1.0</em> to <em>Shared down</em>"
+                                },
+                                {
+                                    "text": "Project changed from Parity Core to Parity Child",
+                                    "html": "Project changed from <em>Parity Core</em> to <em>Parity Child</em>"
+                                },
+                                {
+                                    "text": "File spec.pdf added",
+                                    "html": "File spec.pdf added"
+                                },
+                                {
+                                    "text": "File deleted (draft.pdf)",
+                                    "html": "File deleted (<em>draft.pdf</em>)"
+                                },
+                                {
+                                    "text": "Related to Feature #2: Parity pin subtask added",
+                                    "html": "Related to Feature #2: Parity pin subtask added"
+                                },
+                                {
+                                    "text": "Duplicates deleted (Feature #2: Parity pin subtask)",
+                                    "html": "Duplicates deleted (<em>Feature #2: Parity pin subtask</em>)"
+                                },
+                                {
+                                    "text": "Pin string changed from pin to next",
+                                    "html": "Pin string changed from <em>pin</em> to <em>next</em>"
+                                },
+                                {
+                                    "text": "Pin enum changed from Low to High",
+                                    "html": "Pin enum changed from <em>Low</em> to <em>High</em>"
+                                },
+                                {
+                                    "text": "Pin link changed from pin-link to other",
+                                    "html": "Pin link changed from <em>pin-link</em> to <em>other</em>"
+                                },
+                                {
+                                    "text": "Pin text updated",
+                                    "html": "Pin text updated"
+                                },
+                                {
+                                    "text": "Pin int changed from 7 to 42",
+                                    "html": "Pin int changed from <em>7</em> to <em>42</em>"
+                                },
+                                {
+                                    "text": "Pin float changed from 1.5 to 2.25",
+                                    "html": "Pin float changed from <em>1.5</em> to <em>2.25</em>"
+                                },
+                                {
+                                    "text": "Pin date changed from 2026-08-01 to 2026-08-26",
+                                    "html": "Pin date changed from <em>2026-08-01</em> to <em>2026-08-26</em>"
+                                },
+                                {
+                                    "text": "Pin bool changed from No to Yes",
+                                    "html": "Pin bool changed from <em>No</em> to <em>Yes</em>"
+                                },
+                                {
+                                    "text": "Pin user changed from Ada Lovelace to Bea Manager",
+                                    "html": "Pin user changed from <em>Ada Lovelace</em> to <em>Bea Manager</em>"
+                                },
+                                {
+                                    "text": "Pin version changed from 1.0 to Shared down",
+                                    "html": "Pin version changed from <em>1.0</em> to <em>Shared down</em>"
+                                },
+                                {
+                                    "text": "Pin bar changed from 40% to 50%",
+                                    "html": "Pin bar changed from <em>40%</em> to <em>50%</em>"
+                                },
+                                {
+                                    "text": "Pin multi changed from alpha to alpha, beta",
+                                    "html": "Pin multi changed from <em>alpha</em> to <em>alpha, beta</em>"
+                                },
+                                {
+                                    "text": "History file changed from before.pdf to after.pdf",
+                                    "html": "History file changed from <em>before.pdf</em> to <em>after.pdf</em>"
+                                }
+                            ]
+                        },
+                        {
+                            "journal_id": 6,
+                            "index": 3,
+                            "anchor": "#3",
+                            "href": "#note-3",
+                            "notes": null,
+                            "private_notes": false,
+                            "quote": false,
+                            "edit": false,
+                            "delete": false,
+                            "lines": [
+                                {
+                                    "text": "Pin multi beta added",
+                                    "html": "Pin multi <em>beta</em> added"
+                                }
+                            ]
+                        },
+                        {
+                            "journal_id": 8,
+                            "index": 4,
+                            "anchor": "#4",
+                            "href": "#note-4",
+                            "notes": "Manager left a remark.",
+                            "private_notes": false,
+                            "quote": true,
+                            "edit": false,
+                            "delete": false,
+                            "lines": []
+                        }
+                    ]
+                },
+                {
+                    "login": "bea",
+                    "notes_journal_ids": [
+                        1,
+                        2,
+                        7,
+                        8
+                    ],
+                    "property_journal_ids": [
+                        1,
+                        5,
+                        6
+                    ],
+                    "journals": [
+                        {
+                            "journal_id": 1,
+                            "index": 1,
+                            "anchor": "#1",
+                            "href": "#note-1",
+                            "notes": "Opened from the parity pin.",
+                            "private_notes": false,
+                            "quote": true,
+                            "edit": true,
+                            "delete": true,
+                            "lines": [
+                                {
+                                    "text": "Subject set to Parity pin parent",
+                                    "html": "Subject set to <em>Parity pin parent</em>"
+                                }
+                            ]
+                        },
+                        {
+                            "journal_id": 2,
+                            "index": 2,
+                            "anchor": "#2",
+                            "href": "#note-2",
+                            "notes": "Private note stored on the pin.",
+                            "private_notes": true,
+                            "quote": true,
+                            "edit": true,
+                            "delete": true,
+                            "lines": []
+                        },
+                        {
+                            "journal_id": 5,
+                            "index": 3,
+                            "anchor": "#3",
+                            "href": "#note-3",
+                            "notes": null,
+                            "private_notes": false,
+                            "quote": false,
+                            "edit": false,
+                            "delete": false,
+                            "lines": [
+                                {
+                                    "text": "Status changed from New to In Progress",
+                                    "html": "Status changed from <em>New</em> to <em>In Progress</em>"
+                                },
+                                {
+                                    "text": "% Done changed from 0 to 30",
+                                    "html": "% Done changed from <em>0</em> to <em>30</em>"
+                                },
+                                {
+                                    "text": "Subject changed from Parity pin parent to Renamed parent",
+                                    "html": "Subject changed from <em>Parity pin parent</em> to <em>Renamed parent</em>"
+                                },
+                                {
+                                    "text": "Description updated",
+                                    "html": "Description updated"
+                                },
+                                {
+                                    "text": "Priority changed from Normal to High",
+                                    "html": "Priority changed from <em>Normal</em> to <em>High</em>"
+                                },
+                                {
+                                    "text": "Assignee changed from Ada Lovelace to Bea Manager",
+                                    "html": "Assignee changed from <em>Ada Lovelace</em> to <em>Bea Manager</em>"
+                                },
+                                {
+                                    "text": "Start date changed from 2026-08-26 to 2026-09-01",
+                                    "html": "Start date changed from <em>2026-08-26</em> to <em>2026-09-01</em>"
+                                },
+                                {
+                                    "text": "Due date set to 2026-09-30",
+                                    "html": "Due date set to <em>2026-09-30</em>"
+                                },
+                                {
+                                    "text": "Estimated time changed from 2.5 to 3",
+                                    "html": "Estimated time changed from <em>2.5</em> to <em>3</em>"
+                                },
+                                {
+                                    "text": "Private changed from No to Yes",
+                                    "html": "Private changed from <em>No</em> to <em>Yes</em>"
+                                },
+                                {
+                                    "text": "Parent task set to #2",
+                                    "html": "Parent task set to <em>#2</em>"
+                                },
+                                {
+                                    "text": "Tracker changed from Bug to Feature",
+                                    "html": "Tracker changed from <em>Bug</em> to <em>Feature</em>"
+                                },
+                                {
+                                    "text": "Category deleted (Backend)",
+                                    "html": "Category deleted (<em>Backend</em>)"
+                                },
+                                {
+                                    "text": "Target version changed from 1.0 to Shared down",
+                                    "html": "Target version changed from <em>1.0</em> to <em>Shared down</em>"
+                                },
+                                {
+                                    "text": "Project changed from Parity Core to Parity Child",
+                                    "html": "Project changed from <em>Parity Core</em> to <em>Parity Child</em>"
+                                },
+                                {
+                                    "text": "File spec.pdf added",
+                                    "html": "File spec.pdf added"
+                                },
+                                {
+                                    "text": "File deleted (draft.pdf)",
+                                    "html": "File deleted (<em>draft.pdf</em>)"
+                                },
+                                {
+                                    "text": "Related to Feature #2: Parity pin subtask added",
+                                    "html": "Related to Feature #2: Parity pin subtask added"
+                                },
+                                {
+                                    "text": "Duplicates deleted (Feature #2: Parity pin subtask)",
+                                    "html": "Duplicates deleted (<em>Feature #2: Parity pin subtask</em>)"
+                                },
+                                {
+                                    "text": "Blocks Bug #4: Bea private bug added",
+                                    "html": "Blocks Bug #4: Bea private bug added"
+                                },
+                                {
+                                    "text": "Pin string changed from pin to next",
+                                    "html": "Pin string changed from <em>pin</em> to <em>next</em>"
+                                },
+                                {
+                                    "text": "Pin link changed from pin-link to other",
+                                    "html": "Pin link changed from <em>pin-link</em> to <em>other</em>"
+                                },
+                                {
+                                    "text": "Pin text updated",
+                                    "html": "Pin text updated"
+                                },
+                                {
+                                    "text": "Pin int changed from 7 to 42",
+                                    "html": "Pin int changed from <em>7</em> to <em>42</em>"
+                                },
+                                {
+                                    "text": "Pin float changed from 1.5 to 2.25",
+                                    "html": "Pin float changed from <em>1.5</em> to <em>2.25</em>"
+                                },
+                                {
+                                    "text": "Pin date changed from 2026-08-01 to 2026-08-26",
+                                    "html": "Pin date changed from <em>2026-08-01</em> to <em>2026-08-26</em>"
+                                },
+                                {
+                                    "text": "Pin bool changed from No to Yes",
+                                    "html": "Pin bool changed from <em>No</em> to <em>Yes</em>"
+                                },
+                                {
+                                    "text": "Pin user changed from Ada Lovelace to Bea Manager",
+                                    "html": "Pin user changed from <em>Ada Lovelace</em> to <em>Bea Manager</em>"
+                                },
+                                {
+                                    "text": "Pin version changed from 1.0 to Shared down",
+                                    "html": "Pin version changed from <em>1.0</em> to <em>Shared down</em>"
+                                },
+                                {
+                                    "text": "Pin bar changed from 40% to 50%",
+                                    "html": "Pin bar changed from <em>40%</em> to <em>50%</em>"
+                                },
+                                {
+                                    "text": "Pin multi changed from alpha to alpha, beta",
+                                    "html": "Pin multi changed from <em>alpha</em> to <em>alpha, beta</em>"
+                                },
+                                {
+                                    "text": "History file changed from before.pdf to after.pdf",
+                                    "html": "History file changed from <em>before.pdf</em> to <em>after.pdf</em>"
+                                }
+                            ]
+                        },
+                        {
+                            "journal_id": 6,
+                            "index": 4,
+                            "anchor": "#4",
+                            "href": "#note-4",
+                            "notes": null,
+                            "private_notes": false,
+                            "quote": false,
+                            "edit": false,
+                            "delete": false,
+                            "lines": [
+                                {
+                                    "text": "Pin multi beta added",
+                                    "html": "Pin multi <em>beta</em> added"
+                                }
+                            ]
+                        },
+                        {
+                            "journal_id": 7,
+                            "index": 5,
+                            "anchor": "#5",
+                            "href": "#note-5",
+                            "notes": "Ada hid this remark.",
+                            "private_notes": true,
+                            "quote": true,
+                            "edit": true,
+                            "delete": true,
+                            "lines": []
+                        },
+                        {
+                            "journal_id": 8,
+                            "index": 6,
+                            "anchor": "#6",
+                            "href": "#note-6",
+                            "notes": "Manager left a remark.",
+                            "private_notes": false,
+                            "quote": true,
+                            "edit": true,
+                            "delete": true,
+                            "lines": []
+                        }
+                    ]
+                },
+                {
+                    "login": "admin",
+                    "notes_journal_ids": [
+                        1,
+                        2,
+                        7,
+                        8
+                    ],
+                    "property_journal_ids": [
+                        1,
+                        5,
+                        6
+                    ],
+                    "journals": [
+                        {
+                            "journal_id": 1,
+                            "index": 1,
+                            "anchor": "#1",
+                            "href": "#note-1",
+                            "notes": "Opened from the parity pin.",
+                            "private_notes": false,
+                            "quote": true,
+                            "edit": true,
+                            "delete": true,
+                            "lines": [
+                                {
+                                    "text": "Subject set to Parity pin parent",
+                                    "html": "Subject set to <em>Parity pin parent</em>"
+                                }
+                            ]
+                        },
+                        {
+                            "journal_id": 2,
+                            "index": 2,
+                            "anchor": "#2",
+                            "href": "#note-2",
+                            "notes": "Private note stored on the pin.",
+                            "private_notes": true,
+                            "quote": true,
+                            "edit": true,
+                            "delete": true,
+                            "lines": []
+                        },
+                        {
+                            "journal_id": 5,
+                            "index": 3,
+                            "anchor": "#3",
+                            "href": "#note-3",
+                            "notes": null,
+                            "private_notes": false,
+                            "quote": false,
+                            "edit": false,
+                            "delete": false,
+                            "lines": [
+                                {
+                                    "text": "Status changed from New to In Progress",
+                                    "html": "Status changed from <em>New</em> to <em>In Progress</em>"
+                                },
+                                {
+                                    "text": "% Done changed from 0 to 30",
+                                    "html": "% Done changed from <em>0</em> to <em>30</em>"
+                                },
+                                {
+                                    "text": "Subject changed from Parity pin parent to Renamed parent",
+                                    "html": "Subject changed from <em>Parity pin parent</em> to <em>Renamed parent</em>"
+                                },
+                                {
+                                    "text": "Description updated",
+                                    "html": "Description updated"
+                                },
+                                {
+                                    "text": "Priority changed from Normal to High",
+                                    "html": "Priority changed from <em>Normal</em> to <em>High</em>"
+                                },
+                                {
+                                    "text": "Assignee changed from Ada Lovelace to Bea Manager",
+                                    "html": "Assignee changed from <em>Ada Lovelace</em> to <em>Bea Manager</em>"
+                                },
+                                {
+                                    "text": "Start date changed from 2026-08-26 to 2026-09-01",
+                                    "html": "Start date changed from <em>2026-08-26</em> to <em>2026-09-01</em>"
+                                },
+                                {
+                                    "text": "Due date set to 2026-09-30",
+                                    "html": "Due date set to <em>2026-09-30</em>"
+                                },
+                                {
+                                    "text": "Estimated time changed from 2.5 to 3",
+                                    "html": "Estimated time changed from <em>2.5</em> to <em>3</em>"
+                                },
+                                {
+                                    "text": "Private changed from No to Yes",
+                                    "html": "Private changed from <em>No</em> to <em>Yes</em>"
+                                },
+                                {
+                                    "text": "Parent task set to #2",
+                                    "html": "Parent task set to <em>#2</em>"
+                                },
+                                {
+                                    "text": "Tracker changed from Bug to Feature",
+                                    "html": "Tracker changed from <em>Bug</em> to <em>Feature</em>"
+                                },
+                                {
+                                    "text": "Category deleted (Backend)",
+                                    "html": "Category deleted (<em>Backend</em>)"
+                                },
+                                {
+                                    "text": "Target version changed from 1.0 to Shared down",
+                                    "html": "Target version changed from <em>1.0</em> to <em>Shared down</em>"
+                                },
+                                {
+                                    "text": "Project changed from Parity Core to Parity Child",
+                                    "html": "Project changed from <em>Parity Core</em> to <em>Parity Child</em>"
+                                },
+                                {
+                                    "text": "File spec.pdf added",
+                                    "html": "File spec.pdf added"
+                                },
+                                {
+                                    "text": "File deleted (draft.pdf)",
+                                    "html": "File deleted (<em>draft.pdf</em>)"
+                                },
+                                {
+                                    "text": "Related to Feature #2: Parity pin subtask added",
+                                    "html": "Related to Feature #2: Parity pin subtask added"
+                                },
+                                {
+                                    "text": "Duplicates deleted (Feature #2: Parity pin subtask)",
+                                    "html": "Duplicates deleted (<em>Feature #2: Parity pin subtask</em>)"
+                                },
+                                {
+                                    "text": "Blocks Bug #4: Bea private bug added",
+                                    "html": "Blocks Bug #4: Bea private bug added"
+                                },
+                                {
+                                    "text": "Pin string changed from pin to next",
+                                    "html": "Pin string changed from <em>pin</em> to <em>next</em>"
+                                },
+                                {
+                                    "text": "Pin enum changed from Low to High",
+                                    "html": "Pin enum changed from <em>Low</em> to <em>High</em>"
+                                },
+                                {
+                                    "text": "Pin link changed from pin-link to other",
+                                    "html": "Pin link changed from <em>pin-link</em> to <em>other</em>"
+                                },
+                                {
+                                    "text": "Pin text updated",
+                                    "html": "Pin text updated"
+                                },
+                                {
+                                    "text": "Pin int changed from 7 to 42",
+                                    "html": "Pin int changed from <em>7</em> to <em>42</em>"
+                                },
+                                {
+                                    "text": "Pin float changed from 1.5 to 2.25",
+                                    "html": "Pin float changed from <em>1.5</em> to <em>2.25</em>"
+                                },
+                                {
+                                    "text": "Pin date changed from 2026-08-01 to 2026-08-26",
+                                    "html": "Pin date changed from <em>2026-08-01</em> to <em>2026-08-26</em>"
+                                },
+                                {
+                                    "text": "Pin bool changed from No to Yes",
+                                    "html": "Pin bool changed from <em>No</em> to <em>Yes</em>"
+                                },
+                                {
+                                    "text": "Pin user changed from Ada Lovelace to Bea Manager",
+                                    "html": "Pin user changed from <em>Ada Lovelace</em> to <em>Bea Manager</em>"
+                                },
+                                {
+                                    "text": "Pin version changed from 1.0 to Shared down",
+                                    "html": "Pin version changed from <em>1.0</em> to <em>Shared down</em>"
+                                },
+                                {
+                                    "text": "Pin bar changed from 40% to 50%",
+                                    "html": "Pin bar changed from <em>40%</em> to <em>50%</em>"
+                                },
+                                {
+                                    "text": "Pin multi changed from alpha to alpha, beta",
+                                    "html": "Pin multi changed from <em>alpha</em> to <em>alpha, beta</em>"
+                                },
+                                {
+                                    "text": "History file changed from before.pdf to after.pdf",
+                                    "html": "History file changed from <em>before.pdf</em> to <em>after.pdf</em>"
+                                }
+                            ]
+                        },
+                        {
+                            "journal_id": 6,
+                            "index": 4,
+                            "anchor": "#4",
+                            "href": "#note-4",
+                            "notes": null,
+                            "private_notes": false,
+                            "quote": false,
+                            "edit": false,
+                            "delete": false,
+                            "lines": [
+                                {
+                                    "text": "Pin multi beta added",
+                                    "html": "Pin multi <em>beta</em> added"
+                                }
+                            ]
+                        },
+                        {
+                            "journal_id": 7,
+                            "index": 5,
+                            "anchor": "#5",
+                            "href": "#note-5",
+                            "notes": "Ada hid this remark.",
+                            "private_notes": true,
+                            "quote": true,
+                            "edit": true,
+                            "delete": true,
+                            "lines": []
+                        },
+                        {
+                            "journal_id": 8,
+                            "index": 6,
+                            "anchor": "#6",
+                            "href": "#note-6",
+                            "notes": "Manager left a remark.",
+                            "private_notes": false,
+                            "quote": true,
+                            "edit": true,
+                            "delete": true,
+                            "lines": []
+                        }
+                    ]
+                },
+                {
+                    "login": "erin",
+                    "notes_journal_ids": [
+                        1,
+                        8
+                    ],
+                    "property_journal_ids": [
+                        1,
+                        5,
+                        6
+                    ],
+                    "journals": [
+                        {
+                            "journal_id": 1,
+                            "index": 1,
+                            "anchor": "#1",
+                            "href": "#note-1",
+                            "notes": "Opened from the parity pin.",
+                            "private_notes": false,
+                            "quote": false,
+                            "edit": false,
+                            "delete": false,
+                            "lines": [
+                                {
+                                    "text": "Subject set to Parity pin parent",
+                                    "html": "Subject set to <em>Parity pin parent</em>"
+                                }
+                            ]
+                        },
+                        {
+                            "journal_id": 5,
+                            "index": 2,
+                            "anchor": "#2",
+                            "href": "#note-2",
+                            "notes": null,
+                            "private_notes": false,
+                            "quote": false,
+                            "edit": false,
+                            "delete": false,
+                            "lines": [
+                                {
+                                    "text": "Status changed from New to In Progress",
+                                    "html": "Status changed from <em>New</em> to <em>In Progress</em>"
+                                },
+                                {
+                                    "text": "% Done changed from 0 to 30",
+                                    "html": "% Done changed from <em>0</em> to <em>30</em>"
+                                },
+                                {
+                                    "text": "Subject changed from Parity pin parent to Renamed parent",
+                                    "html": "Subject changed from <em>Parity pin parent</em> to <em>Renamed parent</em>"
+                                },
+                                {
+                                    "text": "Description updated",
+                                    "html": "Description updated"
+                                },
+                                {
+                                    "text": "Priority changed from Normal to High",
+                                    "html": "Priority changed from <em>Normal</em> to <em>High</em>"
+                                },
+                                {
+                                    "text": "Assignee changed from Ada Lovelace to Bea Manager",
+                                    "html": "Assignee changed from <em>Ada Lovelace</em> to <em>Bea Manager</em>"
+                                },
+                                {
+                                    "text": "Start date changed from 2026-08-26 to 2026-09-01",
+                                    "html": "Start date changed from <em>2026-08-26</em> to <em>2026-09-01</em>"
+                                },
+                                {
+                                    "text": "Due date set to 2026-09-30",
+                                    "html": "Due date set to <em>2026-09-30</em>"
+                                },
+                                {
+                                    "text": "Estimated time changed from 2.5 to 3",
+                                    "html": "Estimated time changed from <em>2.5</em> to <em>3</em>"
+                                },
+                                {
+                                    "text": "Private changed from No to Yes",
+                                    "html": "Private changed from <em>No</em> to <em>Yes</em>"
+                                },
+                                {
+                                    "text": "Parent task set to #2",
+                                    "html": "Parent task set to <em>#2</em>"
+                                },
+                                {
+                                    "text": "Tracker changed from Bug to Feature",
+                                    "html": "Tracker changed from <em>Bug</em> to <em>Feature</em>"
+                                },
+                                {
+                                    "text": "Category deleted (Backend)",
+                                    "html": "Category deleted (<em>Backend</em>)"
+                                },
+                                {
+                                    "text": "Target version changed from 1.0 to Shared down",
+                                    "html": "Target version changed from <em>1.0</em> to <em>Shared down</em>"
+                                },
+                                {
+                                    "text": "Project changed from Parity Core to Parity Child",
+                                    "html": "Project changed from <em>Parity Core</em> to <em>Parity Child</em>"
+                                },
+                                {
+                                    "text": "File spec.pdf added",
+                                    "html": "File spec.pdf added"
+                                },
+                                {
+                                    "text": "File deleted (draft.pdf)",
+                                    "html": "File deleted (<em>draft.pdf</em>)"
+                                },
+                                {
+                                    "text": "Related to Feature #2: Parity pin subtask added",
+                                    "html": "Related to Feature #2: Parity pin subtask added"
+                                },
+                                {
+                                    "text": "Duplicates deleted (Feature #2: Parity pin subtask)",
+                                    "html": "Duplicates deleted (<em>Feature #2: Parity pin subtask</em>)"
+                                },
+                                {
+                                    "text": "Pin string changed from pin to next",
+                                    "html": "Pin string changed from <em>pin</em> to <em>next</em>"
+                                },
+                                {
+                                    "text": "Pin link changed from pin-link to other",
+                                    "html": "Pin link changed from <em>pin-link</em> to <em>other</em>"
+                                },
+                                {
+                                    "text": "Pin text updated",
+                                    "html": "Pin text updated"
+                                },
+                                {
+                                    "text": "Pin int changed from 7 to 42",
+                                    "html": "Pin int changed from <em>7</em> to <em>42</em>"
+                                },
+                                {
+                                    "text": "Pin float changed from 1.5 to 2.25",
+                                    "html": "Pin float changed from <em>1.5</em> to <em>2.25</em>"
+                                },
+                                {
+                                    "text": "Pin date changed from 2026-08-01 to 2026-08-26",
+                                    "html": "Pin date changed from <em>2026-08-01</em> to <em>2026-08-26</em>"
+                                },
+                                {
+                                    "text": "Pin bool changed from No to Yes",
+                                    "html": "Pin bool changed from <em>No</em> to <em>Yes</em>"
+                                },
+                                {
+                                    "text": "Pin user changed from Ada Lovelace to Bea Manager",
+                                    "html": "Pin user changed from <em>Ada Lovelace</em> to <em>Bea Manager</em>"
+                                },
+                                {
+                                    "text": "Pin version changed from 1.0 to Shared down",
+                                    "html": "Pin version changed from <em>1.0</em> to <em>Shared down</em>"
+                                },
+                                {
+                                    "text": "Pin bar changed from 40% to 50%",
+                                    "html": "Pin bar changed from <em>40%</em> to <em>50%</em>"
+                                },
+                                {
+                                    "text": "Pin multi changed from alpha to alpha, beta",
+                                    "html": "Pin multi changed from <em>alpha</em> to <em>alpha, beta</em>"
+                                },
+                                {
+                                    "text": "History file changed from before.pdf to after.pdf",
+                                    "html": "History file changed from <em>before.pdf</em> to <em>after.pdf</em>"
+                                }
+                            ]
+                        },
+                        {
+                            "journal_id": 6,
+                            "index": 3,
+                            "anchor": "#3",
+                            "href": "#note-3",
+                            "notes": null,
+                            "private_notes": false,
+                            "quote": false,
+                            "edit": false,
+                            "delete": false,
+                            "lines": [
+                                {
+                                    "text": "Pin multi beta added",
+                                    "html": "Pin multi <em>beta</em> added"
+                                }
+                            ]
+                        },
+                        {
+                            "journal_id": 8,
+                            "index": 4,
+                            "anchor": "#4",
+                            "href": "#note-4",
+                            "notes": "Manager left a remark.",
+                            "private_notes": false,
+                            "quote": false,
+                            "edit": false,
+                            "delete": false,
+                            "lines": []
+                        }
+                    ]
+                },
+                {
+                    "login": "finn",
+                    "notes_journal_ids": [
+                        1,
+                        8
+                    ],
+                    "property_journal_ids": [
+                        1,
+                        5,
+                        6
+                    ],
+                    "journals": [
+                        {
+                            "journal_id": 1,
+                            "index": 1,
+                            "anchor": "#1",
+                            "href": "#note-1",
+                            "notes": "Opened from the parity pin.",
+                            "private_notes": false,
+                            "quote": false,
+                            "edit": false,
+                            "delete": false,
+                            "lines": [
+                                {
+                                    "text": "Subject set to Parity pin parent",
+                                    "html": "Subject set to <em>Parity pin parent</em>"
+                                }
+                            ]
+                        },
+                        {
+                            "journal_id": 5,
+                            "index": 2,
+                            "anchor": "#2",
+                            "href": "#note-2",
+                            "notes": null,
+                            "private_notes": false,
+                            "quote": false,
+                            "edit": false,
+                            "delete": false,
+                            "lines": [
+                                {
+                                    "text": "Status changed from New to In Progress",
+                                    "html": "Status changed from <em>New</em> to <em>In Progress</em>"
+                                },
+                                {
+                                    "text": "% Done changed from 0 to 30",
+                                    "html": "% Done changed from <em>0</em> to <em>30</em>"
+                                },
+                                {
+                                    "text": "Subject changed from Parity pin parent to Renamed parent",
+                                    "html": "Subject changed from <em>Parity pin parent</em> to <em>Renamed parent</em>"
+                                },
+                                {
+                                    "text": "Description updated",
+                                    "html": "Description updated"
+                                },
+                                {
+                                    "text": "Priority changed from Normal to High",
+                                    "html": "Priority changed from <em>Normal</em> to <em>High</em>"
+                                },
+                                {
+                                    "text": "Assignee changed from Ada Lovelace to Bea Manager",
+                                    "html": "Assignee changed from <em>Ada Lovelace</em> to <em>Bea Manager</em>"
+                                },
+                                {
+                                    "text": "Start date changed from 2026-08-26 to 2026-09-01",
+                                    "html": "Start date changed from <em>2026-08-26</em> to <em>2026-09-01</em>"
+                                },
+                                {
+                                    "text": "Due date set to 2026-09-30",
+                                    "html": "Due date set to <em>2026-09-30</em>"
+                                },
+                                {
+                                    "text": "Estimated time changed from 2.5 to 3",
+                                    "html": "Estimated time changed from <em>2.5</em> to <em>3</em>"
+                                },
+                                {
+                                    "text": "Private changed from No to Yes",
+                                    "html": "Private changed from <em>No</em> to <em>Yes</em>"
+                                },
+                                {
+                                    "text": "Parent task set to #2",
+                                    "html": "Parent task set to <em>#2</em>"
+                                },
+                                {
+                                    "text": "Tracker changed from Bug to Feature",
+                                    "html": "Tracker changed from <em>Bug</em> to <em>Feature</em>"
+                                },
+                                {
+                                    "text": "Category deleted (Backend)",
+                                    "html": "Category deleted (<em>Backend</em>)"
+                                },
+                                {
+                                    "text": "Target version changed from 1.0 to Shared down",
+                                    "html": "Target version changed from <em>1.0</em> to <em>Shared down</em>"
+                                },
+                                {
+                                    "text": "Project changed from Parity Core to Parity Child",
+                                    "html": "Project changed from <em>Parity Core</em> to <em>Parity Child</em>"
+                                },
+                                {
+                                    "text": "File spec.pdf added",
+                                    "html": "File spec.pdf added"
+                                },
+                                {
+                                    "text": "File deleted (draft.pdf)",
+                                    "html": "File deleted (<em>draft.pdf</em>)"
+                                },
+                                {
+                                    "text": "Related to Feature #2: Parity pin subtask added",
+                                    "html": "Related to Feature #2: Parity pin subtask added"
+                                },
+                                {
+                                    "text": "Duplicates deleted (Feature #2: Parity pin subtask)",
+                                    "html": "Duplicates deleted (<em>Feature #2: Parity pin subtask</em>)"
+                                },
+                                {
+                                    "text": "Pin string changed from pin to next",
+                                    "html": "Pin string changed from <em>pin</em> to <em>next</em>"
+                                },
+                                {
+                                    "text": "Pin link changed from pin-link to other",
+                                    "html": "Pin link changed from <em>pin-link</em> to <em>other</em>"
+                                },
+                                {
+                                    "text": "Pin text updated",
+                                    "html": "Pin text updated"
+                                },
+                                {
+                                    "text": "Pin int changed from 7 to 42",
+                                    "html": "Pin int changed from <em>7</em> to <em>42</em>"
+                                },
+                                {
+                                    "text": "Pin float changed from 1.5 to 2.25",
+                                    "html": "Pin float changed from <em>1.5</em> to <em>2.25</em>"
+                                },
+                                {
+                                    "text": "Pin date changed from 2026-08-01 to 2026-08-26",
+                                    "html": "Pin date changed from <em>2026-08-01</em> to <em>2026-08-26</em>"
+                                },
+                                {
+                                    "text": "Pin bool changed from No to Yes",
+                                    "html": "Pin bool changed from <em>No</em> to <em>Yes</em>"
+                                },
+                                {
+                                    "text": "Pin user changed from Ada Lovelace to Bea Manager",
+                                    "html": "Pin user changed from <em>Ada Lovelace</em> to <em>Bea Manager</em>"
+                                },
+                                {
+                                    "text": "Pin version changed from 1.0 to Shared down",
+                                    "html": "Pin version changed from <em>1.0</em> to <em>Shared down</em>"
+                                },
+                                {
+                                    "text": "Pin bar changed from 40% to 50%",
+                                    "html": "Pin bar changed from <em>40%</em> to <em>50%</em>"
+                                },
+                                {
+                                    "text": "Pin multi changed from alpha to alpha, beta",
+                                    "html": "Pin multi changed from <em>alpha</em> to <em>alpha, beta</em>"
+                                },
+                                {
+                                    "text": "History file changed from before.pdf to after.pdf",
+                                    "html": "History file changed from <em>before.pdf</em> to <em>after.pdf</em>"
+                                }
+                            ]
+                        },
+                        {
+                            "journal_id": 6,
+                            "index": 3,
+                            "anchor": "#3",
+                            "href": "#note-3",
+                            "notes": null,
+                            "private_notes": false,
+                            "quote": false,
+                            "edit": false,
+                            "delete": false,
+                            "lines": [
+                                {
+                                    "text": "Pin multi beta added",
+                                    "html": "Pin multi <em>beta</em> added"
+                                }
+                            ]
+                        },
+                        {
+                            "journal_id": 8,
+                            "index": 4,
+                            "anchor": "#4",
+                            "href": "#note-4",
+                            "notes": "Manager left a remark.",
+                            "private_notes": false,
+                            "quote": false,
+                            "edit": false,
+                            "delete": false,
+                            "lines": []
+                        }
+                    ]
+                },
+                {
+                    "login": "cleo",
+                    "notes_journal_ids": [
+                        1,
+                        8
+                    ],
+                    "property_journal_ids": [
+                        1,
+                        5,
+                        6
+                    ],
+                    "journals": [
+                        {
+                            "journal_id": 1,
+                            "index": 1,
+                            "anchor": "#1",
+                            "href": "#note-1",
+                            "notes": "Opened from the parity pin.",
+                            "private_notes": false,
+                            "quote": false,
+                            "edit": false,
+                            "delete": false,
+                            "lines": [
+                                {
+                                    "text": "Subject set to Parity pin parent",
+                                    "html": "Subject set to <em>Parity pin parent</em>"
+                                }
+                            ]
+                        },
+                        {
+                            "journal_id": 5,
+                            "index": 2,
+                            "anchor": "#2",
+                            "href": "#note-2",
+                            "notes": null,
+                            "private_notes": false,
+                            "quote": false,
+                            "edit": false,
+                            "delete": false,
+                            "lines": [
+                                {
+                                    "text": "Status changed from New to In Progress",
+                                    "html": "Status changed from <em>New</em> to <em>In Progress</em>"
+                                },
+                                {
+                                    "text": "% Done changed from 0 to 30",
+                                    "html": "% Done changed from <em>0</em> to <em>30</em>"
+                                },
+                                {
+                                    "text": "Subject changed from Parity pin parent to Renamed parent",
+                                    "html": "Subject changed from <em>Parity pin parent</em> to <em>Renamed parent</em>"
+                                },
+                                {
+                                    "text": "Description updated",
+                                    "html": "Description updated"
+                                },
+                                {
+                                    "text": "Priority changed from Normal to High",
+                                    "html": "Priority changed from <em>Normal</em> to <em>High</em>"
+                                },
+                                {
+                                    "text": "Assignee changed from Ada Lovelace to Bea Manager",
+                                    "html": "Assignee changed from <em>Ada Lovelace</em> to <em>Bea Manager</em>"
+                                },
+                                {
+                                    "text": "Start date changed from 2026-08-26 to 2026-09-01",
+                                    "html": "Start date changed from <em>2026-08-26</em> to <em>2026-09-01</em>"
+                                },
+                                {
+                                    "text": "Due date set to 2026-09-30",
+                                    "html": "Due date set to <em>2026-09-30</em>"
+                                },
+                                {
+                                    "text": "Estimated time changed from 2.5 to 3",
+                                    "html": "Estimated time changed from <em>2.5</em> to <em>3</em>"
+                                },
+                                {
+                                    "text": "Private changed from No to Yes",
+                                    "html": "Private changed from <em>No</em> to <em>Yes</em>"
+                                },
+                                {
+                                    "text": "Parent task set to #2",
+                                    "html": "Parent task set to <em>#2</em>"
+                                },
+                                {
+                                    "text": "Tracker changed from Bug to Feature",
+                                    "html": "Tracker changed from <em>Bug</em> to <em>Feature</em>"
+                                },
+                                {
+                                    "text": "Category deleted (Backend)",
+                                    "html": "Category deleted (<em>Backend</em>)"
+                                },
+                                {
+                                    "text": "Target version changed from 1.0 to Shared down",
+                                    "html": "Target version changed from <em>1.0</em> to <em>Shared down</em>"
+                                },
+                                {
+                                    "text": "Project changed from Parity Core to Parity Child",
+                                    "html": "Project changed from <em>Parity Core</em> to <em>Parity Child</em>"
+                                },
+                                {
+                                    "text": "File spec.pdf added",
+                                    "html": "File spec.pdf added"
+                                },
+                                {
+                                    "text": "File deleted (draft.pdf)",
+                                    "html": "File deleted (<em>draft.pdf</em>)"
+                                },
+                                {
+                                    "text": "Pin string changed from pin to next",
+                                    "html": "Pin string changed from <em>pin</em> to <em>next</em>"
+                                },
+                                {
+                                    "text": "Pin link changed from pin-link to other",
+                                    "html": "Pin link changed from <em>pin-link</em> to <em>other</em>"
+                                },
+                                {
+                                    "text": "Pin text updated",
+                                    "html": "Pin text updated"
+                                },
+                                {
+                                    "text": "Pin int changed from 7 to 42",
+                                    "html": "Pin int changed from <em>7</em> to <em>42</em>"
+                                },
+                                {
+                                    "text": "Pin float changed from 1.5 to 2.25",
+                                    "html": "Pin float changed from <em>1.5</em> to <em>2.25</em>"
+                                },
+                                {
+                                    "text": "Pin date changed from 2026-08-01 to 2026-08-26",
+                                    "html": "Pin date changed from <em>2026-08-01</em> to <em>2026-08-26</em>"
+                                },
+                                {
+                                    "text": "Pin bool changed from No to Yes",
+                                    "html": "Pin bool changed from <em>No</em> to <em>Yes</em>"
+                                },
+                                {
+                                    "text": "Pin user changed from Ada Lovelace to Bea Manager",
+                                    "html": "Pin user changed from <em>Ada Lovelace</em> to <em>Bea Manager</em>"
+                                },
+                                {
+                                    "text": "Pin version changed from 1.0 to Shared down",
+                                    "html": "Pin version changed from <em>1.0</em> to <em>Shared down</em>"
+                                },
+                                {
+                                    "text": "Pin bar changed from 40% to 50%",
+                                    "html": "Pin bar changed from <em>40%</em> to <em>50%</em>"
+                                },
+                                {
+                                    "text": "Pin multi changed from alpha to alpha, beta",
+                                    "html": "Pin multi changed from <em>alpha</em> to <em>alpha, beta</em>"
+                                },
+                                {
+                                    "text": "History file changed from before.pdf to after.pdf",
+                                    "html": "History file changed from <em>before.pdf</em> to <em>after.pdf</em>"
+                                }
+                            ]
+                        },
+                        {
+                            "journal_id": 6,
+                            "index": 3,
+                            "anchor": "#3",
+                            "href": "#note-3",
+                            "notes": null,
+                            "private_notes": false,
+                            "quote": false,
+                            "edit": false,
+                            "delete": false,
+                            "lines": [
+                                {
+                                    "text": "Pin multi beta added",
+                                    "html": "Pin multi <em>beta</em> added"
+                                }
+                            ]
+                        },
+                        {
+                            "journal_id": 8,
+                            "index": 4,
+                            "anchor": "#4",
+                            "href": "#note-4",
+                            "notes": "Manager left a remark.",
+                            "private_notes": false,
+                            "quote": false,
+                            "edit": false,
+                            "delete": false,
+                            "lines": []
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "issue_id": 2,
+            "actors": [
+                {
+                    "login": "ada",
+                    "notes_journal_ids": [],
+                    "property_journal_ids": [
+                        3
+                    ],
+                    "journals": [
+                        {
+                            "journal_id": 3,
+                            "index": 1,
+                            "anchor": "#1",
+                            "href": "#note-1",
+                            "notes": null,
+                            "private_notes": false,
+                            "quote": false,
+                            "edit": false,
+                            "delete": false,
+                            "lines": [
+                                {
+                                    "text": "Pin list changed from beta to alpha",
+                                    "html": "Pin list changed from <em>beta</em> to <em>alpha</em>"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "login": "bea",
+                    "notes_journal_ids": [],
+                    "property_journal_ids": [
+                        3
+                    ],
+                    "journals": [
+                        {
+                            "journal_id": 3,
+                            "index": 1,
+                            "anchor": "#1",
+                            "href": "#note-1",
+                            "notes": null,
+                            "private_notes": false,
+                            "quote": false,
+                            "edit": false,
+                            "delete": false,
+                            "lines": [
+                                {
+                                    "text": "Pin list changed from beta to alpha",
+                                    "html": "Pin list changed from <em>beta</em> to <em>alpha</em>"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "login": "admin",
+                    "notes_journal_ids": [],
+                    "property_journal_ids": [
+                        3
+                    ],
+                    "journals": [
+                        {
+                            "journal_id": 3,
+                            "index": 1,
+                            "anchor": "#1",
+                            "href": "#note-1",
+                            "notes": null,
+                            "private_notes": false,
+                            "quote": false,
+                            "edit": false,
+                            "delete": false,
+                            "lines": [
+                                {
+                                    "text": "Pin list changed from beta to alpha",
+                                    "html": "Pin list changed from <em>beta</em> to <em>alpha</em>"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "login": "erin",
+                    "notes_journal_ids": [],
+                    "property_journal_ids": [
+                        3
+                    ],
+                    "journals": [
+                        {
+                            "journal_id": 3,
+                            "index": 1,
+                            "anchor": "#1",
+                            "href": "#note-1",
+                            "notes": null,
+                            "private_notes": false,
+                            "quote": false,
+                            "edit": false,
+                            "delete": false,
+                            "lines": [
+                                {
+                                    "text": "Pin list changed from beta to alpha",
+                                    "html": "Pin list changed from <em>beta</em> to <em>alpha</em>"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "login": "finn",
+                    "notes_journal_ids": [],
+                    "property_journal_ids": [
+                        3
+                    ],
+                    "journals": [
+                        {
+                            "journal_id": 3,
+                            "index": 1,
+                            "anchor": "#1",
+                            "href": "#note-1",
+                            "notes": null,
+                            "private_notes": false,
+                            "quote": false,
+                            "edit": false,
+                            "delete": false,
+                            "lines": [
+                                {
+                                    "text": "Pin list changed from beta to alpha",
+                                    "html": "Pin list changed from <em>beta</em> to <em>alpha</em>"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "login": "cleo",
+                    "notes_journal_ids": [],
+                    "property_journal_ids": [
+                        3
+                    ],
+                    "journals": [
+                        {
+                            "journal_id": 3,
+                            "index": 1,
+                            "anchor": "#1",
+                            "href": "#note-1",
+                            "notes": null,
+                            "private_notes": false,
+                            "quote": false,
+                            "edit": false,
+                            "delete": false,
+                            "lines": [
+                                {
+                                    "text": "Pin list changed from beta to alpha",
+                                    "html": "Pin list changed from <em>beta</em> to <em>alpha</em>"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "issue_id": 6,
+            "actors": [
+                {
+                    "login": "ada",
+                    "notes_journal_ids": [],
+                    "property_journal_ids": [],
+                    "journals": []
+                },
+                {
+                    "login": "bea",
+                    "notes_journal_ids": [],
+                    "property_journal_ids": [
+                        4
+                    ],
+                    "journals": [
+                        {
+                            "journal_id": 4,
+                            "index": 1,
+                            "anchor": "#1",
+                            "href": "#note-1",
+                            "notes": null,
+                            "private_notes": true,
+                            "quote": false,
+                            "edit": false,
+                            "delete": false,
+                            "lines": [
+                                {
+                                    "text": "Pin list deleted (gamma)",
+                                    "html": "Pin list deleted (<em>gamma</em>)"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "login": "admin",
+                    "notes_journal_ids": [],
+                    "property_journal_ids": [
+                        4
+                    ],
+                    "journals": [
+                        {
+                            "journal_id": 4,
+                            "index": 1,
+                            "anchor": "#1",
+                            "href": "#note-1",
+                            "notes": null,
+                            "private_notes": true,
+                            "quote": false,
+                            "edit": false,
+                            "delete": false,
+                            "lines": [
+                                {
+                                    "text": "Pin list deleted (gamma)",
+                                    "html": "Pin list deleted (<em>gamma</em>)"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "login": "erin",
+                    "notes_journal_ids": [],
+                    "property_journal_ids": [],
+                    "journals": []
+                },
+                {
+                    "login": "finn",
+                    "notes_journal_ids": [],
+                    "property_journal_ids": [],
+                    "journals": []
+                },
+                {
+                    "login": "cleo",
+                    "notes_journal_ids": [],
+                    "property_journal_ids": [],
+                    "journals": []
+                }
+            ]
+        }
+    ]
+}

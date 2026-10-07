@@ -1,6 +1,6 @@
 # Contributing
 
-Laramine is an early MIT project: a clean-room Laravel reimplementation of a Redmine-like project-management core. Behavior in the tree is what the domain docs and tests describe. [docs/parity-checklist.md](docs/parity-checklist.md) is the parity record. Every P0 row there is **NOT VERIFIED**. [QUALITY.md](QUALITY.md) is the quality bar. This file is how to change the code without weakening either.
+Laramine is an early MIT project: a clean-room Laravel reimplementation of a Redmine-like project-management core. Behavior in the tree is what the domain docs and tests describe. [docs/parity-checklist.md](docs/parity-checklist.md) is the parity record. A row is **VERIFIED** only when its Evidence cell cites a fixture-backed test in `tests/Parity`. Every other P0 row is **NOT VERIFIED**. [QUALITY.md](QUALITY.md) is the quality bar. This file is how to change the code without weakening either.
 
 ## Ways to contribute
 

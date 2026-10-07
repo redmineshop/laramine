@@ -2,7 +2,7 @@
 
 This is the Laramine checklist for issue history and private notes. It follows the S1 acceptance shape: visible behavior for history, property diffs, textile emphasis, journal controls, the success flash, and private-note permissions.
 
-**Parity is NOT VERIFIED.** A green smoke in this repo is Laramine behavior. It is not a comparison against a Redmine 7.0.1 database. Do not describe the project as production-ready from this file.
+The journals checklist row is **VERIFIED** only by `tests/Parity/JournalParityTest.php` against `tests/Parity/fixtures/redmine-7.0.1/expectations/journals/`. A green smoke in this repo is Laramine behavior. Do not describe the project as production-ready from this file.
 
 Block C criteria 16–19 are covered by Laramine tests. That is not a Redmine comparison, and it does not close the deferred rows at the bottom of this file.
 
@@ -17,7 +17,7 @@ Block C criteria 16–19 are covered by Laramine tests. That is not a Redmine co
 | Download-all zip | `App\Domain\Attachments\AttachmentArchive` |
 | Private-note query rule | `App\Domain\Queries\JournalVisibility` |
 
-Domain behavior is described in [domain.md](domain.md). The parity row stays **NOT VERIFIED** in [parity-checklist.md](parity-checklist.md).
+Domain behavior is described in [domain.md](domain.md). The checklist row is **VERIFIED** only by the parity test named in [parity-checklist.md](parity-checklist.md).
 
 ## Smoke
 
@@ -75,7 +75,7 @@ These checks decide which controls are visible. They do not write a journal row.
 
 ## Journal note writes
 
-`JournalNoteService` quotes, edits, and deletes a note under the same permission rules as the markers. A green test here is Laramine behavior. Parity stays **NOT VERIFIED**.
+`JournalNoteService` quotes, edits, and deletes a note under the same permission rules as the markers. A green feature test here is Laramine behavior. Quote, edit, and delete on the shared pin are compared by `tests/Parity/JournalParityTest.php`.
 
 | Action | What is stored |
 | --- | --- |
@@ -96,14 +96,18 @@ These rows used to be open after Block C and the note writes. A green test here 
 | Absolute copy-link URL | Copy link is `{protocol}://{host}/issues/{id}#note-n` for the visible index. The anchor href stays `#note-n`. | `test_copy_link_is_an_absolute_issue_url` and Block C criterion 17 |
 | Spent time and associated revisions | The tabs are Spent time and Associated revisions. Spent time follows `view_time_entries` and `time_entries_visibility`. Revisions follow `view_changesets` and `changesets_issues`. | `test_spent_time_and_associated_revisions_tabs_follow_permission` |
 
+## Compared on the journals row
+
+`tests/Parity/JournalParityTest.php` loads the shared pin and compares visible journals, `#note-n` indices, private-note visibility, quote / edit / delete, and rendered `attr`, `attachment`, `relation`, and `cf` lines to `expectations/journals/history.json` and `expectations/journals/notes.json`. That comparison is the checklist **VERIFIED** mark. It is not a 0.1 tag.
+
 ## Still open
 
 | Item | Status |
 | --- | --- |
-| Journal note writes compared with Redmine 7.0.1 | **Open.** Laramine stores the rows. No parity comparison has been recorded. |
 | HTTP download, thumbnail bytes, and the issue page | **Open.** The zip and the copy-link string exist. Nothing serves them over HTTP, and thumbnail images are not rendered. |
 | Time-entry writes | **Open for a Redmine comparison.** `TimeEntryService` creates, updates, and deletes rows (`tests/Feature/TimeEntryWriteTest.php`). There is no dump diff. |
-| Changeset sync and repository browse | **Open.** The tab reads `repositories`, `changesets`, and `changesets_issues`. `changes` and `changeset_parents` are not migrated. Commits are not fetched. |
-| Redmine parity VERIFIED, tag 0.1 | **Open.** Not claimed. |
+| Attachment and relation-removal journal writes | **Open.** Stored attachment and relation-removal details are rendered. This slice does not write those rows from an upload or a relation delete. |
+| Changeset sync and repository browse | **Open.** The tab reads `repositories`, `changesets`, and `changesets_issues`. `changes` and `changeset_parents` are not migrated. Commits are not fetched. SCM stays out of the journals comparison. |
+| Tag 0.1 | **Open.** Not claimed. |
 
 An open item does not authorize a parity-verified or production-ready claim.

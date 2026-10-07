@@ -35,14 +35,14 @@ First public / v1 ship must meet **all** gates below. Same spirit as Redmine cor
 - Shared fixtures aligned with Redmine Migrate Analyst P0 inventory
 - Living `docs/parity-checklist.md`: VERIFIED / NOT VERIFIED / INCONCLUSIVE + evidence paths
 - **No release claim** while any P0 row is failed or inconclusive
-- Journal history has a gate in [docs/journals-parity-gate.md](docs/journals-parity-gate.md). The Block A and Block B smoke is Laramine behavior. It does not verify parity. Block C stays open.
+- Journal history has a gate in [docs/journals-parity-gate.md](docs/journals-parity-gate.md). The Block A, Block B, and Block C smoke is Laramine behavior. It does not verify parity. The journals checklist row is **VERIFIED** only by `tests/Parity/JournalParityTest.php`. HTTP download, thumbnail bytes, attachment and relation-removal writes, and SCM history stay open in that gate.
 - Projects, membership, workflow, and issues have a gate in [docs/acl-workflow-parity-gate.md](docs/acl-workflow-parity-gate.md). The MVP smoke is Laramine behavior. The core checklist acceptance section may mark a happy path **PASS**. **PASS** is not **VERIFIED**. It does not verify parity and it is not a 0.1 tag. The open list in that file stays open.
 
 ## 0.1 path
 
 There is no 0.1 tag. The ACL/workflow smoke above is not that tag.
 
-Users and authentication are locked in [docs/users-auth-spec.md](docs/users-auth-spec.md) (founder date 2026-10-07). Phase 2 is registration, `must_change_passwd`, and `recovery` / `register` tokens on the session guard. The checklist row is **VERIFIED** only for `tests/Parity/UsersAuthParityTest.php`. LDAP, two-factor, OAuth, API tokens, account administration, and outbound mail are not in that comparison. `users_visibility` is compared on the identity row. The identity, projects nested-set, workflows, custom fields, and queries rows are **VERIFIED** only by the parity tests named in the checklist. This is not a 0.1 tag and not a production-ready claim. Journals stay **NOT VERIFIED**.
+Users and authentication are locked in [docs/users-auth-spec.md](docs/users-auth-spec.md) (founder date 2026-10-07). Phase 2 is registration, `must_change_passwd`, and `recovery` / `register` tokens on the session guard. The checklist row is **VERIFIED** only for `tests/Parity/UsersAuthParityTest.php`. LDAP, two-factor, OAuth, API tokens, account administration, and outbound mail are not in that comparison. `users_visibility` is compared on the identity row. The identity, projects nested-set, workflows, custom fields, queries, and journals rows are **VERIFIED** only by the parity tests named in the checklist. This is not a 0.1 tag and not a production-ready claim. Time entries stay **NOT VERIFIED**.
 
 ## CI (every PR + default branch)
 

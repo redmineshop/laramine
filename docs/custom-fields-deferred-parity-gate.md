@@ -47,7 +47,7 @@ MySQL 8 is the database (`phpunit.xml`). These tests do not live under `tests/Pa
 | Link outbound URL | **Closed.** `GET /custom-fields/links/{id}` returns the URL a client fetches. A value with no `url_pattern` and no `scheme://` prefix is returned with `http://` in front. The server does not request that URL. |
 | Attachment delete over HTTP | **Closed.** `DELETE /custom-fields/attachments/{id}` removes a current custom-field file, its row, and the custom value when the actor can edit the host and the field. An issue host writes a `cf` journal detail. Journal and issue attachments stay off this route. |
 | Version sharing | **Closed.** A version value must be available on the record's project under `none`, `descendants`, `hierarchy`, `tree`, or `system`. |
-| Custom-field journal diffs | **Closed.** Issue update writes `journal_details` with `property = cf`. The history line renderer still does not label those rows. |
+| Custom-field journal diffs | **Closed.** Issue update writes `journal_details` with `property = cf`. History lines for those rows are compared on the journals checklist row. |
 | Redmine 7.0.1 comparison | **Closed for this row.** `tests/Parity/CustomFieldParityTest.php` compares the pin values and `expectations/custom-fields/values.json`. |
 
 History presentation of `cf` details, `users_visibility` on user custom fields, and document, issue-priority, time-entry activity, and document-category custom field types stay outside that comparison. This file is not a 0.1 tag.

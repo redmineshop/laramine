@@ -7,7 +7,8 @@ namespace App\Domain\Issues\History;
  *
  * anchorLabel is #n for that order. It is not journals.id.
  * anchorHref is #note-n for the same visible index.
- * hasNote and hasDetails describe the stored journal. hasThumbnails is true
+ * hasNote is true when the journal stores note text. hasDetails is true when
+ * at least one detail line is visible to the actor. hasThumbnails is true
  * when thumbnail display is on and a file name is an image. A Property changes
  * copy keeps those flags, clears the note text, and keeps only reaction.
  */
