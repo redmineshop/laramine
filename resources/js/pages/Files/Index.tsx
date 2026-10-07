@@ -78,7 +78,7 @@ export default function FilesIndex({ projectId, sortBy, containers, versions, ca
                                         {container.files.map((file) => (
                                             <li key={file.id} className="text-sm">
                                                 <a
-                                                    href={`/projects/${projectId}/files/${file.id}/download`}
+                                                    href={`/attachments/${file.id}`}
                                                     className="underline-offset-4 hover:underline"
                                                 >
                                                     {file.filename}

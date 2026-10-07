@@ -3,6 +3,8 @@
 namespace Tests\Parity;
 
 use App\Domain\Acl\PermissionService;
+use App\Domain\Attachments\AttachmentContainerService;
+use App\Domain\Attachments\AttachmentService;
 use App\Domain\Documents\DocumentService;
 use App\Domain\DomainException;
 use App\Domain\Files\ProjectFileService;
@@ -198,6 +200,23 @@ class ModulesNewsDocumentsFilesParityTest extends TestCase
         }
         $documents->delete($bea, $this->document(1));
         $this->assertNull(Document::query()->find(1));
+
+        $containers = app(AttachmentContainerService::class);
+        $cleo = $this->actor('cleo');
+        $this->assertNotNull($cleo);
+        $denied = $containers->upload($cleo, 'nope.txt', 'nope', 'text/plain');
+        $this->assertDenied(
+            fn () => $containers->claim($cleo, $denied['token'], null, null, null, null, 2, null, null),
+            'edit_documents',
+            'cleo document file',
+        );
+        $uploaded = $containers->upload($bea, 'extra.txt', 'extra', 'text/plain');
+        $claimed = $containers->claim($bea, $uploaded['token'], null, null, null, null, 2, null, null);
+        $this->assertSame('Document', $claimed->container_type);
+        $this->assertSame(2, (int) $claimed->container_id);
+        $this->assertSame(0, (int) $claimed->downloads);
+        $containers->download($bea, $claimed);
+        $this->assertSame(0, (int) $claimed->refresh()->downloads);
     }
 
     public function test_file_version_groups_and_downloads_match_the_pin(): void
@@ -234,36 +253,41 @@ class ModulesNewsDocumentsFilesParityTest extends TestCase
             'cleo files',
         );
 
-        $downloaded = $files->recordDownload($this->actor('ada'), $project, $this->attachment(5));
-        $this->assertSame(2, (int) $downloaded->downloads);
+        $containers = app(AttachmentContainerService::class);
+        $readme = $this->attachment(5);
+        $this->placeBytes($readme, 'readme');
         $ada = $this->actor('ada');
         $this->assertNotNull($ada);
+        $containers->download($ada, $readme);
+        $this->assertSame(2, (int) $readme->refresh()->downloads);
+
+        $denied = $containers->upload($ada, 'nope.txt', 'nope', 'text/plain');
         $this->assertDenied(
-            fn () => $files->attach($ada, $project, null, 'nope.txt', 'nope'),
+            fn () => $containers->claim($ada, $denied['token'], null, null, null, null, null, 1, null),
             'manage_files',
             'ada upload',
         );
         $bea = $this->actor('bea');
         $this->assertNotNull($bea);
-        $created = $files->attach($bea, $project, null, 'added.txt', 'added');
+        $uploaded = $containers->upload($bea, 'added.txt', 'added', 'text/plain');
+        $created = $containers->claim($bea, $uploaded['token'], null, null, null, null, null, 1, null);
         $this->assertSame('Project', $created->container_type);
         $this->assertSame(1, (int) $created->container_id);
         $this->assertSame(4, (int) $created->author_id);
         $this->assertSame(0, (int) $created->downloads);
 
-        try {
-            $files->recordDownload($bea, $project, $this->attachment(1));
-            $this->fail('Issue attachment was counted as a project file.');
-        } catch (DomainException $exception) {
-            $this->assertSame('File is not attached to this project.', $exception->getMessage());
-        }
+        $issueFile = $this->attachment(1);
+        $before = (int) $issueFile->downloads;
+        $this->placeBytes($issueFile, 'issue');
+        $containers->download($ada, $issueFile);
+        $this->assertSame($before, (int) $issueFile->refresh()->downloads);
 
         $this->assertDenied(
-            fn () => $files->delete($ada, $project, $this->attachment(6)),
+            fn () => $containers->delete($ada, $this->attachment(6)),
             'manage_files',
             'ada delete file',
         );
-        $files->delete($bea, $project, $this->attachment(7));
+        $containers->delete($bea, $this->attachment(7));
         $this->assertNull(Attachment::query()->find(7));
     }
 
@@ -512,6 +536,19 @@ class ModulesNewsDocumentsFilesParityTest extends TestCase
         $this->assertInstanceOf(Document::class, $document);
 
         return $document;
+    }
+
+    private function placeBytes(Attachment $attachment, string $body): void
+    {
+        $attachment->disk_directory = '2026/08';
+        $attachment->disk_filename = 'pin-'.$attachment->id.'.bin';
+        $attachment->save();
+        $path = app(AttachmentService::class)->absolutePath($attachment);
+        $directory = dirname($path);
+        if (! is_dir($directory) && ! mkdir($directory, 0775, true) && ! is_dir($directory)) {
+            $this->fail('Attachment directory was not created.');
+        }
+        $this->assertNotFalse(file_put_contents($path, $body));
     }
 
     private function attachment(int $id): Attachment

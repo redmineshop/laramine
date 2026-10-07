@@ -4,6 +4,7 @@ namespace App\Domain\Documents;
 
 use App\Domain\Acl\PermissionService;
 use App\Domain\Attachments\AttachmentService;
+use App\Domain\Attachments\AttachmentThumbnailRenderer;
 use App\Domain\DomainException;
 use App\Domain\PermissionDeniedException;
 use App\Models\Attachment;
@@ -21,7 +22,8 @@ use Illuminate\Support\Facades\DB;
  *
  * `view_documents` lists and reads. `add_documents` creates. `edit_documents`
  * updates. `delete_documents` deletes the row, its attachments, and its
- * custom values. Either add or edit may attach a file. The category is a
+ * custom values. A file is claimed through `AttachmentContainerService`.
+ * The category is a
  * `DocumentCategory` enumeration shared or owned by the project. A new
  * category must be active. Grouping is `DocumentGroups`.
  */
@@ -30,6 +32,7 @@ final class DocumentService
     public function __construct(
         private readonly PermissionService $permissions,
         private readonly AttachmentService $attachments,
+        private readonly AttachmentThumbnailRenderer $thumbnails,
     ) {}
 
     public function create(
@@ -90,6 +93,7 @@ final class DocumentService
                 ->where('container_id', (int) $document->id)
                 ->get();
             foreach ($files as $file) {
+                $this->thumbnails->forget($file);
                 $this->attachments->forgetFile($file);
                 $file->delete();
             }
@@ -99,24 +103,6 @@ final class DocumentService
                 ->delete();
             $document->delete();
         });
-    }
-
-    public function attach(
-        User $actor,
-        Document $document,
-        string $filename,
-        string $contents,
-        ?string $contentType = null,
-        ?string $description = null,
-    ): Attachment {
-        $project = $this->project($document);
-        $canAdd = $this->permissions->allowed($actor, 'add_documents', $project);
-        $canEdit = $this->permissions->allowed($actor, 'edit_documents', $project);
-        if (! $canAdd && ! $canEdit) {
-            throw new PermissionDeniedException('edit_documents');
-        }
-
-        return $this->attachments->store($actor, $filename, $contents, $contentType, $description, $document);
     }
 
     /**

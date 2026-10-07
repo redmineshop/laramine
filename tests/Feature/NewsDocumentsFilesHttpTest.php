@@ -145,11 +145,11 @@ class NewsDocumentsFilesHttpTest extends TestCase
         $attachment = Attachment::query()->where('filename', 'notes.txt')->first();
         $this->assertInstanceOf(Attachment::class, $attachment);
         $this->actingAs($user)
-            ->get('/projects/'.$project->id.'/files/'.$attachment->id.'/download')
+            ->get('/attachments/'.$attachment->id)
             ->assertOk();
         $this->assertSame(1, (int) $attachment->fresh()?->downloads);
         $this->actingAs($user)
-            ->get('/projects/'.$project->id.'/files/'.$attachment->id.'/download')
+            ->get('/attachments/'.$attachment->id)
             ->assertOk();
         $this->assertSame(2, (int) $attachment->fresh()?->downloads);
         $this->actingAs($user)

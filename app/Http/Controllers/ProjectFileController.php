@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Domain\Attachments\AttachmentService;
+use App\Domain\Attachments\AttachmentContainerService;
 use App\Domain\DomainException;
 use App\Domain\Files\ProjectFileService;
 use App\Domain\PermissionDeniedException;
@@ -14,7 +14,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Inertia\Inertia;
 use Inertia\Response;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 /**
  * Minimal project file pages. These are not a Redmine screen.
@@ -23,7 +22,7 @@ class ProjectFileController extends Controller
 {
     public function __construct(
         private readonly ProjectFileService $files,
-        private readonly AttachmentService $attachments,
+        private readonly AttachmentContainerService $attachments,
     ) {}
 
     public function index(Request $request, Project $project): Response
@@ -66,15 +65,24 @@ class ProjectFileController extends Controller
         $version = $request->input('version_id');
         $versionId = is_numeric($version) && (int) $version > 0 ? (int) $version : null;
 
+        $mime = $upload->getClientMimeType();
         try {
-            $this->files->attach(
+            $uploaded = $this->attachments->upload(
                 $actor,
-                $project,
-                $versionId,
                 $upload->getClientOriginalName(),
                 $contents,
-                $upload->getClientMimeType(),
+                $mime !== '' ? $mime : null,
+            );
+            $this->attachments->claim(
+                $actor,
+                $uploaded['token'],
                 null,
+                null,
+                null,
+                null,
+                null,
+                (int) $project->id,
+                $versionId,
             );
         } catch (PermissionDeniedException) {
             abort(403);
@@ -93,8 +101,12 @@ class ProjectFileController extends Controller
             abort(403);
         }
 
+        if (! $this->files->contains($project, $attachment)) {
+            abort(404);
+        }
+
         try {
-            $this->files->delete($actor, $project, $attachment);
+            $this->attachments->delete($actor, $attachment);
         } catch (PermissionDeniedException) {
             abort(403);
         } catch (DomainException $exception) {
@@ -102,33 +114,6 @@ class ProjectFileController extends Controller
         }
 
         return redirect()->route('projects.files.index', ['project' => $project->id]);
-    }
-
-    public function download(Request $request, Project $project, Attachment $attachment): BinaryFileResponse
-    {
-        $this->authorize('viewFiles', $project);
-        $actor = $this->actor($request);
-
-        try {
-            $recorded = $this->files->recordDownload($actor, $project, $attachment);
-            $path = $this->attachments->absolutePath($recorded);
-        } catch (PermissionDeniedException) {
-            abort(403);
-        } catch (DomainException) {
-            abort(404);
-        }
-
-        if (! is_file($path)) {
-            abort(404);
-        }
-
-        $type = $recorded->content_type;
-        $headers = [];
-        if (is_string($type) && $type !== '') {
-            $headers['Content-Type'] = $type;
-        }
-
-        return response()->download($path, (string) $recorded->filename, $headers);
     }
 
     /**

@@ -128,10 +128,6 @@ Route::delete('/projects/{project}/files/{attachment}', [ProjectFileController::
     ->whereNumber('project')
     ->whereNumber('attachment')
     ->name('projects.files.destroy');
-Route::get('/projects/{project}/files/{attachment}/download', [ProjectFileController::class, 'download'])
-    ->whereNumber('project')
-    ->whereNumber('attachment')
-    ->name('projects.files.download');
 
 Route::get('/users/current.json', RestUserController::class)->name('rest.current-user');
 Route::get('/my.atom', FeedController::class)->name('feed.account');

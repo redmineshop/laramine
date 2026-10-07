@@ -3,8 +3,6 @@
 namespace App\Domain\Files;
 
 use App\Domain\Acl\PermissionService;
-use App\Domain\Attachments\AttachmentService;
-use App\Domain\DomainException;
 use App\Domain\PermissionDeniedException;
 use App\Models\Attachment;
 use App\Models\Project;
@@ -15,17 +13,15 @@ use DateTimeInterface;
 /**
  * Files attached to a project or to a version that project owns.
  *
- * `view_files` lists and counts a download. `manage_files` uploads and
- * deletes. Versions shared into the project from somewhere else are not
- * containers here. The project container is first. Versions follow
- * `VersionOrder::forFiles`. Files inside a container follow `AttachmentSort`.
+ * `view_files` lists them. Upload, delete, download, and thumbnails go
+ * through `AttachmentContainerService`. Versions shared into the project
+ * from somewhere else are not containers here. The project container is
+ * first. Versions follow `VersionOrder::forFiles`. Files inside a container
+ * follow `AttachmentSort`.
  */
 final class ProjectFileService
 {
-    public function __construct(
-        private readonly PermissionService $permissions,
-        private readonly AttachmentService $attachments,
-    ) {}
+    public function __construct(private readonly PermissionService $permissions) {}
 
     /**
      * @return list<array{container_type: string, container_id: int, attachment_ids: list<int>}>
@@ -68,43 +64,21 @@ final class ProjectFileService
         return $containers;
     }
 
-    public function attach(
-        User $actor,
-        Project $project,
-        ?int $versionId,
-        string $filename,
-        string $contents,
-        ?string $contentType = null,
-        ?string $description = null,
-    ): Attachment {
-        if (! $this->permissions->allowed($actor, 'manage_files', $project)) {
-            throw new PermissionDeniedException('manage_files');
-        }
-
-        $container = $this->container($project, $versionId);
-
-        return $this->attachments->store($actor, $filename, $contents, $contentType, $description, $container);
-    }
-
-    public function delete(User $actor, Project $project, Attachment $attachment): void
+    public function contains(Project $project, Attachment $attachment): bool
     {
-        if (! $this->permissions->allowed($actor, 'manage_files', $project)) {
-            throw new PermissionDeniedException('manage_files');
+        $type = (string) $attachment->container_type;
+        $id = (int) $attachment->container_id;
+        if ($type === 'Project' && $id === (int) $project->id) {
+            return true;
         }
-        $this->assertProjectFile($project, $attachment);
-        $this->attachments->forgetFile($attachment);
-        $attachment->delete();
-    }
-
-    public function recordDownload(?User $actor, Project $project, Attachment $attachment): Attachment
-    {
-        if (! $this->permissions->allowed($actor, 'view_files', $project)) {
-            throw new PermissionDeniedException('view_files');
+        if ($type !== 'Version') {
+            return false;
         }
-        $this->assertProjectFile($project, $attachment);
-        $attachment->increment('downloads');
 
-        return $attachment->refresh();
+        return Version::query()
+            ->where('id', $id)
+            ->where('project_id', (int) $project->id)
+            ->exists();
     }
 
     /**
@@ -149,43 +123,6 @@ final class ProjectFileService
         }
 
         return AttachmentSort::ids($rows, $sort);
-    }
-
-    private function container(Project $project, ?int $versionId): Project|Version
-    {
-        if ($versionId === null) {
-            return $project;
-        }
-
-        $version = Version::query()
-            ->where('project_id', (int) $project->id)
-            ->where('id', $versionId)
-            ->first();
-        if (! $version instanceof Version) {
-            throw new DomainException('Version is not on this project.');
-        }
-
-        return $version;
-    }
-
-    private function assertProjectFile(Project $project, Attachment $attachment): void
-    {
-        $type = (string) $attachment->container_type;
-        $id = (int) $attachment->container_id;
-        if ($type === 'Project' && $id === (int) $project->id) {
-            return;
-        }
-        if ($type === 'Version') {
-            $owned = Version::query()
-                ->where('id', $id)
-                ->where('project_id', (int) $project->id)
-                ->exists();
-            if ($owned) {
-                return;
-            }
-        }
-
-        throw new DomainException('File is not attached to this project.');
     }
 
     private function sort(string $sortBy): string
