@@ -47,7 +47,7 @@
         "tracker_id": 1,
         "subject": "Needs hours",
         "message": "estimated_hours",
-        "issue_count": 2
+        "issue_count": 6
     },
     "member_create_with_hours": {
         "login": "ada",

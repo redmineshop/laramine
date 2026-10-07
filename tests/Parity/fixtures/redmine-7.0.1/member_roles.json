@@ -7,5 +7,6 @@
 {"id": 6, "member_id": 6, "role_id": 1, "inherited_from": null},
 {"id": 7, "member_id": 7, "role_id": 6, "inherited_from": null},
 {"id": 8, "member_id": 1, "role_id": 5, "inherited_from": null},
-{"id": 9, "member_id": 8, "role_id": 5, "inherited_from": null}
+{"id": 9, "member_id": 8, "role_id": 5, "inherited_from": null},
+{"id": 10, "member_id": 9, "role_id": 7, "inherited_from": null}
 ]

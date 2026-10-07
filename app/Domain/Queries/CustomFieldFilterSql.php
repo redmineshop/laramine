@@ -23,6 +23,7 @@ final class CustomFieldFilterSql
     public function __construct(
         private readonly FieldFormatRegistry $formats,
         private readonly CustomFieldVisibility $visibility,
+        private readonly HistoryFilterSql $history,
     ) {}
 
     /**
@@ -35,6 +36,19 @@ final class CustomFieldFilterSql
         $filterType = $format->queryFilterType();
         OperatorMatrix::assert($filterType, $filter->operator, $filter->field);
         FilterValues::assertCount($filter);
+
+        if (in_array($filter->operator, ['ev', '!ev', 'cf'], true)) {
+            $this->history->applyCustomField(
+                $query,
+                (int) $customField->id,
+                $filter->operator,
+                $this->historyValues($customField, $filter, $actor),
+                $actor,
+                $project,
+            );
+
+            return;
+        }
 
         $negative = in_array($filter->operator, ['!', '!~', '!*'], true);
         $positive = match ($filter->operator) {
@@ -60,6 +74,31 @@ final class CustomFieldFilterSql
         }
 
         $query->whereExists($callback);
+    }
+
+    /**
+     * User fields accept `me` as that user id. Other formats reject it.
+     * Group ids are not added.
+     *
+     * @return list<string>
+     */
+    private function historyValues(CustomField $field, QueryFilter $filter, ?User $actor): array
+    {
+        if ((string) $field->field_format === 'user') {
+            $values = [];
+            foreach (FilterValues::ids($filter, $actor, true) as $id) {
+                $values[] = (string) $id;
+            }
+
+            return $values;
+        }
+
+        $values = FilterValues::present($filter);
+        if (in_array('me', $values, true)) {
+            throw new QueryValidationException('Filter value me is not valid for '.$filter->field.'.');
+        }
+
+        return $values;
     }
 
     private function fieldId(string $field): int

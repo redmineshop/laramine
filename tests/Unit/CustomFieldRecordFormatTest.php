@@ -65,7 +65,7 @@ class CustomFieldRecordFormatTest extends TestCase
         $this->assertSame([], $format->validate($allowed, [(string) $world->user->id], $issue));
         $this->assertTrue($format->supportsMultiple());
         $this->assertFalse($format->supportsSearchable());
-        $this->assertSame('list_optional', $format->queryFilterType());
+        $this->assertSame('list_optional_with_history', $format->queryFilterType());
 
         $inactive = User::factory()->create(['status' => 3]);
         app(MembershipService::class)->assignRole($world->project, $inactive, $world->role);
@@ -120,7 +120,7 @@ class CustomFieldRecordFormatTest extends TestCase
             'format_store' => ['version_status' => ['archived']],
         ])));
         $this->assertTrue($format->supportsMultiple());
-        $this->assertSame('list_optional', $format->queryFilterType());
+        $this->assertSame('list_optional_with_history', $format->queryFilterType());
     }
 
     public function test_version_format_follows_sharing(): void
@@ -257,7 +257,7 @@ class CustomFieldRecordFormatTest extends TestCase
         $this->assertTrue($format->supportsMultiple());
         $this->assertFalse($format->supportsSearchable());
         $this->assertFalse($format->supportsTotal());
-        $this->assertSame('list_optional', $format->queryFilterType());
+        $this->assertSame('list_optional_with_history', $format->queryFilterType());
     }
 
     public function test_attachment_format_stores_an_id_and_checks_extension(): void

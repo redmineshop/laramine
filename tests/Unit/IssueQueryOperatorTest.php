@@ -594,6 +594,48 @@ class IssueQueryOperatorTest extends TestCase
         $this->assertIds(['status_id' => $this->clause('cf', [$closed])], [$public->id, $hidden->id]);
     }
 
+    public function test_custom_field_history_includes_cf_journal_details(): void
+    {
+        $list = $this->field('list', ['possible_values' => ['alpha', 'beta', 'gamma', 'alpha,beta']]);
+        $other = User::factory()->create();
+        $changed = $this->issue(['subject' => 'Changed list']);
+        $this->value($changed, $list, 'beta');
+        $this->cfJournal($changed, $list, 'alpha', 'beta', $other->id, false);
+        $current = $this->issue(['subject' => 'Current alpha']);
+        $this->value($current, $list, 'alpha');
+        $blank = $this->issue(['subject' => 'Blank list']);
+        $joined = $this->issue(['subject' => 'Joined list']);
+        $this->cfJournal($joined, $list, 'alpha,beta', 'beta', $other->id, false);
+        $hidden = $this->issue(['subject' => 'Hidden list']);
+        $this->value($hidden, $list, 'gamma');
+        $this->cfJournal($hidden, $list, 'alpha', 'gamma', $other->id, true);
+        $closed = (string) $this->world->closed->id;
+
+        $name = 'cf_'.$list->id;
+        // A cf detail counts for ev / cf / !ev and for updated_by. The joined string matches as a whole.
+        // A private journal stays hidden, and a cf detail does not satisfy a core status history filter.
+        $this->assertIds([$name => $this->clause('ev', ['alpha'])], [$changed->id, $current->id]);
+        $this->assertIds([$name => $this->clause('cf', ['alpha'])], [$changed->id]);
+        $this->assertIds([$name => $this->clause('!ev', ['alpha'])], [$blank->id, $joined->id, $hidden->id]);
+        $this->assertIds([$name => $this->clause('ev', ['alpha,beta'])], [$joined->id]);
+        $this->assertIds([$name => $this->clause('cf', ['alpha,beta'])], [$joined->id]);
+        $this->assertIds(['updated_by' => $this->clause('=', [(string) $other->id])], [$changed->id, $joined->id]);
+        $this->assertIds(['last_updated_by' => $this->clause('=', [(string) $other->id])], [$changed->id, $joined->id]);
+        $this->assertIds(['status_id' => $this->clause('cf', [$closed])], []);
+        $this->expectRejection(['cf_'.$this->field('string')->id => $this->clause('ev', ['pin'])]);
+        $this->expectRejection([$name => $this->clause('ev', ['me'])]);
+
+        $permissions = $this->world->role->permissions;
+        $permissions[] = 'view_private_notes';
+        $this->world->role->permissions = $permissions;
+        $this->world->role->save();
+
+        $this->assertIds([$name => $this->clause('ev', ['alpha'])], [$changed->id, $current->id, $hidden->id]);
+        $this->assertIds([$name => $this->clause('cf', ['alpha'])], [$changed->id, $hidden->id]);
+        $this->assertIds(['updated_by' => $this->clause('=', [(string) $other->id])], [$changed->id, $joined->id, $hidden->id]);
+        $this->assertIds(['last_updated_by' => $this->clause('=', [(string) $other->id])], [$changed->id, $joined->id, $hidden->id]);
+    }
+
     public function test_quoted_text_stays_one_token(): void
     {
         $phrase = $this->issue(['subject' => 'Fix login now']);
@@ -725,6 +767,24 @@ class IssueQueryOperatorTest extends TestCase
             'customized_type' => 'Issue',
             'customized_id' => $issue->id,
             'value' => $value,
+        ]);
+    }
+
+    private function cfJournal(Issue $issue, CustomField $field, string $old, string $new, int $userId, bool $private): void
+    {
+        $journal = Journal::query()->create([
+            'journalized_id' => $issue->id,
+            'journalized_type' => 'Issue',
+            'user_id' => $userId,
+            'notes' => null,
+            'private_notes' => $private,
+        ]);
+        JournalDetail::query()->create([
+            'journal_id' => $journal->id,
+            'property' => 'cf',
+            'prop_key' => (string) $field->id,
+            'old_value' => $old,
+            'value' => $new,
         ]);
     }
 

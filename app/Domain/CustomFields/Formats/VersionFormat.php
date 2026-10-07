@@ -40,7 +40,7 @@ final class VersionFormat extends AbstractFormat
 
     public function queryFilterType(): string
     {
-        return 'list_optional';
+        return 'list_optional_with_history';
     }
 
     public function validateDefinition(CustomField $field): array

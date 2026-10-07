@@ -1,6 +1,6 @@
 # Saved queries and issue filters
 
-Laramine stores saved queries in the Redmine 7.0.1 `queries` and `queries_roles` tables. This is not a Redmine parity claim. The HTTP API and the filter form are not part of this slice. `IssueQuery` is the only type that runs. `ProjectQuery`, `TimeEntryQuery`, `UserQuery`, and `ProjectAdminQuery` can be stored with empty filters and are not executed.
+Laramine stores saved queries in the Redmine 7.0.1 `queries` and `queries_roles` tables. The queries checklist row is **VERIFIED** only by `tests/Parity/IssueQueryParityTest.php` against the shared pin and `tests/Parity/fixtures/redmine-7.0.1/expectations/queries/results.json`. That comparison is not a 0.1 tag. Gantt, calendar, other query types, descendant hour columns, and repository or SCM data stay outside it. Journal presentation of custom-field history stays on the journals row. The HTTP API and the filter form are not part of this slice. `IssueQuery` is the only type that runs. `ProjectQuery`, `TimeEntryQuery`, `UserQuery`, and `ProjectAdminQuery` can be stored with empty filters and are not executed.
 
 ## JSON instead of YAML
 
@@ -53,7 +53,7 @@ Creating a query requires `save_queries` on the project, or on any membership wh
 
 `IssueQueryRunner` limits rows with `IssueVisibility` for a project-scoped query. A global query (`project_id` null) keeps issues only in projects where the actor has `view_issues`, using that project's `all` / `default` / `own` rule. With no `subproject_id` filter, `display_subprojects_issues` (default on, stored in `settings`) includes every descendant. Set that value to `0` to keep the query project alone. An explicit `subproject_id` filter overrides the setting, and each project is still checked with `view_issues`.
 
-Custom field filters use `cf_{id}`. The field must be an `IssueCustomField` with `is_filter` and a format this engine implements. A field the actor cannot see is an error, not a silent skip. `!`, `!~`, and `!*` are `NOT EXISTS` on `custom_values`, so a missing value matches "not equal" and "none". List `=` matches if any stored value is in the list. Link and attachment use the string operators on the stored text (an attachment value is the id). Enumeration uses the list operators on enumeration ids. Progress bar uses the integer operators.
+Custom field filters use `cf_{id}`. The field must be an `IssueCustomField` with `is_filter` and a format this engine implements. A field the actor cannot see is an error, not a silent skip. `!`, `!~`, and `!*` are `NOT EXISTS` on `custom_values`, so a missing value matches "not equal" and "none". List `=` matches if any stored value is in the list. Link and attachment use the string operators on the stored text (an attachment value is the id). Enumeration uses the list operators on enumeration ids, and list, enumeration, bool, user, and version also accept `ev`, `!ev`, and `cf` on `property = cf` journal details. Progress bar uses the integer operators.
 
 Relative dates use `user_preferences.time_zone` when it is a valid zone, otherwise the application timezone. Weeks run Monday through Sunday. Datetime columns (`created_on`, `updated_on`, `closed_on`) compare that calendar range after it is converted into the application timezone. An open-ended operator keeps one side unbounded (`>=` the start of the day, or `<=` the end of the day).
 
@@ -97,7 +97,7 @@ The value `me` is the current user id. It is accepted on `author_id`, `assigned_
 | `is_private` | list | `=`, `!` (`0`/`1`/`true`/`false`) |
 | `parent_id`, `child_id` | tree | `=`, `~`, `!*`, `*` |
 | `relates`, `blocks`, `blocked`, `duplicates`, `duplicated`, `precedes`, `follows`, `copied_to`, `copied_from` | relation | `=`, `!`, `=p`, `=!p`, `!p`, `*o`, `!o`, `!*`, `*` |
-| `cf_{id}` | format's query filter type | shipped operators for that type. `link` and `attachment` use `string` (the stored text, which for attachment is the id). `enumeration` uses `list_optional` on enumeration ids. `progressbar` uses `integer`. The same path covers string, text, int, float, date, list, bool, user, and version |
+| `cf_{id}` | format's query filter type | shipped operators for that type. `link` and `attachment` use `string` (the stored text, which for attachment is the id). `list`, `enumeration`, `bool`, `user`, and `version` use `list_optional_with_history`, so they also accept `ev`, `!ev`, and `cf`. `progressbar` uses `integer`. The same path covers string, text, int, float, and date |
 | `cf_{id}.due_date` | date | version custom fields only. Compared to `versions.effective_date` |
 | `cf_{id}.status` | list | version custom fields only. `=` / `!` on `versions.status` |
 | `author.group` | list | `=`, `!`. Author is a member of those groups, or the group id itself |
@@ -112,14 +112,16 @@ The value `me` is the current user id. It is accepted on `author_id`, `assigned_
 | `attachment` | text | `attachments.filename`. `*` is any attachment row. `!*` is no attachment |
 | `attachment_description` | text | `!*` is an attachment with a blank description. `!~` is a non-blank description that does not contain the tokens |
 | `watcher_id` | list | `=`, `!` on `watchers`. `me` includes the actor's groups. Other users require `view_issue_watchers` |
-| `updated_by` | list | `=`, `!` on a visible journal `user_id`. Private notes are skipped without `view_private_notes`. `me` is the user id only |
-| `last_updated_by` | list | `user_id` of the latest visible journal (`id` descending). No visible journal matches `!` |
+| `updated_by` | list | `=`, `!` on a visible journal `user_id`. A journal whose only detail has `property = cf` still counts. Private notes are skipped without `view_private_notes`. `me` is the user id only |
+| `last_updated_by` | list | `user_id` of the latest visible journal (`id` descending). A later `property = cf` detail is still that journal. No visible journal matches `!` |
 | `spent_time` | hour | Same per-issue number as `spent_hours`: `COALESCE(ROUND(SUM(time_entries.hours), 2), 0)` for entries whose `project_id` is the issue's project, after `time_entries_visibility`. `*` is greater than 0. `!*` and `=` 0 include a missing or fully hidden sum |
 | `any_searchable` | search | `~`, `*~`, `!~` across subject, description, visible journal notes, and visible searchable issue custom fields |
 
 `parent_id` and `child_id` read the issue nested set (`root_id`, `lft`, `rgt`). `=` and `~` scan decimal ids out of the value; a value with no digits matches nothing. `parent_id` `=` is `parent_id` in those ids. `parent_id` `~` is a strict descendant of any of those issues. `parent_id` `*` / `!*` is a non-null parent, or none. `child_id` `=` keeps the direct parent of those child ids. `child_id` `~` keeps ancestors of the first id. `child_id` `*` is `rgt - lft > 1`. `child_id` `!*` is a leaf (`rgt - lft = 1`).
 
-History reads `journal_details` with `property = attr` and `prop_key` equal to the issue column (`status_id`, `tracker_id`, `priority_id`, `assigned_to_id`, `fixed_version_id`, `category_id`). Values are decimal id strings. Issue update writes `status_id` and the other tracked columns listed in [domain.md](domain.md) in that shape. `done_ratio` is stored as an integer string and is not one of these operator columns. Relation-add rows use `property = relation` and are not read here. A private journal is skipped unless the actor has `view_private_notes` on that project (admins see them), the same rule as `updated_by`. Issue update writes custom-field history as `property = cf`. This filter still reads `property = attr` only. The list, bool, user, and version custom field types do not offer `ev` / `!ev` / `cf`.
+Core history reads `journal_details` with `property = attr` and `prop_key` equal to the issue column (`status_id`, `tracker_id`, `priority_id`, `assigned_to_id`, `fixed_version_id`, `category_id`). Values are decimal id strings. Issue update writes `status_id` and the other tracked columns listed in [domain.md](domain.md) in that shape. `done_ratio` is stored as an integer string and is not one of these operator columns. Relation-add rows use `property = relation` and are not read here. A private journal is skipped unless the actor has `view_private_notes` on that project (admins see them), the same rule as `updated_by`.
+
+List-like custom fields (`list`, `enumeration`, `bool`, `user`, and `version`) use the same three operators on `property = cf` and `prop_key` the custom field id. `ev` matches a current `custom_values` row or either side of that detail. `cf` matches `old_value` only. `!ev` matches neither. The compared journal text is the stored string. Several values on one change are one comma-joined string, matched as a whole, while the current side still matches any single stored row. String, text, int, float, date, link, attachment, and progress bar do not offer these operators. A hidden field is an error. The history tab still does not label `cf` rows.
 
 Relations are stored once. The canonical `relation_type` is `relates`, `blocks`, `duplicates`, `precedes`, or `copied_to` on `issue_from_id`. The reverse filter name (`blocked`, `duplicated`, `follows`, `copied_from`) matches that same row from `issue_to_id`. A filter also accepts the reverse type if a row was stored that way. `=` / `!` compare the other issue id. `=p` / `=!p` / `!p` compare the other issue's project. `*o` / `!o` use `issue_statuses.is_closed`. Related issues are not re-checked against issue visibility.
 
@@ -218,7 +220,7 @@ An unknown operator or an unknown field is rejected.
 - Text `~` tokenizes like Redmine search: a double-quoted phrase is one token, other whitespace splits tokens, tokens are AND-ed as `LOWER(column) LIKE`. A token shorter than two characters is dropped unless it contains a Han character, and at most five tokens are used. `*~` ORs those tokens. `^` and `$` do not split on spaces. `=` on subject and description is exact equality under the database collation (MySQL's default collation is case-insensitive).
 - Day-offset windows follow Redmine `relative_date_clause` (inclusive T±N, `>t-` open into the future). Weeks stay Monday–Sunday because there is no `start_of_week` setting.
 - Relation rows are matched from either end using the canonical type on `issue_from_id`. Related issues are not passed through `IssueVisibility`.
-- `ev` / `cf` compare decimal id strings on `journal_details.old_value` and `value` for `property = attr` only. A private journal is hidden without `view_private_notes`, including from its author. Redmine also lets that author read their own private note.
+- Core `ev` / `cf` compare decimal id strings on `journal_details.old_value` and `value` for `property = attr`. Custom-field `ev` / `cf` compare the stored `property = cf` strings, including a comma-joined multi-value as one string. A private journal is hidden without `view_private_notes`, including from its author. Redmine also lets that author read their own private note.
 - `any_searchable` does not search attachment filenames. Those have their own filter. It uses the same quoted-phrase tokens as text `~`.
 - `me` expands to the actor's groups only on `assigned_to_id` and `watcher_id`. Group filters still take group ids.
 - Author and assignee sort by `firstname`, then `lastname`. There is no `user_format` setting. Custom-field user sort uses that same name order. The projected author and assignee cells use that same order, then login.
@@ -234,14 +236,13 @@ An unknown operator or an unknown field is rejected.
 
 ## Still open
 
-These are Laramine gaps. They are not a parity verdict.
+These are Laramine gaps. They stay outside the pin comparison above. They are not a parity verdict for the rest of the product.
 
 | Item | Why it stays open |
 | --- | --- |
 | Gantt, calendar, and other display types | Only `list` and `board` run. Any other `display_type` is rejected for IssueQuery. |
 | Board grouped by a field other than status | Board columns are statuses. `group_by` only sorts. |
 | `cf_N.*` other than `.due_date` and `.status` | Listed under deferred fields. |
-| Custom-field history | `ev` / `!ev` / `cf` are not compiled for custom fields. |
 | Descendant hour and estimate columns | `total_estimated_hours` and `total_spent_hours` are not totalable names and are not projected. |
 | Column layout | Inline versus block columns, tracker-limited column lists, attachment filenames, and bool labels are not applied. Unknown stored names are omitted. |
 | Other query types | `ProjectQuery`, `TimeEntryQuery`, `UserQuery`, and `ProjectAdminQuery` still do not run. |

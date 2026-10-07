@@ -1,0 +1,3662 @@
+{
+  "pin": "7.0.1",
+  "project_id": 1,
+  "excluded": [
+    "gantt and calendar display types",
+    "ProjectQuery, TimeEntryQuery, UserQuery, and ProjectAdminQuery",
+    "journals presentation of custom-field history",
+    "descendant total_estimated_hours and total_spent_hours",
+    "repository, git, and SCM"
+  ],
+  "visibility": [
+    {
+      "login": "ada",
+      "ids": [
+        4,
+        3,
+        6,
+        2,
+        1
+      ]
+    },
+    {
+      "login": "bea",
+      "ids": [
+        3,
+        6,
+        5
+      ]
+    },
+    {
+      "login": "admin",
+      "ids": [
+        4,
+        3,
+        6,
+        2,
+        5,
+        1
+      ]
+    },
+    {
+      "login": "erin",
+      "ids": [
+        3,
+        6
+      ]
+    },
+    {
+      "login": "finn",
+      "ids": [
+        3,
+        6
+      ]
+    },
+    {
+      "login": "cleo",
+      "ids": [
+        3,
+        6
+      ]
+    },
+    {
+      "login": "dora",
+      "ids": [
+        3,
+        6
+      ]
+    },
+    {
+      "login": "lars",
+      "ids": []
+    },
+    {
+      "login": null,
+      "ids": []
+    }
+  ],
+  "saved": [
+    {
+      "login": "ada",
+      "query_id": 1,
+      "ids": [
+        6,
+        5,
+        2,
+        1
+      ],
+      "columns": [
+        "subject",
+        "status",
+        "tracker"
+      ],
+      "display_type": "list",
+      "board": [],
+      "groups": null,
+      "totals": {
+        "estimated_hours": "3"
+      },
+      "rows": [
+        {
+          "issue_id": 6,
+          "subject": "Grouped assignee",
+          "status": "In Progress",
+          "tracker": "Feature"
+        },
+        {
+          "issue_id": 5,
+          "subject": "Child project bug",
+          "status": "New",
+          "tracker": "Bug"
+        },
+        {
+          "issue_id": 2,
+          "subject": "Parity pin subtask",
+          "status": "New",
+          "tracker": "Feature"
+        },
+        {
+          "issue_id": 1,
+          "subject": "Parity pin parent",
+          "status": "New",
+          "tracker": "Bug"
+        }
+      ]
+    },
+    {
+      "login": "admin",
+      "query_id": 1,
+      "ids": [
+        6,
+        5,
+        4,
+        2,
+        1
+      ],
+      "columns": [
+        "subject",
+        "status",
+        "tracker"
+      ],
+      "display_type": "list",
+      "board": [],
+      "groups": null,
+      "totals": {
+        "estimated_hours": "4.25"
+      },
+      "rows": [
+        {
+          "issue_id": 6,
+          "subject": "Grouped assignee",
+          "status": "In Progress",
+          "tracker": "Feature"
+        },
+        {
+          "issue_id": 5,
+          "subject": "Child project bug",
+          "status": "New",
+          "tracker": "Bug"
+        },
+        {
+          "issue_id": 4,
+          "subject": "Bea private bug",
+          "status": "In Progress",
+          "tracker": "Bug"
+        },
+        {
+          "issue_id": 2,
+          "subject": "Parity pin subtask",
+          "status": "New",
+          "tracker": "Feature"
+        },
+        {
+          "issue_id": 1,
+          "subject": "Parity pin parent",
+          "status": "New",
+          "tracker": "Bug"
+        }
+      ]
+    },
+    {
+      "login": "ada",
+      "query_id": 2,
+      "ids": [
+        1,
+        2,
+        5,
+        6
+      ],
+      "columns": [
+        "subject",
+        "status"
+      ],
+      "display_type": "list",
+      "board": [],
+      "groups": null,
+      "totals": {},
+      "rows": [
+        {
+          "issue_id": 1,
+          "subject": "Parity pin parent",
+          "status": "New"
+        },
+        {
+          "issue_id": 2,
+          "subject": "Parity pin subtask",
+          "status": "New"
+        },
+        {
+          "issue_id": 5,
+          "subject": "Child project bug",
+          "status": "New"
+        },
+        {
+          "issue_id": 6,
+          "subject": "Grouped assignee",
+          "status": "In Progress"
+        }
+      ]
+    },
+    {
+      "login": "admin",
+      "query_id": 2,
+      "ids": [
+        1,
+        2,
+        4,
+        5,
+        6
+      ],
+      "columns": [
+        "subject",
+        "status"
+      ],
+      "display_type": "list",
+      "board": [],
+      "groups": null,
+      "totals": {},
+      "rows": [
+        {
+          "issue_id": 1,
+          "subject": "Parity pin parent",
+          "status": "New"
+        },
+        {
+          "issue_id": 2,
+          "subject": "Parity pin subtask",
+          "status": "New"
+        },
+        {
+          "issue_id": 4,
+          "subject": "Bea private bug",
+          "status": "In Progress"
+        },
+        {
+          "issue_id": 5,
+          "subject": "Child project bug",
+          "status": "New"
+        },
+        {
+          "issue_id": 6,
+          "subject": "Grouped assignee",
+          "status": "In Progress"
+        }
+      ]
+    },
+    {
+      "login": "ada",
+      "query_id": 3,
+      "ids": [
+        3
+      ],
+      "columns": [
+        "subject"
+      ],
+      "display_type": "list",
+      "board": [],
+      "groups": null,
+      "totals": {},
+      "rows": [
+        {
+          "issue_id": 3,
+          "subject": "Closed feature"
+        }
+      ]
+    },
+    {
+      "login": "bea",
+      "query_id": 3,
+      "ids": [
+        3
+      ],
+      "columns": [
+        "subject"
+      ],
+      "display_type": "list",
+      "board": [],
+      "groups": null,
+      "totals": {},
+      "rows": [
+        {
+          "issue_id": 3,
+          "subject": "Closed feature"
+        }
+      ]
+    },
+    {
+      "login": "admin",
+      "query_id": 3,
+      "ids": [
+        3
+      ],
+      "columns": [
+        "subject"
+      ],
+      "display_type": "list",
+      "board": [],
+      "groups": null,
+      "totals": {},
+      "rows": [
+        {
+          "issue_id": 3,
+          "subject": "Closed feature"
+        }
+      ]
+    },
+    {
+      "login": "erin",
+      "query_id": 3,
+      "ids": [
+        3
+      ],
+      "columns": [
+        "subject"
+      ],
+      "display_type": "list",
+      "board": [],
+      "groups": null,
+      "totals": {},
+      "rows": [
+        {
+          "issue_id": 3,
+          "subject": "Closed feature"
+        }
+      ]
+    },
+    {
+      "login": "finn",
+      "query_id": 3,
+      "ids": [
+        3
+      ],
+      "columns": [
+        "subject"
+      ],
+      "display_type": "list",
+      "board": [],
+      "groups": null,
+      "totals": {},
+      "rows": [
+        {
+          "issue_id": 3,
+          "subject": "Closed feature"
+        }
+      ]
+    },
+    {
+      "login": "dora",
+      "query_id": 3,
+      "ids": [],
+      "columns": [
+        "subject"
+      ],
+      "display_type": "list",
+      "board": [],
+      "groups": null,
+      "totals": {},
+      "rows": []
+    },
+    {
+      "login": "cleo",
+      "query_id": 3,
+      "ids": [],
+      "columns": [
+        "subject"
+      ],
+      "display_type": "list",
+      "board": [],
+      "groups": null,
+      "totals": {},
+      "rows": []
+    },
+    {
+      "login": "ada",
+      "query_id": 4,
+      "ids": [
+        1,
+        2,
+        3,
+        5,
+        6
+      ],
+      "columns": [
+        "id"
+      ],
+      "display_type": "list",
+      "board": [],
+      "groups": null,
+      "totals": {},
+      "rows": [
+        {
+          "issue_id": 1,
+          "id": "1"
+        },
+        {
+          "issue_id": 2,
+          "id": "2"
+        },
+        {
+          "issue_id": 3,
+          "id": "3"
+        },
+        {
+          "issue_id": 5,
+          "id": "5"
+        },
+        {
+          "issue_id": 6,
+          "id": "6"
+        }
+      ]
+    },
+    {
+      "login": "admin",
+      "query_id": 4,
+      "ids": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "columns": [
+        "id"
+      ],
+      "display_type": "list",
+      "board": [],
+      "groups": null,
+      "totals": {},
+      "rows": [
+        {
+          "issue_id": 1,
+          "id": "1"
+        },
+        {
+          "issue_id": 2,
+          "id": "2"
+        },
+        {
+          "issue_id": 3,
+          "id": "3"
+        },
+        {
+          "issue_id": 4,
+          "id": "4"
+        },
+        {
+          "issue_id": 5,
+          "id": "5"
+        },
+        {
+          "issue_id": 6,
+          "id": "6"
+        }
+      ]
+    },
+    {
+      "login": "bea",
+      "query_id": 5,
+      "ids": [
+        2,
+        6,
+        1,
+        4
+      ],
+      "columns": [
+        "subject",
+        "priority"
+      ],
+      "display_type": "list",
+      "board": [],
+      "groups": null,
+      "totals": {},
+      "rows": [
+        {
+          "issue_id": 2,
+          "subject": "Parity pin subtask",
+          "priority": "High"
+        },
+        {
+          "issue_id": 6,
+          "subject": "Grouped assignee",
+          "priority": "High"
+        },
+        {
+          "issue_id": 1,
+          "subject": "Parity pin parent",
+          "priority": "Normal"
+        },
+        {
+          "issue_id": 4,
+          "subject": "Bea private bug",
+          "priority": "Normal"
+        }
+      ]
+    },
+    {
+      "login": "admin",
+      "query_id": 5,
+      "ids": [
+        2,
+        6,
+        1,
+        4,
+        5
+      ],
+      "columns": [
+        "subject",
+        "priority"
+      ],
+      "display_type": "list",
+      "board": [],
+      "groups": null,
+      "totals": {},
+      "rows": [
+        {
+          "issue_id": 2,
+          "subject": "Parity pin subtask",
+          "priority": "High"
+        },
+        {
+          "issue_id": 6,
+          "subject": "Grouped assignee",
+          "priority": "High"
+        },
+        {
+          "issue_id": 1,
+          "subject": "Parity pin parent",
+          "priority": "Normal"
+        },
+        {
+          "issue_id": 4,
+          "subject": "Bea private bug",
+          "priority": "Normal"
+        },
+        {
+          "issue_id": 5,
+          "subject": "Child project bug",
+          "priority": "Normal"
+        }
+      ]
+    },
+    {
+      "login": "ada",
+      "query_id": 6,
+      "ids": [
+        1,
+        5,
+        2,
+        6
+      ],
+      "rows": [
+        {
+          "issue_id": 1,
+          "subject": "Parity pin parent",
+          "status": "New",
+          "tracker": "Bug",
+          "spent_hours": "4.5"
+        },
+        {
+          "issue_id": 5,
+          "subject": "Child project bug",
+          "status": "New",
+          "tracker": "Bug",
+          "spent_hours": "3"
+        },
+        {
+          "issue_id": 2,
+          "subject": "Parity pin subtask",
+          "status": "New",
+          "tracker": "Feature",
+          "spent_hours": "0"
+        },
+        {
+          "issue_id": 6,
+          "subject": "Grouped assignee",
+          "status": "In Progress",
+          "tracker": "Feature",
+          "spent_hours": "0.5"
+        }
+      ],
+      "board": [
+        {
+          "status_id": 1,
+          "name": "New",
+          "ids": [
+            1,
+            5,
+            2
+          ]
+        },
+        {
+          "status_id": 2,
+          "name": "In Progress",
+          "ids": [
+            6
+          ]
+        }
+      ],
+      "groups": [
+        {
+          "key": 1,
+          "count": 2,
+          "ids": [
+            1,
+            5
+          ]
+        },
+        {
+          "key": 2,
+          "count": 2,
+          "ids": [
+            2,
+            6
+          ]
+        }
+      ],
+      "totals": {
+        "estimated_hours": "3",
+        "spent_hours": "8",
+        "cf_6": "50",
+        "cf_7": "2"
+      },
+      "display_type": "board",
+      "columns": [
+        "subject",
+        "status",
+        "tracker",
+        "spent_hours"
+      ]
+    },
+    {
+      "login": "bea",
+      "query_id": 6,
+      "ids": [
+        1,
+        4,
+        2,
+        6
+      ],
+      "rows": [
+        {
+          "issue_id": 1,
+          "subject": "Parity pin parent",
+          "status": "New",
+          "tracker": "Bug",
+          "spent_hours": "4.5"
+        },
+        {
+          "issue_id": 4,
+          "subject": "Bea private bug",
+          "status": "In Progress",
+          "tracker": "Bug",
+          "spent_hours": "0"
+        },
+        {
+          "issue_id": 2,
+          "subject": "Parity pin subtask",
+          "status": "New",
+          "tracker": "Feature",
+          "spent_hours": "0"
+        },
+        {
+          "issue_id": 6,
+          "subject": "Grouped assignee",
+          "status": "In Progress",
+          "tracker": "Feature",
+          "spent_hours": "0.5"
+        }
+      ],
+      "board": [
+        {
+          "status_id": 1,
+          "name": "New",
+          "ids": [
+            1,
+            2
+          ]
+        },
+        {
+          "status_id": 2,
+          "name": "In Progress",
+          "ids": [
+            4,
+            6
+          ]
+        }
+      ],
+      "groups": [
+        {
+          "key": 1,
+          "count": 2,
+          "ids": [
+            1,
+            4
+          ]
+        },
+        {
+          "key": 2,
+          "count": 2,
+          "ids": [
+            2,
+            6
+          ]
+        }
+      ],
+      "totals": {
+        "estimated_hours": "3.75",
+        "spent_hours": "5",
+        "cf_6": "50",
+        "cf_7": "1.5"
+      },
+      "display_type": "board",
+      "columns": [
+        "subject",
+        "status",
+        "tracker",
+        "spent_hours"
+      ]
+    },
+    {
+      "login": "admin",
+      "query_id": 6,
+      "ids": [
+        1,
+        4,
+        5,
+        2,
+        6
+      ],
+      "rows": [
+        {
+          "issue_id": 1,
+          "subject": "Parity pin parent",
+          "status": "New",
+          "tracker": "Bug",
+          "spent_hours": "4.5"
+        },
+        {
+          "issue_id": 4,
+          "subject": "Bea private bug",
+          "status": "In Progress",
+          "tracker": "Bug",
+          "spent_hours": "0"
+        },
+        {
+          "issue_id": 5,
+          "subject": "Child project bug",
+          "status": "New",
+          "tracker": "Bug",
+          "spent_hours": "3"
+        },
+        {
+          "issue_id": 2,
+          "subject": "Parity pin subtask",
+          "status": "New",
+          "tracker": "Feature",
+          "spent_hours": "0"
+        },
+        {
+          "issue_id": 6,
+          "subject": "Grouped assignee",
+          "status": "In Progress",
+          "tracker": "Feature",
+          "spent_hours": "0.5"
+        }
+      ],
+      "board": [
+        {
+          "status_id": 1,
+          "name": "New",
+          "ids": [
+            1,
+            5,
+            2
+          ]
+        },
+        {
+          "status_id": 2,
+          "name": "In Progress",
+          "ids": [
+            4,
+            6
+          ]
+        }
+      ],
+      "groups": [
+        {
+          "key": 1,
+          "count": 3,
+          "ids": [
+            1,
+            4,
+            5
+          ]
+        },
+        {
+          "key": 2,
+          "count": 2,
+          "ids": [
+            2,
+            6
+          ]
+        }
+      ],
+      "totals": {
+        "estimated_hours": "4.25",
+        "spent_hours": "8",
+        "cf_6": "50",
+        "cf_7": "2"
+      },
+      "display_type": "board",
+      "columns": [
+        "subject",
+        "status",
+        "tracker",
+        "spent_hours"
+      ]
+    },
+    {
+      "login": "erin",
+      "query_id": 6,
+      "ids": [
+        1,
+        2,
+        6
+      ],
+      "rows": [
+        {
+          "issue_id": 1,
+          "subject": "Parity pin parent",
+          "status": "New",
+          "tracker": "Bug",
+          "spent_hours": "0"
+        },
+        {
+          "issue_id": 2,
+          "subject": "Parity pin subtask",
+          "status": "New",
+          "tracker": "Feature",
+          "spent_hours": "0"
+        },
+        {
+          "issue_id": 6,
+          "subject": "Grouped assignee",
+          "status": "In Progress",
+          "tracker": "Feature",
+          "spent_hours": "0"
+        }
+      ],
+      "board": [
+        {
+          "status_id": 1,
+          "name": "New",
+          "ids": [
+            1,
+            2
+          ]
+        },
+        {
+          "status_id": 2,
+          "name": "In Progress",
+          "ids": [
+            6
+          ]
+        }
+      ],
+      "groups": [
+        {
+          "key": 1,
+          "count": 1,
+          "ids": [
+            1
+          ]
+        },
+        {
+          "key": 2,
+          "count": 2,
+          "ids": [
+            2,
+            6
+          ]
+        }
+      ],
+      "totals": {
+        "estimated_hours": "2.5",
+        "spent_hours": "0",
+        "cf_6": "50",
+        "cf_7": "1.5"
+      },
+      "display_type": "board",
+      "columns": [
+        "subject",
+        "status",
+        "tracker",
+        "spent_hours"
+      ]
+    },
+    {
+      "login": "finn",
+      "query_id": 6,
+      "ids": [
+        1,
+        2,
+        6
+      ],
+      "rows": [
+        {
+          "issue_id": 1,
+          "subject": "Parity pin parent",
+          "status": "New",
+          "tracker": "Bug",
+          "spent_hours": "1"
+        },
+        {
+          "issue_id": 2,
+          "subject": "Parity pin subtask",
+          "status": "New",
+          "tracker": "Feature",
+          "spent_hours": "0"
+        },
+        {
+          "issue_id": 6,
+          "subject": "Grouped assignee",
+          "status": "In Progress",
+          "tracker": "Feature",
+          "spent_hours": "0"
+        }
+      ],
+      "board": [
+        {
+          "status_id": 1,
+          "name": "New",
+          "ids": [
+            1,
+            2
+          ]
+        },
+        {
+          "status_id": 2,
+          "name": "In Progress",
+          "ids": [
+            6
+          ]
+        }
+      ],
+      "groups": [
+        {
+          "key": 1,
+          "count": 1,
+          "ids": [
+            1
+          ]
+        },
+        {
+          "key": 2,
+          "count": 2,
+          "ids": [
+            2,
+            6
+          ]
+        }
+      ],
+      "totals": {
+        "estimated_hours": "2.5",
+        "spent_hours": "1",
+        "cf_6": "50",
+        "cf_7": "1.5"
+      },
+      "display_type": "board",
+      "columns": [
+        "subject",
+        "status",
+        "tracker",
+        "spent_hours"
+      ]
+    },
+    {
+      "login": "dora",
+      "query_id": 6,
+      "ids": [
+        5
+      ],
+      "rows": [
+        {
+          "issue_id": 5,
+          "subject": "Child project bug",
+          "status": "New",
+          "tracker": "Bug",
+          "spent_hours": "3"
+        }
+      ],
+      "board": [
+        {
+          "status_id": 1,
+          "name": "New",
+          "ids": [
+            5
+          ]
+        }
+      ],
+      "groups": [
+        {
+          "key": 1,
+          "count": 1,
+          "ids": [
+            5
+          ]
+        }
+      ],
+      "totals": {
+        "estimated_hours": "0.5",
+        "spent_hours": "3",
+        "cf_6": "0",
+        "cf_7": "0.5"
+      },
+      "display_type": "board",
+      "columns": [
+        "subject",
+        "status",
+        "tracker",
+        "spent_hours"
+      ]
+    },
+    {
+      "login": "cleo",
+      "query_id": 6,
+      "ids": [],
+      "rows": [],
+      "board": [],
+      "groups": [],
+      "totals": {
+        "estimated_hours": "0",
+        "spent_hours": "0",
+        "cf_6": "0",
+        "cf_7": "0"
+      },
+      "display_type": "board",
+      "columns": [
+        "subject",
+        "status",
+        "tracker",
+        "spent_hours"
+      ]
+    }
+  ],
+  "denied_saved": [
+    {
+      "login": "bea",
+      "query_id": 1,
+      "message": "Saved query is not visible."
+    },
+    {
+      "login": "erin",
+      "query_id": 2,
+      "message": "Saved query is not visible."
+    },
+    {
+      "login": "ada",
+      "query_id": 5,
+      "message": "Saved query is not visible."
+    },
+    {
+      "login": "cleo",
+      "query_id": 4,
+      "message": "Saved query is not visible."
+    },
+    {
+      "login": "dora",
+      "query_id": 2,
+      "message": "Saved query is not visible."
+    }
+  ],
+  "adhoc": [
+    {
+      "name": "status-closed",
+      "filters": {
+        "status_id": {
+          "operator": "c",
+          "values": []
+        }
+      },
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ],
+      "runs": [
+        {
+          "login": "ada",
+          "ids": [
+            3
+          ]
+        },
+        {
+          "login": "bea",
+          "ids": [
+            3
+          ]
+        },
+        {
+          "login": "admin",
+          "ids": [
+            3
+          ]
+        },
+        {
+          "login": "erin",
+          "ids": [
+            3
+          ]
+        },
+        {
+          "login": "finn",
+          "ids": [
+            3
+          ]
+        },
+        {
+          "login": "dora",
+          "ids": []
+        },
+        {
+          "login": "cleo",
+          "ids": []
+        }
+      ]
+    },
+    {
+      "name": "tracker-feature",
+      "filters": {
+        "tracker_id": {
+          "operator": "=",
+          "values": [
+            "2"
+          ]
+        }
+      },
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ],
+      "runs": [
+        {
+          "login": "ada",
+          "ids": [
+            2,
+            3,
+            6
+          ]
+        },
+        {
+          "login": "bea",
+          "ids": [
+            2,
+            3,
+            6
+          ]
+        },
+        {
+          "login": "admin",
+          "ids": [
+            2,
+            3,
+            6
+          ]
+        },
+        {
+          "login": "erin",
+          "ids": [
+            2,
+            3,
+            6
+          ]
+        },
+        {
+          "login": "finn",
+          "ids": [
+            2,
+            3,
+            6
+          ]
+        },
+        {
+          "login": "dora",
+          "ids": []
+        },
+        {
+          "login": "cleo",
+          "ids": []
+        }
+      ]
+    },
+    {
+      "name": "private-only",
+      "filters": {
+        "is_private": {
+          "operator": "=",
+          "values": [
+            "1"
+          ]
+        }
+      },
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ],
+      "runs": [
+        {
+          "login": "ada",
+          "ids": []
+        },
+        {
+          "login": "bea",
+          "ids": [
+            4
+          ]
+        },
+        {
+          "login": "admin",
+          "ids": [
+            4
+          ]
+        },
+        {
+          "login": "erin",
+          "ids": []
+        },
+        {
+          "login": "finn",
+          "ids": []
+        },
+        {
+          "login": "dora",
+          "ids": []
+        },
+        {
+          "login": "cleo",
+          "ids": []
+        }
+      ]
+    },
+    {
+      "name": "has-parent",
+      "filters": {
+        "parent_id": {
+          "operator": "*",
+          "values": []
+        }
+      },
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ],
+      "runs": [
+        {
+          "login": "ada",
+          "ids": [
+            2
+          ]
+        },
+        {
+          "login": "bea",
+          "ids": [
+            2
+          ]
+        },
+        {
+          "login": "admin",
+          "ids": [
+            2
+          ]
+        },
+        {
+          "login": "erin",
+          "ids": [
+            2
+          ]
+        },
+        {
+          "login": "finn",
+          "ids": [
+            2
+          ]
+        },
+        {
+          "login": "dora",
+          "ids": []
+        },
+        {
+          "login": "cleo",
+          "ids": []
+        }
+      ]
+    },
+    {
+      "name": "has-child",
+      "filters": {
+        "child_id": {
+          "operator": "*",
+          "values": []
+        }
+      },
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ],
+      "runs": [
+        {
+          "login": "ada",
+          "ids": [
+            1
+          ]
+        },
+        {
+          "login": "bea",
+          "ids": [
+            1
+          ]
+        },
+        {
+          "login": "admin",
+          "ids": [
+            1
+          ]
+        },
+        {
+          "login": "erin",
+          "ids": [
+            1
+          ]
+        },
+        {
+          "login": "finn",
+          "ids": [
+            1
+          ]
+        },
+        {
+          "login": "dora",
+          "ids": []
+        },
+        {
+          "login": "cleo",
+          "ids": []
+        }
+      ]
+    },
+    {
+      "name": "assignee-any",
+      "filters": {
+        "assigned_to_id": {
+          "operator": "*",
+          "values": []
+        }
+      },
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ],
+      "runs": [
+        {
+          "login": "ada",
+          "ids": [
+            1,
+            2,
+            3,
+            6
+          ]
+        },
+        {
+          "login": "bea",
+          "ids": [
+            1,
+            2,
+            3,
+            4,
+            6
+          ]
+        },
+        {
+          "login": "admin",
+          "ids": [
+            1,
+            2,
+            3,
+            4,
+            6
+          ]
+        },
+        {
+          "login": "erin",
+          "ids": [
+            1,
+            2,
+            3,
+            6
+          ]
+        },
+        {
+          "login": "finn",
+          "ids": [
+            1,
+            2,
+            3,
+            6
+          ]
+        },
+        {
+          "login": "dora",
+          "ids": []
+        },
+        {
+          "login": "cleo",
+          "ids": []
+        }
+      ]
+    },
+    {
+      "name": "assignee-none",
+      "filters": {
+        "assigned_to_id": {
+          "operator": "!*",
+          "values": []
+        }
+      },
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ],
+      "runs": [
+        {
+          "login": "ada",
+          "ids": [
+            5
+          ]
+        },
+        {
+          "login": "bea",
+          "ids": []
+        },
+        {
+          "login": "admin",
+          "ids": [
+            5
+          ]
+        },
+        {
+          "login": "erin",
+          "ids": []
+        },
+        {
+          "login": "finn",
+          "ids": []
+        },
+        {
+          "login": "dora",
+          "ids": [
+            5
+          ]
+        },
+        {
+          "login": "cleo",
+          "ids": []
+        }
+      ]
+    },
+    {
+      "name": "subject-parity",
+      "filters": {
+        "subject": {
+          "operator": "~",
+          "values": [
+            "Parity"
+          ]
+        }
+      },
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ],
+      "runs": [
+        {
+          "login": "ada",
+          "ids": [
+            1,
+            2
+          ]
+        },
+        {
+          "login": "bea",
+          "ids": [
+            1,
+            2
+          ]
+        },
+        {
+          "login": "admin",
+          "ids": [
+            1,
+            2
+          ]
+        },
+        {
+          "login": "erin",
+          "ids": [
+            1,
+            2
+          ]
+        },
+        {
+          "login": "finn",
+          "ids": [
+            1,
+            2
+          ]
+        },
+        {
+          "login": "dora",
+          "ids": []
+        },
+        {
+          "login": "cleo",
+          "ids": []
+        }
+      ]
+    },
+    {
+      "name": "this-project-only",
+      "filters": {
+        "subproject_id": {
+          "operator": "!*",
+          "values": []
+        }
+      },
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ],
+      "runs": [
+        {
+          "login": "ada",
+          "ids": [
+            1,
+            2,
+            3,
+            6
+          ]
+        },
+        {
+          "login": "bea",
+          "ids": [
+            1,
+            2,
+            3,
+            4,
+            6
+          ]
+        },
+        {
+          "login": "admin",
+          "ids": [
+            1,
+            2,
+            3,
+            4,
+            6
+          ]
+        },
+        {
+          "login": "erin",
+          "ids": [
+            1,
+            2,
+            3,
+            6
+          ]
+        },
+        {
+          "login": "finn",
+          "ids": [
+            1,
+            2,
+            3,
+            6
+          ]
+        },
+        {
+          "login": "dora",
+          "ids": []
+        },
+        {
+          "login": "cleo",
+          "ids": []
+        }
+      ]
+    },
+    {
+      "name": "cf-string-equals",
+      "filters": {
+        "cf_1": {
+          "operator": "=",
+          "values": [
+            "pin"
+          ]
+        }
+      },
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ],
+      "runs": [
+        {
+          "login": "ada",
+          "ids": [
+            1
+          ]
+        },
+        {
+          "login": "bea",
+          "ids": [
+            1
+          ]
+        },
+        {
+          "login": "admin",
+          "ids": [
+            1
+          ]
+        },
+        {
+          "login": "erin",
+          "ids": [
+            1
+          ]
+        },
+        {
+          "login": "finn",
+          "ids": [
+            1
+          ]
+        },
+        {
+          "login": "dora",
+          "ids": []
+        },
+        {
+          "login": "cleo",
+          "ids": []
+        }
+      ]
+    },
+    {
+      "name": "cf-string-not",
+      "filters": {
+        "cf_1": {
+          "operator": "!",
+          "values": [
+            "pin"
+          ]
+        }
+      },
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ],
+      "runs": [
+        {
+          "login": "ada",
+          "ids": [
+            2,
+            3,
+            5,
+            6
+          ]
+        },
+        {
+          "login": "bea",
+          "ids": [
+            2,
+            3,
+            4,
+            6
+          ]
+        },
+        {
+          "login": "admin",
+          "ids": [
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "login": "erin",
+          "ids": [
+            2,
+            3,
+            6
+          ]
+        },
+        {
+          "login": "finn",
+          "ids": [
+            2,
+            3,
+            6
+          ]
+        },
+        {
+          "login": "dora",
+          "ids": [
+            5
+          ]
+        },
+        {
+          "login": "cleo",
+          "ids": []
+        }
+      ]
+    },
+    {
+      "name": "cf-list-alpha",
+      "filters": {
+        "cf_2": {
+          "operator": "=",
+          "values": [
+            "alpha"
+          ]
+        }
+      },
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ],
+      "runs": [
+        {
+          "login": "ada",
+          "ids": [
+            1
+          ]
+        },
+        {
+          "login": "bea",
+          "ids": [
+            1
+          ]
+        },
+        {
+          "login": "admin",
+          "ids": [
+            1
+          ]
+        },
+        {
+          "login": "erin",
+          "ids": [
+            1
+          ]
+        },
+        {
+          "login": "finn",
+          "ids": [
+            1
+          ]
+        },
+        {
+          "login": "dora",
+          "ids": []
+        },
+        {
+          "login": "cleo",
+          "ids": []
+        }
+      ]
+    },
+    {
+      "name": "cf-hidden-equals",
+      "filters": {
+        "cf_3": {
+          "operator": "=",
+          "values": [
+            "1"
+          ]
+        }
+      },
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ],
+      "runs": [
+        {
+          "login": "ada",
+          "ids": [
+            1
+          ]
+        },
+        {
+          "login": "admin",
+          "ids": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "spent-at-least-one",
+      "filters": {
+        "spent_time": {
+          "operator": ">=",
+          "values": [
+            "1"
+          ]
+        }
+      },
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ],
+      "runs": [
+        {
+          "login": "ada",
+          "ids": [
+            1,
+            5
+          ]
+        },
+        {
+          "login": "bea",
+          "ids": [
+            1
+          ]
+        },
+        {
+          "login": "admin",
+          "ids": [
+            1,
+            5
+          ]
+        },
+        {
+          "login": "erin",
+          "ids": []
+        },
+        {
+          "login": "finn",
+          "ids": [
+            1
+          ]
+        },
+        {
+          "login": "dora",
+          "ids": [
+            5
+          ]
+        },
+        {
+          "login": "cleo",
+          "ids": []
+        }
+      ]
+    },
+    {
+      "name": "start-on-or-after",
+      "filters": {
+        "start_date": {
+          "operator": ">=",
+          "values": [
+            "2026-09-01"
+          ]
+        }
+      },
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ],
+      "runs": [
+        {
+          "login": "ada",
+          "ids": [
+            6
+          ]
+        },
+        {
+          "login": "bea",
+          "ids": [
+            4,
+            6
+          ]
+        },
+        {
+          "login": "admin",
+          "ids": [
+            4,
+            6
+          ]
+        },
+        {
+          "login": "erin",
+          "ids": [
+            6
+          ]
+        },
+        {
+          "login": "finn",
+          "ids": [
+            6
+          ]
+        },
+        {
+          "login": "dora",
+          "ids": []
+        },
+        {
+          "login": "cleo",
+          "ids": []
+        }
+      ]
+    },
+    {
+      "name": "updated-any",
+      "filters": {
+        "updated_on": {
+          "operator": "*",
+          "values": []
+        }
+      },
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ],
+      "runs": [
+        {
+          "login": "ada",
+          "ids": [
+            6
+          ]
+        },
+        {
+          "login": "bea",
+          "ids": [
+            6
+          ]
+        },
+        {
+          "login": "admin",
+          "ids": [
+            6
+          ]
+        },
+        {
+          "login": "erin",
+          "ids": [
+            6
+          ]
+        },
+        {
+          "login": "finn",
+          "ids": [
+            6
+          ]
+        },
+        {
+          "login": "dora",
+          "ids": []
+        },
+        {
+          "login": "cleo",
+          "ids": []
+        }
+      ]
+    },
+    {
+      "name": "author-me",
+      "filters": {
+        "author_id": {
+          "operator": "=",
+          "values": [
+            "me"
+          ]
+        }
+      },
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ],
+      "runs": [
+        {
+          "login": "ada",
+          "ids": [
+            1,
+            2
+          ]
+        },
+        {
+          "login": "bea",
+          "ids": [
+            3,
+            4
+          ]
+        },
+        {
+          "login": "admin",
+          "ids": [
+            6
+          ]
+        },
+        {
+          "login": "erin",
+          "ids": []
+        },
+        {
+          "login": "finn",
+          "ids": []
+        },
+        {
+          "login": "dora",
+          "ids": [
+            5
+          ]
+        },
+        {
+          "login": "cleo",
+          "ids": []
+        }
+      ]
+    },
+    {
+      "name": "version-open",
+      "filters": {
+        "fixed_version.status": {
+          "operator": "=",
+          "values": [
+            "open"
+          ]
+        }
+      },
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ],
+      "runs": [
+        {
+          "login": "ada",
+          "ids": [
+            1,
+            6
+          ]
+        },
+        {
+          "login": "bea",
+          "ids": [
+            1,
+            6
+          ]
+        },
+        {
+          "login": "admin",
+          "ids": [
+            1,
+            6
+          ]
+        },
+        {
+          "login": "erin",
+          "ids": [
+            1,
+            6
+          ]
+        },
+        {
+          "login": "finn",
+          "ids": [
+            1,
+            6
+          ]
+        },
+        {
+          "login": "dora",
+          "ids": []
+        },
+        {
+          "login": "cleo",
+          "ids": []
+        }
+      ]
+    },
+    {
+      "name": "done-ratio",
+      "filters": {
+        "done_ratio": {
+          "operator": ">=",
+          "values": [
+            "100"
+          ]
+        }
+      },
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ],
+      "runs": [
+        {
+          "login": "ada",
+          "ids": [
+            3
+          ]
+        },
+        {
+          "login": "bea",
+          "ids": [
+            3
+          ]
+        },
+        {
+          "login": "admin",
+          "ids": [
+            3
+          ]
+        },
+        {
+          "login": "erin",
+          "ids": [
+            3
+          ]
+        },
+        {
+          "login": "finn",
+          "ids": [
+            3
+          ]
+        },
+        {
+          "login": "dora",
+          "ids": []
+        },
+        {
+          "login": "cleo",
+          "ids": []
+        }
+      ]
+    },
+    {
+      "name": "notes-opened",
+      "filters": {
+        "notes": {
+          "operator": "~",
+          "values": [
+            "Opened"
+          ]
+        }
+      },
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ],
+      "runs": [
+        {
+          "login": "ada",
+          "ids": [
+            1
+          ]
+        },
+        {
+          "login": "bea",
+          "ids": [
+            1
+          ]
+        },
+        {
+          "login": "admin",
+          "ids": [
+            1
+          ]
+        },
+        {
+          "login": "erin",
+          "ids": [
+            1
+          ]
+        },
+        {
+          "login": "finn",
+          "ids": [
+            1
+          ]
+        },
+        {
+          "login": "dora",
+          "ids": []
+        },
+        {
+          "login": "cleo",
+          "ids": []
+        }
+      ]
+    },
+    {
+      "name": "notes-private",
+      "filters": {
+        "notes": {
+          "operator": "~",
+          "values": [
+            "Private"
+          ]
+        }
+      },
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ],
+      "runs": [
+        {
+          "login": "ada",
+          "ids": []
+        },
+        {
+          "login": "bea",
+          "ids": [
+            1
+          ]
+        },
+        {
+          "login": "admin",
+          "ids": [
+            1
+          ]
+        },
+        {
+          "login": "erin",
+          "ids": []
+        },
+        {
+          "login": "finn",
+          "ids": []
+        },
+        {
+          "login": "dora",
+          "ids": []
+        },
+        {
+          "login": "cleo",
+          "ids": []
+        }
+      ]
+    },
+    {
+      "name": "watcher-admin",
+      "filters": {
+        "watcher_id": {
+          "operator": "=",
+          "values": [
+            "2"
+          ]
+        }
+      },
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ],
+      "runs": [
+        {
+          "login": "ada",
+          "ids": [
+            1
+          ]
+        },
+        {
+          "login": "bea",
+          "ids": []
+        },
+        {
+          "login": "admin",
+          "ids": [
+            1
+          ]
+        },
+        {
+          "login": "erin",
+          "ids": []
+        },
+        {
+          "login": "finn",
+          "ids": []
+        },
+        {
+          "login": "dora",
+          "ids": []
+        },
+        {
+          "login": "cleo",
+          "ids": []
+        }
+      ]
+    },
+    {
+      "name": "sort-subject",
+      "filters": {},
+      "project_id": 1,
+      "sort": [
+        [
+          "subject",
+          "asc"
+        ],
+        [
+          "id",
+          "asc"
+        ]
+      ],
+      "runs": [
+        {
+          "login": "ada",
+          "ids": [
+            5,
+            3,
+            6,
+            1,
+            2
+          ]
+        },
+        {
+          "login": "bea",
+          "ids": [
+            4,
+            3,
+            6,
+            1,
+            2
+          ]
+        },
+        {
+          "login": "admin",
+          "ids": [
+            4,
+            5,
+            3,
+            6,
+            1,
+            2
+          ]
+        },
+        {
+          "login": "erin",
+          "ids": [
+            3,
+            6,
+            1,
+            2
+          ]
+        },
+        {
+          "login": "finn",
+          "ids": [
+            3,
+            6,
+            1,
+            2
+          ]
+        },
+        {
+          "login": "dora",
+          "ids": [
+            5
+          ]
+        },
+        {
+          "login": "cleo",
+          "ids": []
+        }
+      ]
+    },
+    {
+      "name": "sort-author",
+      "filters": {},
+      "project_id": 1,
+      "sort": [
+        [
+          "author",
+          "asc"
+        ],
+        [
+          "id",
+          "asc"
+        ]
+      ],
+      "runs": [
+        {
+          "login": "ada",
+          "ids": [
+            1,
+            2,
+            3,
+            5,
+            6
+          ]
+        },
+        {
+          "login": "bea",
+          "ids": [
+            1,
+            2,
+            3,
+            4,
+            6
+          ]
+        },
+        {
+          "login": "admin",
+          "ids": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "login": "erin",
+          "ids": [
+            1,
+            2,
+            3,
+            6
+          ]
+        },
+        {
+          "login": "finn",
+          "ids": [
+            1,
+            2,
+            3,
+            6
+          ]
+        },
+        {
+          "login": "dora",
+          "ids": [
+            5
+          ]
+        },
+        {
+          "login": "cleo",
+          "ids": []
+        }
+      ]
+    },
+    {
+      "name": "sort-category",
+      "filters": {},
+      "project_id": 1,
+      "sort": [
+        [
+          "category",
+          "asc"
+        ],
+        [
+          "id",
+          "asc"
+        ]
+      ],
+      "runs": [
+        {
+          "login": "ada",
+          "ids": [
+            2,
+            3,
+            5,
+            1,
+            6
+          ]
+        },
+        {
+          "login": "bea",
+          "ids": [
+            2,
+            3,
+            4,
+            1,
+            6
+          ]
+        },
+        {
+          "login": "admin",
+          "ids": [
+            2,
+            3,
+            4,
+            5,
+            1,
+            6
+          ]
+        },
+        {
+          "login": "erin",
+          "ids": [
+            2,
+            3,
+            1,
+            6
+          ]
+        },
+        {
+          "login": "finn",
+          "ids": [
+            2,
+            3,
+            1,
+            6
+          ]
+        },
+        {
+          "login": "dora",
+          "ids": [
+            5
+          ]
+        },
+        {
+          "login": "cleo",
+          "ids": []
+        }
+      ]
+    },
+    {
+      "name": "global-open",
+      "filters": {
+        "status_id": {
+          "operator": "o",
+          "values": []
+        }
+      },
+      "project_id": null,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ],
+      "runs": [
+        {
+          "login": "ada",
+          "ids": [
+            1,
+            2,
+            5,
+            6
+          ]
+        },
+        {
+          "login": "bea",
+          "ids": [
+            1,
+            2,
+            4,
+            6
+          ]
+        },
+        {
+          "login": "admin",
+          "ids": [
+            1,
+            2,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "login": "erin",
+          "ids": [
+            1,
+            2,
+            6
+          ]
+        },
+        {
+          "login": "finn",
+          "ids": [
+            1,
+            2,
+            6
+          ]
+        },
+        {
+          "login": "dora",
+          "ids": [
+            5
+          ]
+        },
+        {
+          "login": "cleo",
+          "ids": []
+        }
+      ]
+    },
+    {
+      "name": "group-status",
+      "filters": {},
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ],
+      "group_by": "status",
+      "runs": [
+        {
+          "login": "ada",
+          "ids": [
+            1,
+            2,
+            5,
+            6,
+            3
+          ],
+          "groups": [
+            {
+              "key": 1,
+              "count": 3,
+              "ids": [
+                1,
+                2,
+                5
+              ]
+            },
+            {
+              "key": 2,
+              "count": 1,
+              "ids": [
+                6
+              ]
+            },
+            {
+              "key": 4,
+              "count": 1,
+              "ids": [
+                3
+              ]
+            }
+          ]
+        },
+        {
+          "login": "bea",
+          "ids": [
+            1,
+            2,
+            4,
+            6,
+            3
+          ],
+          "groups": [
+            {
+              "key": 1,
+              "count": 2,
+              "ids": [
+                1,
+                2
+              ]
+            },
+            {
+              "key": 2,
+              "count": 2,
+              "ids": [
+                4,
+                6
+              ]
+            },
+            {
+              "key": 4,
+              "count": 1,
+              "ids": [
+                3
+              ]
+            }
+          ]
+        },
+        {
+          "login": "admin",
+          "ids": [
+            1,
+            2,
+            5,
+            4,
+            6,
+            3
+          ],
+          "groups": [
+            {
+              "key": 1,
+              "count": 3,
+              "ids": [
+                1,
+                2,
+                5
+              ]
+            },
+            {
+              "key": 2,
+              "count": 2,
+              "ids": [
+                4,
+                6
+              ]
+            },
+            {
+              "key": 4,
+              "count": 1,
+              "ids": [
+                3
+              ]
+            }
+          ]
+        },
+        {
+          "login": "erin",
+          "ids": [
+            1,
+            2,
+            6,
+            3
+          ],
+          "groups": [
+            {
+              "key": 1,
+              "count": 2,
+              "ids": [
+                1,
+                2
+              ]
+            },
+            {
+              "key": 2,
+              "count": 1,
+              "ids": [
+                6
+              ]
+            },
+            {
+              "key": 4,
+              "count": 1,
+              "ids": [
+                3
+              ]
+            }
+          ]
+        },
+        {
+          "login": "finn",
+          "ids": [
+            1,
+            2,
+            6,
+            3
+          ],
+          "groups": [
+            {
+              "key": 1,
+              "count": 2,
+              "ids": [
+                1,
+                2
+              ]
+            },
+            {
+              "key": 2,
+              "count": 1,
+              "ids": [
+                6
+              ]
+            },
+            {
+              "key": 4,
+              "count": 1,
+              "ids": [
+                3
+              ]
+            }
+          ]
+        },
+        {
+          "login": "dora",
+          "ids": [
+            5
+          ],
+          "groups": [
+            {
+              "key": 1,
+              "count": 1,
+              "ids": [
+                5
+              ]
+            }
+          ]
+        },
+        {
+          "login": "cleo",
+          "ids": [],
+          "groups": []
+        }
+      ]
+    },
+    {
+      "name": "people-columns",
+      "filters": {
+        "tracker_id": {
+          "operator": "=",
+          "values": [
+            "2"
+          ]
+        }
+      },
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ],
+      "column_names": [
+        "author",
+        "assigned_to",
+        "category",
+        "fixed_version"
+      ],
+      "runs": [
+        {
+          "login": "ada",
+          "ids": [
+            2,
+            3,
+            6
+          ],
+          "columns": [
+            "author",
+            "assigned_to",
+            "category",
+            "fixed_version"
+          ],
+          "rows": [
+            {
+              "issue_id": 2,
+              "author": "Ada Lovelace",
+              "assigned_to": "Ada Lovelace",
+              "category": null,
+              "fixed_version": null
+            },
+            {
+              "issue_id": 3,
+              "author": "Bea Manager",
+              "assigned_to": "Bea Manager",
+              "category": null,
+              "fixed_version": null
+            },
+            {
+              "issue_id": 6,
+              "author": "Pin Admin",
+              "assigned_to": "Platform",
+              "category": "Backend",
+              "fixed_version": "1.0"
+            }
+          ]
+        },
+        {
+          "login": "bea",
+          "ids": [
+            2,
+            3,
+            6
+          ],
+          "columns": [
+            "author",
+            "assigned_to",
+            "category",
+            "fixed_version"
+          ],
+          "rows": [
+            {
+              "issue_id": 2,
+              "author": "Ada Lovelace",
+              "assigned_to": "Ada Lovelace",
+              "category": null,
+              "fixed_version": null
+            },
+            {
+              "issue_id": 3,
+              "author": "Bea Manager",
+              "assigned_to": "Bea Manager",
+              "category": null,
+              "fixed_version": null
+            },
+            {
+              "issue_id": 6,
+              "author": "Pin Admin",
+              "assigned_to": "Platform",
+              "category": "Backend",
+              "fixed_version": "1.0"
+            }
+          ]
+        },
+        {
+          "login": "admin",
+          "ids": [
+            2,
+            3,
+            6
+          ],
+          "columns": [
+            "author",
+            "assigned_to",
+            "category",
+            "fixed_version"
+          ],
+          "rows": [
+            {
+              "issue_id": 2,
+              "author": "Ada Lovelace",
+              "assigned_to": "Ada Lovelace",
+              "category": null,
+              "fixed_version": null
+            },
+            {
+              "issue_id": 3,
+              "author": "Bea Manager",
+              "assigned_to": "Bea Manager",
+              "category": null,
+              "fixed_version": null
+            },
+            {
+              "issue_id": 6,
+              "author": "Pin Admin",
+              "assigned_to": "Platform",
+              "category": "Backend",
+              "fixed_version": "1.0"
+            }
+          ]
+        },
+        {
+          "login": "erin",
+          "ids": [
+            2,
+            3,
+            6
+          ],
+          "columns": [
+            "author",
+            "assigned_to",
+            "category",
+            "fixed_version"
+          ],
+          "rows": [
+            {
+              "issue_id": 2,
+              "author": "Ada Lovelace",
+              "assigned_to": "Ada Lovelace",
+              "category": null,
+              "fixed_version": null
+            },
+            {
+              "issue_id": 3,
+              "author": "Bea Manager",
+              "assigned_to": "Bea Manager",
+              "category": null,
+              "fixed_version": null
+            },
+            {
+              "issue_id": 6,
+              "author": "Pin Admin",
+              "assigned_to": "Platform",
+              "category": "Backend",
+              "fixed_version": "1.0"
+            }
+          ]
+        },
+        {
+          "login": "finn",
+          "ids": [
+            2,
+            3,
+            6
+          ],
+          "columns": [
+            "author",
+            "assigned_to",
+            "category",
+            "fixed_version"
+          ],
+          "rows": [
+            {
+              "issue_id": 2,
+              "author": "Ada Lovelace",
+              "assigned_to": "Ada Lovelace",
+              "category": null,
+              "fixed_version": null
+            },
+            {
+              "issue_id": 3,
+              "author": "Bea Manager",
+              "assigned_to": "Bea Manager",
+              "category": null,
+              "fixed_version": null
+            },
+            {
+              "issue_id": 6,
+              "author": "Pin Admin",
+              "assigned_to": "Platform",
+              "category": "Backend",
+              "fixed_version": "1.0"
+            }
+          ]
+        },
+        {
+          "login": "dora",
+          "ids": [],
+          "columns": [
+            "author",
+            "assigned_to",
+            "category",
+            "fixed_version"
+          ],
+          "rows": []
+        },
+        {
+          "login": "cleo",
+          "ids": [],
+          "columns": [
+            "author",
+            "assigned_to",
+            "category",
+            "fixed_version"
+          ],
+          "rows": []
+        }
+      ]
+    },
+    {
+      "name": "default-columns",
+      "filters": {
+        "parent_id": {
+          "operator": "*",
+          "values": []
+        }
+      },
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ],
+      "column_names": null,
+      "runs": [
+        {
+          "login": "ada",
+          "ids": [
+            2
+          ],
+          "columns": [
+            "tracker",
+            "status",
+            "priority",
+            "subject",
+            "assigned_to",
+            "updated_on"
+          ],
+          "rows": [
+            {
+              "issue_id": 2,
+              "tracker": "Feature",
+              "status": "New",
+              "priority": "High",
+              "subject": "Parity pin subtask",
+              "assigned_to": "Ada Lovelace",
+              "updated_on": "2026-08-26 12:00:00"
+            }
+          ]
+        },
+        {
+          "login": "bea",
+          "ids": [
+            2
+          ],
+          "columns": [
+            "tracker",
+            "status",
+            "priority",
+            "subject",
+            "assigned_to",
+            "updated_on"
+          ],
+          "rows": [
+            {
+              "issue_id": 2,
+              "tracker": "Feature",
+              "status": "New",
+              "priority": "High",
+              "subject": "Parity pin subtask",
+              "assigned_to": "Ada Lovelace",
+              "updated_on": "2026-08-26 12:00:00"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "hidden-cf-column",
+      "filters": {
+        "status_id": {
+          "operator": "=",
+          "values": [
+            "1"
+          ]
+        }
+      },
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ],
+      "column_names": [
+        "subject",
+        "cf_3"
+      ],
+      "runs": [
+        {
+          "login": "ada",
+          "ids": [
+            1,
+            2,
+            5
+          ],
+          "columns": [
+            "subject",
+            "cf_3"
+          ],
+          "rows": [
+            {
+              "issue_id": 1,
+              "subject": "Parity pin parent",
+              "cf_3": "Low"
+            },
+            {
+              "issue_id": 2,
+              "subject": "Parity pin subtask",
+              "cf_3": null
+            },
+            {
+              "issue_id": 5,
+              "subject": "Child project bug",
+              "cf_3": null
+            }
+          ]
+        },
+        {
+          "login": "admin",
+          "ids": [
+            1,
+            2,
+            5
+          ],
+          "columns": [
+            "subject",
+            "cf_3"
+          ],
+          "rows": [
+            {
+              "issue_id": 1,
+              "subject": "Parity pin parent",
+              "cf_3": "Low"
+            },
+            {
+              "issue_id": 2,
+              "subject": "Parity pin subtask",
+              "cf_3": null
+            },
+            {
+              "issue_id": 5,
+              "subject": "Child project bug",
+              "cf_3": null
+            }
+          ]
+        },
+        {
+          "login": "bea",
+          "ids": [
+            1,
+            2
+          ],
+          "columns": [
+            "subject"
+          ],
+          "rows": [
+            {
+              "issue_id": 1,
+              "subject": "Parity pin parent"
+            },
+            {
+              "issue_id": 2,
+              "subject": "Parity pin subtask"
+            }
+          ]
+        },
+        {
+          "login": "erin",
+          "ids": [
+            1,
+            2
+          ],
+          "columns": [
+            "subject"
+          ],
+          "rows": [
+            {
+              "issue_id": 1,
+              "subject": "Parity pin parent"
+            },
+            {
+              "issue_id": 2,
+              "subject": "Parity pin subtask"
+            }
+          ]
+        },
+        {
+          "login": "finn",
+          "ids": [
+            1,
+            2
+          ],
+          "columns": [
+            "subject"
+          ],
+          "rows": [
+            {
+              "issue_id": 1,
+              "subject": "Parity pin parent"
+            },
+            {
+              "issue_id": 2,
+              "subject": "Parity pin subtask"
+            }
+          ]
+        },
+        {
+          "login": "dora",
+          "ids": [
+            5
+          ],
+          "columns": [
+            "subject"
+          ],
+          "rows": [
+            {
+              "issue_id": 5,
+              "subject": "Child project bug"
+            }
+          ]
+        },
+        {
+          "login": "cleo",
+          "ids": [],
+          "columns": [
+            "subject"
+          ],
+          "rows": []
+        }
+      ]
+    },
+    {
+      "name": "cf-list-was-beta",
+      "filters": {"cf_2": {"operator": "ev", "values": ["beta"]}},
+      "project_id": 1,
+      "sort": [["id", "asc"]],
+      "runs": [
+        {"login": "ada", "ids": [2]},
+        {"login": "bea", "ids": [2]},
+        {"login": "admin", "ids": [2]},
+        {"login": "erin", "ids": [2]},
+        {"login": "finn", "ids": [2]},
+        {"login": "dora", "ids": []},
+        {"login": "cleo", "ids": []}
+      ]
+    },
+    {
+      "name": "cf-list-changed-from-beta",
+      "filters": {"cf_2": {"operator": "cf", "values": ["beta"]}},
+      "project_id": 1,
+      "sort": [["id", "asc"]],
+      "runs": [
+        {"login": "ada", "ids": [2]},
+        {"login": "bea", "ids": [2]},
+        {"login": "admin", "ids": [2]},
+        {"login": "erin", "ids": [2]},
+        {"login": "finn", "ids": [2]},
+        {"login": "dora", "ids": []},
+        {"login": "cleo", "ids": []}
+      ]
+    },
+    {
+      "name": "cf-list-never-beta",
+      "filters": {"cf_2": {"operator": "!ev", "values": ["beta"]}},
+      "project_id": 1,
+      "sort": [["id", "asc"]],
+      "runs": [
+        {"login": "ada", "ids": [1, 3, 5, 6]},
+        {"login": "bea", "ids": [1, 3, 4, 6]},
+        {"login": "admin", "ids": [1, 3, 4, 5, 6]},
+        {"login": "erin", "ids": [1, 3, 6]},
+        {"login": "finn", "ids": [1, 3, 6]},
+        {"login": "dora", "ids": [5]},
+        {"login": "cleo", "ids": []}
+      ]
+    },
+    {
+      "name": "cf-list-was-alpha",
+      "filters": {"cf_2": {"operator": "ev", "values": ["alpha"]}},
+      "project_id": 1,
+      "sort": [["id", "asc"]],
+      "runs": [
+        {"login": "ada", "ids": [1, 2]},
+        {"login": "bea", "ids": [1, 2]},
+        {"login": "admin", "ids": [1, 2]},
+        {"login": "erin", "ids": [1, 2]},
+        {"login": "finn", "ids": [1, 2]},
+        {"login": "dora", "ids": []},
+        {"login": "cleo", "ids": []}
+      ]
+    },
+    {
+      "name": "cf-list-changed-from-alpha",
+      "filters": {"cf_2": {"operator": "cf", "values": ["alpha"]}},
+      "project_id": 1,
+      "sort": [["id", "asc"]],
+      "runs": [
+        {"login": "ada", "ids": []},
+        {"login": "bea", "ids": []},
+        {"login": "admin", "ids": []},
+        {"login": "erin", "ids": []},
+        {"login": "finn", "ids": []},
+        {"login": "dora", "ids": []},
+        {"login": "cleo", "ids": []}
+      ]
+    },
+    {
+      "name": "cf-list-was-gamma",
+      "filters": {"cf_2": {"operator": "ev", "values": ["gamma"]}},
+      "project_id": 1,
+      "sort": [["id", "asc"]],
+      "runs": [
+        {"login": "ada", "ids": []},
+        {"login": "bea", "ids": [6]},
+        {"login": "admin", "ids": [6]},
+        {"login": "erin", "ids": []},
+        {"login": "finn", "ids": []},
+        {"login": "dora", "ids": []},
+        {"login": "cleo", "ids": []}
+      ]
+    },
+    {
+      "name": "updated-by-finn-cf",
+      "filters": {"updated_by": {"operator": "=", "values": ["9"]}},
+      "project_id": 1,
+      "sort": [["id", "asc"]],
+      "runs": [
+        {"login": "ada", "ids": [2]},
+        {"login": "bea", "ids": [2]},
+        {"login": "admin", "ids": [2]},
+        {"login": "erin", "ids": [2]},
+        {"login": "finn", "ids": [2]},
+        {"login": "dora", "ids": []},
+        {"login": "cleo", "ids": []}
+      ]
+    },
+    {
+      "name": "last-updated-by-finn-cf",
+      "filters": {"last_updated_by": {"operator": "=", "values": ["9"]}},
+      "project_id": 1,
+      "sort": [["id", "asc"]],
+      "runs": [
+        {"login": "ada", "ids": [2]},
+        {"login": "bea", "ids": [2]},
+        {"login": "admin", "ids": [2]},
+        {"login": "erin", "ids": [2]},
+        {"login": "finn", "ids": [2]},
+        {"login": "dora", "ids": []},
+        {"login": "cleo", "ids": []}
+      ]
+    },
+    {
+      "name": "updated-by-bea-private-cf",
+      "filters": {"updated_by": {"operator": "=", "values": ["4"]}},
+      "project_id": 1,
+      "sort": [["id", "asc"]],
+      "runs": [
+        {"login": "ada", "ids": []},
+        {"login": "bea", "ids": [6]},
+        {"login": "admin", "ids": [6]},
+        {"login": "erin", "ids": []},
+        {"login": "finn", "ids": []},
+        {"login": "dora", "ids": []},
+        {"login": "cleo", "ids": []}
+      ]
+    },
+    {
+      "name": "last-updated-by-bea-private-cf",
+      "filters": {"last_updated_by": {"operator": "=", "values": ["4"]}},
+      "project_id": 1,
+      "sort": [["id", "asc"]],
+      "runs": [
+        {"login": "ada", "ids": []},
+        {"login": "bea", "ids": [6]},
+        {"login": "admin", "ids": [6]},
+        {"login": "erin", "ids": []},
+        {"login": "finn", "ids": []},
+        {"login": "dora", "ids": []},
+        {"login": "cleo", "ids": []}
+      ]
+    }
+  ],
+  "denied_adhoc": [
+    {
+      "name": "hidden-cf-filter",
+      "login": "bea",
+      "message": "Custom field is not visible: cf_3.",
+      "filters": {
+        "cf_3": {
+          "operator": "=",
+          "values": [
+            "1"
+          ]
+        }
+      },
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ]
+    },
+    {
+      "name": "hidden-cf-filter",
+      "login": "erin",
+      "message": "Custom field is not visible: cf_3.",
+      "filters": {
+        "cf_3": {
+          "operator": "=",
+          "values": [
+            "1"
+          ]
+        }
+      },
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ]
+    },
+    {
+      "name": "hidden-cf-filter",
+      "login": "finn",
+      "message": "Custom field is not visible: cf_3.",
+      "filters": {
+        "cf_3": {
+          "operator": "=",
+          "values": [
+            "1"
+          ]
+        }
+      },
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ]
+    },
+    {
+      "name": "hidden-cf-filter",
+      "login": "dora",
+      "message": "Custom field is not visible: cf_3.",
+      "filters": {
+        "cf_3": {
+          "operator": "=",
+          "values": [
+            "1"
+          ]
+        }
+      },
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ]
+    },
+    {
+      "name": "hidden-cf-filter",
+      "login": "cleo",
+      "message": "Custom field is not visible: cf_3.",
+      "filters": {
+        "cf_3": {
+          "operator": "=",
+          "values": [
+            "1"
+          ]
+        }
+      },
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ]
+    },
+    {
+      "name": "cf-string-history",
+      "login": "ada",
+      "message": "Operator ev is not valid for cf_1.",
+      "filters": {"cf_1": {"operator": "ev", "values": ["pin"]}},
+      "project_id": 1,
+      "sort": [["id", "asc"]]
+    },
+    {
+      "name": "hidden-cf-history",
+      "login": "bea",
+      "message": "Custom field is not visible: cf_3.",
+      "filters": {"cf_3": {"operator": "ev", "values": ["1"]}},
+      "project_id": 1,
+      "sort": [["id", "asc"]]
+    },
+    {
+      "name": "gantt",
+      "login": "ada",
+      "message": "Query display type is not available: gantt.",
+      "filters": {},
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ],
+      "options": {
+        "display_type": "gantt"
+      }
+    },
+    {
+      "name": "unknown-field",
+      "login": "ada",
+      "message": "Unknown filter field: nope.",
+      "filters": {
+        "nope": {
+          "operator": "=",
+          "values": [
+            "1"
+          ]
+        }
+      },
+      "project_id": 1,
+      "sort": [
+        [
+          "id",
+          "asc"
+        ]
+      ]
+    }
+  ]
+}

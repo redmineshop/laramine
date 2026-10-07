@@ -134,5 +134,22 @@
         "auth_source_id": null,
         "created_on": "2026-08-26 12:00:00",
         "updated_on": "2026-08-26 12:00:00"
+    },
+    {
+        "id": 9,
+        "login": "finn",
+        "hashed_password": "0000000000000000000000000000000000000000",
+        "salt": null,
+        "firstname": "Finn",
+        "lastname": "Own",
+        "admin": false,
+        "status": 1,
+        "type": "User",
+        "language": "en",
+        "mail_notification": "only_my_events",
+        "must_change_passwd": false,
+        "auth_source_id": null,
+        "created_on": "2026-08-26 12:00:00",
+        "updated_on": "2026-08-26 12:00:00"
     }
 ]

@@ -20,5 +20,27 @@
         "updated_by_id": null,
         "created_on": "2026-08-26 12:05:00",
         "updated_on": "2026-08-26 12:05:00"
+    },
+    {
+        "id": 3,
+        "journalized_type": "Issue",
+        "journalized_id": 2,
+        "user_id": 9,
+        "notes": null,
+        "private_notes": false,
+        "updated_by_id": null,
+        "created_on": "2026-08-27 09:00:00",
+        "updated_on": "2026-08-27 09:00:00"
+    },
+    {
+        "id": 4,
+        "journalized_type": "Issue",
+        "journalized_id": 6,
+        "user_id": 4,
+        "notes": null,
+        "private_notes": true,
+        "updated_by_id": null,
+        "created_on": "2026-08-27 10:00:00",
+        "updated_on": "2026-08-27 10:00:00"
     }
 ]
