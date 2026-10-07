@@ -1,0 +1,152 @@
+{
+  "wiki_added": {
+    "mails": [
+      {
+        "to": "ada@parity.test",
+        "subject": "[Parity Core - Wiki] Cook book",
+        "message_id": "redmine.wiki_content-{content}.{stamp}@parity.test",
+        "references": ["redmine.wiki_page-{page}.20261007120000@parity.test"],
+        "body_contains": ["Project: parity-core", "Wiki page: Cook book", "Version: 1", "h1. Raw heading"],
+        "body_omits": ["<h1>"]
+      },
+      {
+        "to": "admin@parity.test",
+        "subject": "[Parity Core - Wiki] Cook book",
+        "message_id": "redmine.wiki_content-{content}.{stamp}@parity.test",
+        "references": ["redmine.wiki_page-{page}.20261007120000@parity.test"],
+        "body_contains": ["Version: 1"],
+        "body_omits": ["<h1>"]
+      }
+    ],
+    "headers": {
+      "X-Redmine-Project": "parity-core",
+      "X-Redmine-Wiki-Page-Id": "{page}",
+      "X-Redmine-Wiki-Page-Title": "Cook book",
+      "X-Redmine-Sender": "ada"
+    },
+    "absent": ["bea@parity.test"]
+  },
+  "wiki_updated": {
+    "mails": [
+      {
+        "to": "ada@parity.test",
+        "subject": "[Parity Core - Wiki] Cook book",
+        "message_id": "redmine.wiki_content-{content}.{stamp}@parity.test",
+        "references": ["redmine.wiki_page-{page}.20261007120000@parity.test"],
+        "body_contains": ["Version: 2", "gamma"],
+        "body_omits": ["<h1>"]
+      },
+      {
+        "to": "admin@parity.test",
+        "subject": "[Parity Core - Wiki] Cook book",
+        "message_id": "redmine.wiki_content-{content}.{stamp}@parity.test",
+        "references": ["redmine.wiki_page-{page}.20261007120000@parity.test"],
+        "body_contains": ["Version: 2"],
+        "body_omits": []
+      }
+    ],
+    "headers": {
+      "X-Redmine-Wiki-Page-Title": "Cook book",
+      "X-Redmine-Sender": "ada"
+    }
+  },
+  "wiki_no_self": {
+    "mails": [
+      {
+        "to": "admin@parity.test",
+        "subject": "[Parity Core - Wiki] Cook book",
+        "message_id": "redmine.wiki_content-{content}.{stamp}@parity.test",
+        "references": ["redmine.wiki_page-{page}.20261007120000@parity.test"],
+        "body_contains": ["Version: 4"],
+        "body_omits": []
+      }
+    ],
+    "absent": ["ada@parity.test"]
+  },
+  "wiki_watcher": {
+    "mails": [
+      {
+        "to": "ada@parity.test",
+        "subject": "[Parity Core - Wiki] Cook book",
+        "message_id": "redmine.wiki_content-{content}.{stamp}@parity.test",
+        "references": ["redmine.wiki_page-{page}.20261007120000@parity.test"],
+        "body_contains": ["Version: 5"],
+        "body_omits": []
+      },
+      {
+        "to": "admin@parity.test",
+        "subject": "[Parity Core - Wiki] Cook book",
+        "message_id": "redmine.wiki_content-{content}.{stamp}@parity.test",
+        "references": ["redmine.wiki_page-{page}.20261007120000@parity.test"],
+        "body_contains": ["Version: 5"],
+        "body_omits": []
+      },
+      {
+        "to": "bea@parity.test",
+        "subject": "[Parity Core - Wiki] Cook book",
+        "message_id": "redmine.wiki_content-{content}.{stamp}@parity.test",
+        "references": ["redmine.wiki_page-{page}.20261007120000@parity.test"],
+        "body_contains": ["Version: 5"],
+        "body_omits": []
+      }
+    ]
+  },
+  "message_topic": {
+    "mails": [
+      {
+        "to": "ada@parity.test",
+        "subject": "[Parity Core - General] Hello",
+        "message_id": "redmine.message-{message}.{stamp}@parity.test",
+        "references": ["redmine.message-{topic}.{stamp}@parity.test"],
+        "body_contains": ["Board: General", "Topic: {topic}", "topic body"],
+        "body_omits": []
+      },
+      {
+        "to": "admin@parity.test",
+        "subject": "[Parity Core - General] Hello",
+        "message_id": "redmine.message-{message}.{stamp}@parity.test",
+        "references": ["redmine.message-{topic}.{stamp}@parity.test"],
+        "body_contains": ["Project: parity-core", "Message: {message}"],
+        "body_omits": []
+      }
+    ],
+    "headers": {
+      "X-Redmine-Project": "parity-core",
+      "X-Redmine-Topic-Id": "{topic}",
+      "X-Redmine-Sender": "ada"
+    },
+    "absent": ["bea@parity.test"]
+  },
+  "message_reply": {
+    "mails": [
+      {
+        "to": "ada@parity.test",
+        "subject": "[Parity Core - General] Re: Hello",
+        "message_id": "redmine.message-{message}.20261007123000@parity.test",
+        "references": ["redmine.message-{topic}.20261007120000@parity.test"],
+        "body_contains": ["Topic: {topic}", "reply body"],
+        "body_omits": []
+      },
+      {
+        "to": "admin@parity.test",
+        "subject": "[Parity Core - General] Re: Hello",
+        "message_id": "redmine.message-{message}.20261007123000@parity.test",
+        "references": ["redmine.message-{topic}.20261007120000@parity.test"],
+        "body_contains": ["Message: {message}"],
+        "body_omits": []
+      },
+      {
+        "to": "bea@parity.test",
+        "subject": "[Parity Core - General] Re: Hello",
+        "message_id": "redmine.message-{message}.20261007123000@parity.test",
+        "references": ["redmine.message-{topic}.20261007120000@parity.test"],
+        "body_contains": ["Board: General"],
+        "body_omits": []
+      }
+    ],
+    "headers": {
+      "X-Redmine-Topic-Id": "{topic}",
+      "X-Redmine-Sender": "bea"
+    }
+  }
+}

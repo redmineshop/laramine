@@ -11,7 +11,7 @@ use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 /**
- * Activity page and Atom feed for issues, journals, and time entries.
+ * Activity page and Atom feed for issues, journals, time entries, wiki edits, and messages.
  *
  * The feed accepts a `feeds` token in `key`, or the signed-in session.
  * An API key does not open it.

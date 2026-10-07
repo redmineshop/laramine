@@ -77,7 +77,7 @@ Row data for parity tests is a separate pin at `tests/Parity/fixtures/redmine-7.
 | Role permissions | `roles.permissions` is a **serialized list of permission name symbols**, not a join table | **P0c** |
 | acts_as patterns | watchable, attachable, customizable, event, search, activity, tree/nested_set — app-layer | parity notes |
 | Visibility | `roles.issues_visibility` / `users_visibility` / `time_entries_visibility`; query `visibility` enum | **P0c** |
-| Mailer / tokens | `tokens.action` (session, api, feeds, recovery, register, autologin, twofa_backup_code) | Locked in [users-auth-spec.md](users-auth-spec.md) (2026-10-07). Phase 2 writes `recovery` and `register`. Later phases write `session`, `api`, `feeds`, `autologin`, and `twofa_backup_code`. The web session stays in Laravel `sessions` as well. Account and issue mail is compared on the outbound mail row in [parity-checklist.md](parity-checklist.md). News, document, and file mail is compared on the notifications row. Message and wiki mail are not sent. The users row comparison is in that same checklist. |
+| Mailer / tokens | `tokens.action` (session, api, feeds, recovery, register, autologin, twofa_backup_code) | Locked in [users-auth-spec.md](users-auth-spec.md) (2026-10-07). Phase 2 writes `recovery` and `register`. Later phases write `session`, `api`, `feeds`, `autologin`, and `twofa_backup_code`. The web session stays in Laravel `sessions` as well. Account and issue mail is compared on the outbound mail row in [parity-checklist.md](parity-checklist.md). News, document, and file mail, and message and wiki mail, are compared on their notification rows. The users row comparison is in that same checklist. |
 
 ---
 
@@ -279,9 +279,11 @@ Row data for parity tests is a separate pin at `tests/Parity/fixtures/redmine-7.
 
 ---
 
-## 7. Wiki (P1) — 5 tables (listed, not deep-documented)
+## 7. Wiki — 5 tables
 
 `wikis` (1:1 project), `wiki_pages` (`parent_id` tree), `wiki_contents`, `wiki_content_versions`, `wiki_redirects`.
+
+These tables are migrated and compared by `tests/Parity/SchemaLayoutParityTest.php`. Behavior is in [domain.md](domain.md). The dump has no foreign keys on them.
 
 ---
 
@@ -289,7 +291,7 @@ Row data for parity tests is a separate pin at `tests/Parity/fixtures/redmine-7.
 
 `repositories`, `changesets`, `changes`, `changeset_parents`, `changesets_issues`, `boards`, `messages`, `news`, `documents`.
 
-`repositories`, `changesets`, and `changesets_issues` are migrated so the issue history tab can list associated revisions. `changes` and `changeset_parents` stay out. Commit sync and repository browse are not implemented. See [domain.md](domain.md) and [journals-parity-gate.md](journals-parity-gate.md).
+`repositories`, `changesets`, and `changesets_issues` are migrated so the issue history tab can list associated revisions. `changes` and `changeset_parents` stay out. Commit sync and repository browse are not implemented. `boards`, `messages`, `news`, and `documents` are migrated. `boards` and `messages` are compared with the wiki tables. `news` and `documents` stay outside the P0 layout compare. See [domain.md](domain.md) and [journals-parity-gate.md](journals-parity-gate.md).
 
 ---
 
@@ -459,7 +461,7 @@ erDiagram
 | Query operator matrix | **P0b** |
 | Permission name list + workflow field rules matrix | **P0c** |
 | DB-level FK constraints | Redmine historically relies on app-level FKs; dump may show few `add_foreign_key` except newer OAuth tables — treat logical FKs above as source of truth for Eloquent |
-| Adapter differences | Dump from SQLite. MySQL 8 layout for the 41 P0 tables plus `settings` is compared by `tests/Parity/SchemaLayoutParityTest.php` to this dump. Intentional differences are the table under Laramine migration notes. SCM tables stay out of that compare |
+| Adapter differences | Dump from SQLite. MySQL 8 layout for the 41 P0 tables plus `settings`, the five wiki tables, and `boards` and `messages` is compared by `tests/Parity/SchemaLayoutParityTest.php` to this dump. Intentional differences are the table under Laramine migration notes. SCM tables, news, documents, and webhooks stay out of that compare |
 
 ---
 
@@ -474,9 +476,9 @@ erDiagram
 
 ## Laramine migration notes (pin 7.0.1)
 
-Migrations in this repository create the **P0** tables (41) plus `settings`, the three SCM tables the issue history revisions tab reads (`repositories`, `changesets`, and `changesets_issues`), and the `news` and `documents` tables. Wiki (P1), the rest of SCM (`changes`, `changeset_parents`), forums, and `webhooks` / `projects_webhooks` are omitted. News and documents are outside the P0 layout compare.
+Migrations in this repository create the **P0** tables (41) plus `settings`, the five wiki tables, `boards`, `messages`, the `news` and `documents` tables, and the three SCM tables the issue history revisions tab reads (`repositories`, `changesets`, and `changesets_issues`). The rest of SCM (`changes`, `changeset_parents`) and `webhooks` / `projects_webhooks` are omitted. News and documents are outside the P0 layout compare. Wiki and forum tables are in that compare.
 
-`tests/Parity/SchemaLayoutParityTest.php` compares the migrated MySQL 8 layout of those 41 tables plus `settings` to [`sources/redmine-7.0.1-schema.rb`](sources/redmine-7.0.1-schema.rb). The test also loads `tests/Parity/fixtures/redmine-7.0.1/`. Repository, git, and SCM tables are not part of that compare. `news` and `documents` are migrated and are not part of that compare. A pass marks only the schema row in [parity-checklist.md](parity-checklist.md). It is not a 0.1 tag.
+`tests/Parity/SchemaLayoutParityTest.php` compares the migrated MySQL 8 layout of those 41 tables plus `settings`, the wiki tables, `boards`, and `messages` to [`sources/redmine-7.0.1-schema.rb`](sources/redmine-7.0.1-schema.rb). The test also loads `tests/Parity/fixtures/redmine-7.0.1/`. Repository, git, and SCM tables are not part of that compare. `news` and `documents` are migrated and are not part of that compare. A pass marks only the schema row in [parity-checklist.md](parity-checklist.md). It is not a 0.1 tag.
 
 PHPUnit and GitHub Actions apply these migrations on **MySQL 8**. SQLite is an optional local smoke path and is not the authoritative test database.
 

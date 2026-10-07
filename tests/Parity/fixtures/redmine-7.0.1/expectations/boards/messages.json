@@ -1,0 +1,18 @@
+{
+  "board": "General",
+  "child": "Help",
+  "topic": "Hello",
+  "reply_subject": "Re: Hello",
+  "topic_at": "2026-10-07 12:00:00",
+  "reply_at": "2026-10-07 12:30:00",
+  "zip_entries": {"note.txt": "alpha", "note(1).txt": "beta"},
+  "downloads": 0,
+  "empty_name": "Board name is empty.",
+  "cycle": "Parent board would create a cycle.",
+  "sticky_denied": "Permission denied: edit_messages",
+  "locked_reply": "Permission denied: edit_messages",
+  "attachment_denied": "Permission denied: edit_messages",
+  "module_denied": "Permission denied: view_messages",
+  "add_denied": "Permission denied: add_messages",
+  "sticky": 1
+}

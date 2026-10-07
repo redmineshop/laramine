@@ -156,9 +156,9 @@ Laravel `sessions` is the Phase 1 web session store. `sessions.user_id` referenc
 - The web session row is Laravel `sessions`. A `tokens.action = session` row can revoke that session. Autologin is a cookie holding an `autologin` token, not a remember column.
 - A user with `auth_source_id` is checked against that LDAP source. The local digest is not the credential. A blank host fails closed before the directory is contacted. On-the-fly creation stores a random sealed digest so the directory password is not kept.
 - `user_preferences.others` is JSON. A Ruby YAML document in that column is ignored on read.
-- `settings.notified_events` is JSON. Message ids have no random suffix. A blank `mail_notification` does not receive mail. Lock and unlock queue an informational message. The HTTP notice still does not include the token value; the mail body does. News, document, and file mail is compared on the notifications row. Message and wiki mail are not sent.
+- `settings.notified_events` is JSON. Message ids have no random suffix. A blank `mail_notification` does not receive mail. Lock and unlock queue an informational message. The HTTP notice still does not include the token value; the mail body does. News, document, and file mail, and message and wiki mail, are compared on their notification rows.
 - `users_visibility` is applied by `UserVisibility` on the ACL path and on the user directory. The Phase 2 sign-in comparison does not read it.
-- OpenID Connect, a live LDAP directory, and the rest of the REST API are not implemented. Activity Atom feeds cover issues, journals, and time entries. News, documents, wiki, messages, files, and changesets have no activity provider.
+- OpenID Connect, a live LDAP directory, and the rest of the REST API are not implemented. Activity Atom feeds cover issues, journals, time entries, news, documents, files, wiki edits, and messages. Changesets have no activity provider.
 - The forty-zero placeholder never verifies, even if a digest collided with it.
 - Posted passwords are not trimmed. Identifiers are trimmed.
 - A wrong password stays on the generic notice. Locked and registered accounts get their own notice only after the digest matches.

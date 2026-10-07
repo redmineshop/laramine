@@ -9,29 +9,33 @@ use App\Domain\Issues\IssueJournalWriter;
 use App\Domain\Settings\SettingValue;
 use App\Domain\TimeEntries\HourValue;
 use App\Models\Attachment;
+use App\Models\Board;
 use App\Models\Document;
 use App\Models\EnabledModule;
 use App\Models\Enumeration;
 use App\Models\Issue;
 use App\Models\IssueStatus;
 use App\Models\Journal;
+use App\Models\Message;
 use App\Models\News;
 use App\Models\Project;
 use App\Models\TimeEntry;
 use App\Models\Tracker;
 use App\Models\User;
 use App\Models\Version;
+use App\Models\Wiki;
+use App\Models\WikiContent;
+use App\Models\WikiPage;
 use DateTimeInterface;
 use Illuminate\Support\Carbon;
 
 /**
- * Activity for issues, journals, time entries, news, documents, and files.
+ * Activity for issues, journals, time entries, news, documents, files, wiki edits, and messages.
  *
  * The window ends on `from` (today when omitted) and starts that many days
  * earlier. `activity_days_default` is 30 when the setting is missing.
- * News, documents, and project or version files are included when that module
- * is enabled, including for an administrator. Wiki, messages, and changesets
- * are not providers.
+ * News, documents, files, wiki edits, and messages are included when that module
+ * is enabled, including for an administrator. Changesets are not a provider.
  */
 final class ActivityProvider
 {
@@ -78,6 +82,12 @@ final class ActivityProvider
             }
             if ($this->moduleEnabled($candidate, 'files')) {
                 array_push($events, ...$this->fileEvents($actor, $candidate, $start, $until));
+            }
+            if ($this->moduleEnabled($candidate, 'wiki')) {
+                array_push($events, ...$this->wikiEvents($actor, $candidate, $start, $until));
+            }
+            if ($this->moduleEnabled($candidate, 'boards')) {
+                array_push($events, ...$this->messageEvents($actor, $candidate, $start, $until));
             }
         }
 
@@ -431,6 +441,102 @@ final class ActivityProvider
                 (string) $project->identifier,
                 $author instanceof User ? (string) $author->login : '',
                 (string) $attachment->filename,
+                $at,
+            );
+        }
+
+        return $events;
+    }
+
+    /**
+     * @return list<ActivityEvent>
+     */
+    private function wikiEvents(User $actor, Project $project, Carbon $start, Carbon $until): array
+    {
+        if (! $this->permissions->allowed($actor, 'view_wiki_edits', $project)) {
+            return [];
+        }
+        $wiki = Wiki::query()->where('project_id', $project->id)->first();
+        if (! $wiki instanceof Wiki) {
+            return [];
+        }
+        $pageIds = [];
+        foreach (WikiPage::query()->where('wiki_id', $wiki->id)->pluck('id') as $id) {
+            if (is_numeric($id)) {
+                $pageIds[] = (int) $id;
+            }
+        }
+        if ($pageIds === []) {
+            return [];
+        }
+
+        $events = [];
+        $contents = WikiContent::query()
+            ->whereIn('page_id', $pageIds)
+            ->where('updated_on', '>=', $start->format('Y-m-d H:i:s'))
+            ->where('updated_on', '<', $until->format('Y-m-d H:i:s'))
+            ->with(['author', 'page'])
+            ->orderBy('id')
+            ->get();
+        foreach ($contents as $content) {
+            $page = $content->page;
+            $author = $content->author;
+            $at = $this->stamp($content->updated_on);
+            if (! $page instanceof WikiPage || ! $author instanceof User || $at === null) {
+                continue;
+            }
+            $events[] = new ActivityEvent(
+                'wiki',
+                (int) $content->id,
+                (string) $project->identifier,
+                (string) $author->login,
+                'Wiki edit: '.$page->title.' (#'.$content->version.')',
+                $at,
+            );
+        }
+
+        return $events;
+    }
+
+    /**
+     * @return list<ActivityEvent>
+     */
+    private function messageEvents(User $actor, Project $project, Carbon $start, Carbon $until): array
+    {
+        if (! $this->permissions->allowed($actor, 'view_messages', $project)) {
+            return [];
+        }
+        $boardIds = [];
+        foreach (Board::query()->where('project_id', $project->id)->pluck('id') as $id) {
+            if (is_numeric($id)) {
+                $boardIds[] = (int) $id;
+            }
+        }
+        if ($boardIds === []) {
+            return [];
+        }
+
+        $events = [];
+        $messages = Message::query()
+            ->whereIn('board_id', $boardIds)
+            ->where('created_on', '>=', $start->format('Y-m-d H:i:s'))
+            ->where('created_on', '<', $until->format('Y-m-d H:i:s'))
+            ->with(['author', 'board'])
+            ->orderBy('id')
+            ->get();
+        foreach ($messages as $message) {
+            $board = $message->board;
+            $author = $message->author;
+            $at = $this->stamp($message->created_on);
+            if (! $board instanceof Board || ! $author instanceof User || $at === null) {
+                continue;
+            }
+            $events[] = new ActivityEvent(
+                'message',
+                (int) $message->id,
+                (string) $project->identifier,
+                (string) $author->login,
+                $board->name.': '.$message->subject,
                 $at,
             );
         }

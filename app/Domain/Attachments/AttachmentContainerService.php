@@ -3,22 +3,29 @@
 namespace App\Domain\Attachments;
 
 use App\Domain\Acl\IssueVisibility;
+use App\Domain\Acl\ModuleGate;
 use App\Domain\Acl\PermissionService;
+use App\Domain\Boards\MessageService;
 use App\Domain\DomainException;
 use App\Domain\Issues\IssueJournalWriter;
 use App\Domain\Notifications\IssueNotifier;
 use App\Domain\Notifications\ModuleNotifier;
 use App\Domain\PermissionDeniedException;
 use App\Domain\Settings\SettingValue;
+use App\Domain\Wiki\WikiService;
 use App\Models\Attachment;
+use App\Models\Board;
 use App\Models\CustomField;
 use App\Models\CustomValue;
 use App\Models\Document;
 use App\Models\Issue;
 use App\Models\Journal;
+use App\Models\Message;
 use App\Models\Project;
 use App\Models\User;
 use App\Models\Version;
+use App\Models\Wiki;
+use App\Models\WikiPage;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -38,10 +45,13 @@ final class AttachmentContainerService
         private readonly AttachmentThumbnailRenderer $thumbnails,
         private readonly AttachmentThumbnails $images,
         private readonly PermissionService $permissions,
+        private readonly ModuleGate $gate,
+        private readonly WikiService $wikis,
+        private readonly MessageService $messages,
         private readonly IssueVisibility $issues,
         private readonly IssueJournalWriter $journals,
         private readonly IssueNotifier $notifications,
-        private readonly ModuleNotifier $modules,
+        private readonly ModuleNotifier $moduleMail,
         private readonly SettingValue $settings,
     ) {}
 
@@ -93,14 +103,14 @@ final class AttachmentContainerService
         }
         if ($record instanceof Document) {
             $record->loadMissing('project');
-            $this->modules->documentFileAdded($actor, $record, $fresh);
+            $this->moduleMail->documentFileAdded($actor, $record, $fresh);
         } elseif ($record instanceof Project) {
-            $this->modules->fileAdded($actor, $record, $fresh);
+            $this->moduleMail->fileAdded($actor, $record, $fresh);
         } elseif ($record instanceof Version) {
             $record->loadMissing('project');
             $versionProject = $record->project;
             if ($versionProject instanceof Project) {
-                $this->modules->fileAdded($actor, $versionProject, $fresh);
+                $this->moduleMail->fileAdded($actor, $versionProject, $fresh);
             }
         }
 
@@ -115,6 +125,18 @@ final class AttachmentContainerService
         if ($type === 'Project' || $type === 'Version' || $type === 'Document') {
             $this->assertCanManageFile($actor, $attachment);
             $this->removeRow($attachment);
+
+            return;
+        }
+        if ($type === 'WikiPage') {
+            $this->thumbnails->forget($attachment);
+            $this->wikis->deleteAttachment($actor, $attachment);
+
+            return;
+        }
+        if ($type === 'Message') {
+            $this->thumbnails->forget($attachment);
+            $this->messages->deleteAttachment($actor, $attachment);
 
             return;
         }
@@ -317,6 +339,28 @@ final class AttachmentContainerService
             if (! $project instanceof Project || ! $this->permissions->allowed($actor, 'view_documents', $project)) {
                 throw new PermissionDeniedException('view_documents');
             }
+
+            return;
+        }
+        if ($type === 'WikiPage') {
+            $page = WikiPage::query()->with('wiki.project')->find($id);
+            $wiki = $page instanceof WikiPage ? $page->wiki : null;
+            $project = $wiki instanceof Wiki ? $wiki->project : null;
+            if (! $project instanceof Project) {
+                throw new DomainException('Attachment is not attached.');
+            }
+            $this->gate->allow($actor, $project, 'wiki', 'view_wiki_pages');
+
+            return;
+        }
+        if ($type === 'Message') {
+            $message = Message::query()->with('board.project')->find($id);
+            $board = $message instanceof Message ? $message->board : null;
+            $project = $board instanceof Board ? $board->project : null;
+            if (! $project instanceof Project) {
+                throw new DomainException('Attachment is not attached.');
+            }
+            $this->gate->allow($actor, $project, 'boards', 'view_messages');
 
             return;
         }

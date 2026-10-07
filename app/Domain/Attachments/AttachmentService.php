@@ -6,7 +6,9 @@ use App\Domain\CustomFields\CustomizedContext;
 use App\Domain\DomainException;
 use App\Models\Attachment;
 use App\Models\Journal;
+use App\Models\Message;
 use App\Models\User;
+use App\Models\WikiPage;
 use Illuminate\Contracts\Filesystem\Factory as FilesystemFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Filesystem\FilesystemAdapter;
@@ -82,7 +84,8 @@ final class AttachmentService
      * Point an unbound row at `$record`. A row already on that record is left as-is.
      *
      * Issue, Project, Version, TimeEntry, and User use the custom-field type
-     * name. A journal uses `Journal`. That row is not a custom value.
+     * name. A journal uses `Journal`. A wiki page uses `WikiPage`. A forum
+     * message uses `Message`. Those rows are not custom values.
      */
     /**
      * Replace the display name or description of a stored row.
@@ -319,6 +322,24 @@ final class AttachmentService
             }
 
             return ['Journal', (int) $journalId];
+        }
+
+        if ($record instanceof WikiPage) {
+            $pageId = $record->getKey();
+            if (! is_numeric($pageId)) {
+                throw new DomainException('This record cannot own an attachment.');
+            }
+
+            return ['WikiPage', (int) $pageId];
+        }
+
+        if ($record instanceof Message) {
+            $messageId = $record->getKey();
+            if (! is_numeric($messageId)) {
+                throw new DomainException('This record cannot own an attachment.');
+            }
+
+            return ['Message', (int) $messageId];
         }
 
         $type = $this->context->customizedType($record);

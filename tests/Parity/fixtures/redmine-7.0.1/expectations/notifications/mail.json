@@ -2,11 +2,7 @@
   "host": "parity.test",
   "from": "laramine@parity.test",
   "stamp": "20261007120000",
-  "unbuilt": [
-    "message_posted",
-    "wiki_content_added",
-    "wiki_content_updated"
-  ],
+  "unbuilt": [],
   "defaults_omit": ["issue_fixed_version_updated", "issue_attachment_added"],
   "classifier": [
     {

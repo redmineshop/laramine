@@ -94,7 +94,7 @@
     "5": "Bug #5 (New): Child project bug",
     "6": "Feature #6 (In Progress): Grouped assignee"
   },
-  "out_of_scope": ["wiki", "messages", "changesets"],
+  "out_of_scope": ["changesets"],
   "modules": {
     "from": "2026-10-07",
     "days": 0,

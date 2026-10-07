@@ -24,7 +24,8 @@ final class Redmine701SchemaPin
      *
      * Repository, git, and SCM tables stay out of the founder loop.
      * News and documents are migrated for the modules row and stay out of
-     * this P0 compare. Wiki, forums, and webhooks are later layers.
+     * this P0 compare. Wiki and forum tables are in the structure compare.
+     * Webhooks stay out.
      *
      * @var list<string>
      */
@@ -34,17 +35,10 @@ final class Redmine701SchemaPin
         'changes',
         'changeset_parents',
         'changesets_issues',
-        'boards',
-        'messages',
         'news',
         'documents',
         'webhooks',
         'projects_webhooks',
-        'wikis',
-        'wiki_pages',
-        'wiki_contents',
-        'wiki_content_versions',
-        'wiki_redirects',
     ];
 
     /**
@@ -95,6 +89,13 @@ final class Redmine701SchemaPin
         'imports',
         'import_items',
         'settings',
+        'wikis',
+        'wiki_pages',
+        'wiki_contents',
+        'wiki_content_versions',
+        'wiki_redirects',
+        'boards',
+        'messages',
     ];
 
     /**
