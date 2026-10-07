@@ -17,8 +17,8 @@ Early MIT Laravel core. Domain goal is Redmine 7.0.1 semantics, reimplemented in
 - `app/Domain/Projects` — project nested set and modules.
 - `app/Models` — Eloquent over Redmine 7.0.1 table and column names. Timestamp columns are `created_on` / `updated_on` where the schema says so. STI `type` values are Redmine class names.
 - `app/Policies` — project and issue view/update/delete only.
-- `routes/web.php` — session sign-in and sign-out only. There is no HTTP API in this slice.
-- Users and authentication — founder lock in `docs/users-auth-spec.md` (2026-10-07). Phase 1 is the Laravel session guard and the Redmine-shaped digest. Do not add LDAP, two-factor, OAuth, tokens, or account administration. Parity stays **NOT VERIFIED**. Not a 0.1 tag.
+- `routes/web.php` — Inertia health smoke page at `GET /`, plus Phase 1 session sign-in and sign-out. There is no HTTP API in this slice. The scaffold is not UI-ready and not a 0.1 tag (`docs/ux-parity-notes.md`).
+- Users and authentication — founder lock in `docs/users-auth-spec.md` (2026-10-07). Phase 1 is the Laravel session guard and the Redmine-shaped digest. Do not add LDAP, two-factor, OAuth, tokens, account administration, or a second sign-in screen. Parity stays **NOT VERIFIED**. Not a 0.1 tag.
 - Schema pin: `docs/schema-inventory.md` and `docs/sources/redmine-7.0.1-schema.rb` (structure dump only).
 
 Intentional differences belong in the matching doc. Do not silently “correct” them toward an unverified reading of Redmine.
@@ -30,6 +30,7 @@ Locked. Do not weaken CI (`.github/workflows/ci.yml`).
 - Pint: `composer lint` (`vendor/bin/pint --test`).
 - Larastan / PHPStan level 8: `composer stan`. No baseline file. Do not add one without an explicit debt note in `QUALITY.md`.
 - PHPUnit Unit + Feature + Parity on MySQL 8: `composer test`. Credentials are forced in `phpunit.xml` (`laramine_testing`, `root` / `password`, `127.0.0.1:3306`).
+- Frontend scaffold: `npm run typecheck` and `npm run build` (Node 22). Do not drop that CI job. It does not verify UX parity.
 - SQLite is a local migrate smoke only. Do not point PHPUnit or CI at it.
 - No Pest config. PHP is `^8.2`; CI is PHP 8.3.
 

@@ -93,7 +93,7 @@ The sixteen decisions below are closed. A later slice follows them. If a new pro
 
 `App\Domain\Auth\RedminePassword` seals and checks the digest. `App\Domain\Auth\CredentialChecker` resolves the identifier and returns a decision. `App\Auth\RedmineUserProvider` is the `redmine` user provider. It does not ask Laravel’s hasher to replace `hashed_password`.
 
-HTTP, session middleware, no Inertia requirement:
+HTTP, session middleware. Sign-in does not use Inertia. `GET /` is the Inertia health smoke page and is not a sign-in screen.
 
 | Method and path | Behavior |
 | --- | --- |

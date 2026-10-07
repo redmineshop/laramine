@@ -30,6 +30,8 @@ Run these on MySQL 8. All three are required:
 composer lint   # vendor/bin/pint --test
 composer stan   # vendor/bin/phpstan analyse (Larastan, level 8)
 composer test   # PHPUnit: Unit, Feature, and Parity
+npm run typecheck
+npm run build   # client bundle and Inertia SSR bundle (Node 22)
 ```
 
 Focused PHPUnit while you work:
@@ -50,6 +52,9 @@ php artisan test --filter=IssueQuery
 2. Pint `--test`
 3. PHPStan / Larastan at level 8
 4. Full PHPUnit (Unit, Feature, Parity) against MySQL 8.0 on PHP 8.3
+5. Frontend job: `npm ci`, `npm run typecheck`, `npm run build` on Node 22
+
+The frontend job checks the Inertia scaffold. It does not make the UI ready and it is not a 0.1 tag. See [docs/ux-parity-notes.md](docs/ux-parity-notes.md).
 
 Green CI is required. Do not merge with a red check. Do not tag a release from a red commit. Do not lower the PHPStan level, skip a suite, switch CI to SQLite, or add a PHPStan baseline to hide errors. `phpstan.neon` has no baseline. A baseline would need an explicit debt note in [QUALITY.md](QUALITY.md) first, and this project is not adding one.
 
@@ -86,6 +91,7 @@ If a change needs a new semantic note, write it in your own words in the matchin
 | A real Redmine comparison | [docs/parity-checklist.md](docs/parity-checklist.md) and `tests/Parity` |
 | Users or authentication | [docs/users-auth-spec.md](docs/users-auth-spec.md). Spec hole only. Do not implement login until a founder unlock. |
 | Install, database, or CI commands | [README.md](README.md) and this file |
+| Inertia scaffold, theme tokens, or page registration | [docs/frontend.md](docs/frontend.md) and [docs/ux-parity-notes.md](docs/ux-parity-notes.md) |
 
 Skip new docs for a change that does not alter behavior, setup, or the quality bar. Do not add marketing pages.
 

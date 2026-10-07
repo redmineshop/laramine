@@ -60,7 +60,14 @@ php artisan migrate
 
 The column names match that dump so a later ETL can load Redmine rows. Adapter differences (SQLite versus MySQL string lengths, integer width, and the `lower(login)` index) are listed at the bottom of the inventory. Eloquent models under `app/Models` map those tables. Project, membership, and issue services maintain nested sets and evaluate permission names and workflow rows. Custom field formats validate and store `custom_values`. Issue query filters are evaluated in `app/Domain/Queries` and stored as JSON.
 
-The Vite assets in this skeleton are optional. Tests and `php artisan serve` do not need Node. Use `npm install` and `npm run dev` only when you are changing frontend assets.
+`GET /` is an Inertia smoke page (`resources/js/pages/Health.tsx`). PHPUnit calls `withoutVite()` and does not need Node. A browser visit needs the Vite client:
+
+```bash
+npm install
+npm run dev
+```
+
+`npm run build` writes the client bundle and the Inertia SSR bundle. The stack, theme tokens, and the unimplemented Composer page registry are in [docs/frontend.md](docs/frontend.md). This scaffold is not UI-ready, not Redmine UX parity, and not a 0.1 release ([docs/ux-parity-notes.md](docs/ux-parity-notes.md)).
 
 ## Quality gates
 
@@ -71,6 +78,7 @@ These commands must pass before merge. Details and the v1 checklist are in [QUAL
 | Pint | `composer lint` (`vendor/bin/pint --test`) |
 | Larastan / PHPStan level 8 | `composer stan` (`vendor/bin/phpstan analyse`) |
 | PHPUnit (Unit, Feature, Parity) | `composer test` |
+| Frontend typecheck and Vite build | `npm run typecheck` and `npm run build` (Node 22) |
 
 PHPStan is locked at level 8 with no baseline. The Parity suite is wired and currently contains only a boot smoke test. It does not verify Redmine compatibility.
 
