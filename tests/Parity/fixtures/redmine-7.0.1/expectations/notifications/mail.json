@@ -3,10 +3,6 @@
   "from": "laramine@parity.test",
   "stamp": "20261007120000",
   "unbuilt": [
-    "news_added",
-    "news_comment_added",
-    "document_added",
-    "file_added",
     "message_posted",
     "wiki_content_added",
     "wiki_content_updated"
@@ -268,5 +264,153 @@
       "references": ["redmine.user-8.20260826120000@parity.test"],
       "body_contains": ["Status: active"]
     }
+  },
+  "modules": {
+    "without_view": {
+      "mails": [
+        {
+          "to": "admin@parity.test",
+          "subject": "[Parity Core] News: Quiet",
+          "message_id": "redmine.news-{news}.{stamp}@parity.test",
+          "references": ["redmine.news-{news}.{stamp}@parity.test"],
+          "body_contains": ["News: Quiet", "Project: parity-core"],
+          "headers": {"X-Redmine-Project": "parity-core", "X-Redmine-Sender": "admin"}
+        }
+      ],
+      "absent": ["ada@parity.test", "bea@parity.test"]
+    },
+    "news_added": {
+      "mails": [
+        {
+          "to": "admin@parity.test",
+          "subject": "[Parity Core] News: Pin release",
+          "message_id": "redmine.news-{news}.{stamp}@parity.test",
+          "references": ["redmine.news-{news}.{stamp}@parity.test"],
+          "body_contains": ["News: Pin release", "Project: parity-core"],
+          "headers": {"X-Redmine-Project": "parity-core", "X-Redmine-Sender": "admin"}
+        },
+        {
+          "to": "bea@parity.test",
+          "subject": "[Parity Core] News: Pin release",
+          "message_id": "redmine.news-{news}.{stamp}@parity.test",
+          "references": ["redmine.news-{news}.{stamp}@parity.test"],
+          "body_contains": ["News: Pin release"],
+          "headers": {"X-Redmine-Project": "parity-core", "X-Redmine-Sender": "admin"}
+        }
+      ],
+      "absent": ["ada@parity.test"]
+    },
+    "events_off_count": 0,
+    "comment": {
+      "mails": [
+        {
+          "to": "ada@parity.test",
+          "subject": "Re: [Parity Core] News: Pin release",
+          "message_id": "redmine.comment-{comment}.{stamp}@parity.test",
+          "references": ["redmine.news-{news}.{stamp}@parity.test"],
+          "body_contains": ["Comment: Noted"],
+          "headers": {"X-Redmine-Project": "parity-core", "X-Redmine-Sender": "bea"}
+        },
+        {
+          "to": "admin@parity.test",
+          "subject": "Re: [Parity Core] News: Pin release",
+          "message_id": "redmine.comment-{comment}.{stamp}@parity.test",
+          "references": ["redmine.news-{news}.{stamp}@parity.test"],
+          "body_contains": ["Comment: Noted"],
+          "headers": {"X-Redmine-Sender": "bea"}
+        },
+        {
+          "to": "bea@parity.test",
+          "subject": "Re: [Parity Core] News: Pin release",
+          "message_id": "redmine.comment-{comment}.{stamp}@parity.test",
+          "references": ["redmine.news-{news}.{stamp}@parity.test"],
+          "body_contains": ["News: Pin release"],
+          "headers": {"X-Redmine-Sender": "bea"}
+        }
+      ]
+    },
+    "comment_no_self": {
+      "mails": [
+        {
+          "to": "ada@parity.test",
+          "subject": "Re: [Parity Core] News: Pin release",
+          "message_id": "redmine.comment-{comment}.{stamp}@parity.test",
+          "references": ["redmine.news-{news}.{stamp}@parity.test"],
+          "body_contains": ["Comment: Again"],
+          "headers": {"X-Redmine-Sender": "admin"}
+        },
+        {
+          "to": "bea@parity.test",
+          "subject": "Re: [Parity Core] News: Pin release",
+          "message_id": "redmine.comment-{comment}.{stamp}@parity.test",
+          "references": ["redmine.news-{news}.{stamp}@parity.test"],
+          "headers": {"X-Redmine-Sender": "admin"}
+        }
+      ],
+      "absent": ["admin@parity.test"]
+    },
+    "module_off_count": 0,
+    "document_added": {
+      "mails": [
+        {
+          "to": "admin@parity.test",
+          "subject": "[Parity Core] New document: Guide",
+          "message_id": "redmine.document-{document}.{stamp}@parity.test",
+          "references": ["redmine.document-{document}.{stamp}@parity.test"],
+          "body_contains": ["Document: Guide", "Project: parity-core"],
+          "headers": {"X-Redmine-Project": "parity-core", "X-Redmine-Sender": "admin"}
+        },
+        {
+          "to": "bea@parity.test",
+          "subject": "[Parity Core] New document: Guide",
+          "message_id": "redmine.document-{document}.{stamp}@parity.test",
+          "references": ["redmine.document-{document}.{stamp}@parity.test"],
+          "headers": {"X-Redmine-Sender": "admin"}
+        }
+      ],
+      "absent": ["ada@parity.test"]
+    },
+    "document_file": {
+      "mails": [
+        {
+          "to": "admin@parity.test",
+          "subject": "[Parity Core] New file",
+          "message_id": "redmine.attachment-{attachment}.{stamp}@parity.test",
+          "references": ["redmine.document-{document}.{stamp}@parity.test"],
+          "body_contains": ["File: guide.txt", "Document: Guide"],
+          "headers": {"X-Redmine-Sender": "bea"}
+        },
+        {
+          "to": "bea@parity.test",
+          "subject": "[Parity Core] New file",
+          "message_id": "redmine.attachment-{attachment}.{stamp}@parity.test",
+          "references": ["redmine.document-{document}.{stamp}@parity.test"],
+          "body_contains": ["Project: parity-core"],
+          "headers": {"X-Redmine-Project": "parity-core", "X-Redmine-Sender": "bea"}
+        }
+      ]
+    },
+    "document_file_not_file_added_count": 0,
+    "file_added": {
+      "mails": [
+        {
+          "to": "admin@parity.test",
+          "subject": "[Parity Core] New file",
+          "message_id": "redmine.attachment-{attachment}.{stamp}@parity.test",
+          "references": ["redmine.attachment-{attachment}.{stamp}@parity.test"],
+          "body_contains": ["File: tree.txt", "Project: parity-core"],
+          "headers": {"X-Redmine-Project": "parity-core", "X-Redmine-Sender": "admin"}
+        },
+        {
+          "to": "bea@parity.test",
+          "subject": "[Parity Core] New file",
+          "message_id": "redmine.attachment-{attachment}.{stamp}@parity.test",
+          "references": ["redmine.attachment-{attachment}.{stamp}@parity.test"],
+          "headers": {"X-Redmine-Sender": "admin"}
+        }
+      ],
+      "absent": ["ada@parity.test"]
+    },
+    "issue_claim_count": 0
   }
 }

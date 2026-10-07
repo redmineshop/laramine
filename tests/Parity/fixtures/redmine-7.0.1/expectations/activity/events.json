@@ -94,5 +94,30 @@
     "5": "Bug #5 (New): Child project bug",
     "6": "Feature #6 (In Progress): Grouped assignee"
   },
-  "out_of_scope": ["news", "documents", "wiki", "messages", "files", "changesets"]
+  "out_of_scope": ["wiki", "messages", "changesets"],
+  "modules": {
+    "from": "2026-10-07",
+    "days": 0,
+    "now": "2026-10-07 12:00:00",
+    "ada": [
+      {"kind": "file", "id": "version_file", "project": "parity-core", "author": "bea", "title": "build.txt", "at": "2026-10-07 12:00:00"},
+      {"kind": "file", "id": "project_file", "project": "parity-core", "author": "admin", "title": "tree.txt", "at": "2026-10-07 12:00:00"},
+      {"kind": "news", "id": "news", "project": "parity-core", "author": "admin", "title": "Release", "at": "2026-10-07 12:00:00"}
+    ],
+    "admin": [
+      {"kind": "document", "id": "guide", "project": "parity-core", "author": "bea", "title": "Document: Guide", "at": "2026-10-07 12:00:00"},
+      {"kind": "document", "id": "bare", "project": "parity-core", "author": "", "title": "Document: Bare", "at": "2026-10-07 12:00:00"},
+      {"kind": "file", "id": "version_file", "project": "parity-core", "author": "bea", "title": "build.txt", "at": "2026-10-07 12:00:00"},
+      {"kind": "file", "id": "project_file", "project": "parity-core", "author": "admin", "title": "tree.txt", "at": "2026-10-07 12:00:00"},
+      {"kind": "news", "id": "news", "project": "parity-core", "author": "admin", "title": "Release", "at": "2026-10-07 12:00:00"}
+    ],
+    "bea": [
+      {"kind": "document", "id": "guide", "project": "parity-core", "author": "bea", "title": "Document: Guide", "at": "2026-10-07 12:00:00"},
+      {"kind": "document", "id": "bare", "project": "parity-core", "author": "", "title": "Document: Bare", "at": "2026-10-07 12:00:00"},
+      {"kind": "file", "id": "version_file", "project": "parity-core", "author": "bea", "title": "build.txt", "at": "2026-10-07 12:00:00"},
+      {"kind": "file", "id": "project_file", "project": "parity-core", "author": "admin", "title": "tree.txt", "at": "2026-10-07 12:00:00"},
+      {"kind": "news", "id": "news", "project": "parity-core", "author": "admin", "title": "Release", "at": "2026-10-07 12:00:00"}
+    ],
+    "cleo": []
+  }
 }

@@ -6,13 +6,16 @@ use App\Domain\Attachments\AttachmentContainerService;
 use App\Domain\Auth\AccountAdminService;
 use App\Domain\Auth\AccountRecovery;
 use App\Domain\Auth\RegistrationService;
+use App\Domain\Documents\DocumentService;
 use App\Domain\Issues\IssueRelationService;
 use App\Domain\Issues\IssueService;
 use App\Domain\Issues\JournalNoteService;
+use App\Domain\News\NewsService;
 use App\Domain\Notifications\IssueNotifier;
 use App\Domain\Notifications\JournalEventClassifier;
 use App\Domain\Notifications\NotifiedEventCatalog;
 use App\Domain\Notifications\NotifiedEventSetting;
+use App\Domain\Projects\ProjectService;
 use App\Domain\Settings\SettingValue;
 use App\Mail\RedmineNotificationMail;
 use App\Models\Attachment;
@@ -22,6 +25,7 @@ use App\Models\Journal;
 use App\Models\JournalDetail;
 use App\Models\Member;
 use App\Models\Project;
+use App\Models\Role;
 use App\Models\Setting;
 use App\Models\Token;
 use App\Models\User;
@@ -36,7 +40,7 @@ use Tests\TestCase;
 /**
  * Compares outbound notification recipients, subjects, and headers to the pin.
  *
- * News, documents, files, messages, and wiki events are named and not sent.
+ * News, document, and file events are sent. Message and wiki events are named and not sent.
  */
 class NotificationParityTest extends TestCase
 {
@@ -366,6 +370,107 @@ class NotificationParityTest extends TestCase
         $this->assertMails($unlocked, ['stamp' => self::STAMP]);
     }
 
+    public function test_news_document_and_file_mail_matches_the_pin(): void
+    {
+        $this->bootPin();
+        $modules = $this->section('modules');
+        $project = $this->project('parity-core');
+        $projects = app(ProjectService::class);
+        $projects->enableModule($project, 'news');
+        $projects->enableModule($project, 'documents');
+        $projects->enableModule($project, 'files');
+        $this->address($this->user('bea'), 'bea@parity.test');
+        $this->preference($this->user('bea'), 'all');
+        $this->grant(1, ['view_news']);
+        $this->grant(2, ['comment_news', 'view_documents', 'add_documents', 'edit_documents', 'view_files', 'manage_files']);
+
+        $admin = $this->user('admin');
+        $bea = $this->user('bea');
+        $quiet = app(NewsService::class)->create($admin, $project, 'Quiet', null, null);
+        $this->assertMails($this->moduleCase($modules, 'without_view'), [
+            'news' => (string) $quiet->id,
+            'stamp' => self::STAMP,
+        ]);
+        $this->assertNoIssueHeader();
+
+        $this->grant(2, ['view_news']);
+        Mail::fake();
+        $news = app(NewsService::class)->create($admin, $project, 'Pin release', null, null);
+        $vars = ['news' => (string) $news->id, 'stamp' => self::STAMP];
+        $this->assertMails($this->moduleCase($modules, 'news_added'), $vars);
+        $this->assertNoIssueHeader();
+
+        Mail::fake();
+        $this->setting(SettingValue::NOTIFIED_EVENTS, '["file_added"]');
+        app(NewsService::class)->create($admin, $project, 'Silent', null, null);
+        $this->assertCount($this->intField($modules, 'events_off_count'), $this->queued());
+
+        Mail::fake();
+        $this->setting(SettingValue::NOTIFIED_EVENTS, '["news_comment_added"]');
+        app(NewsService::class)->watch($this->user('ada'), $news);
+        $comment = app(NewsService::class)->addComment($bea, $news, 'Noted');
+        $this->assertMails($this->moduleCase($modules, 'comment'), [
+            'news' => (string) $news->id,
+            'comment' => (string) $comment->id,
+            'stamp' => self::STAMP,
+        ]);
+        $this->assertNoIssueHeader();
+
+        Mail::fake();
+        $this->preference($admin, 'all', true);
+        $again = app(NewsService::class)->addComment($admin, $news, 'Again');
+        $this->assertMails($this->moduleCase($modules, 'comment_no_self'), [
+            'news' => (string) $news->id,
+            'comment' => (string) $again->id,
+            'stamp' => self::STAMP,
+        ]);
+        $this->preference($admin, 'all', false);
+
+        Mail::fake();
+        $projects->disableModule($project, 'news');
+        app(NewsService::class)->create($admin, $project->fresh() ?? $project, 'Offline', null, null);
+        $this->assertCount($this->intField($modules, 'module_off_count'), $this->queued());
+
+        Mail::fake();
+        $this->setting(SettingValue::NOTIFIED_EVENTS, '["document_added"]');
+        $document = app(DocumentService::class)->create($admin, $project, 'Guide', 4, null);
+        $this->assertMails($this->moduleCase($modules, 'document_added'), [
+            'document' => (string) $document->id,
+            'stamp' => self::STAMP,
+        ]);
+        $this->assertNoIssueHeader();
+
+        Mail::fake();
+        $files = app(AttachmentContainerService::class);
+        $guide = $files->upload($bea, 'guide.txt', 'guide', 'text/plain');
+        $attachment = $files->claim($bea, $guide['token'], null, null, 'guide.txt', null, (int) $document->id);
+        $this->assertMails($this->moduleCase($modules, 'document_file'), [
+            'document' => (string) $document->id,
+            'attachment' => (string) $attachment->id,
+            'stamp' => self::STAMP,
+        ]);
+
+        Mail::fake();
+        $this->setting(SettingValue::NOTIFIED_EVENTS, '["file_added"]');
+        $againFile = $files->upload($bea, 'again.txt', 'again', 'text/plain');
+        $files->claim($bea, $againFile['token'], null, null, 'again.txt', null, (int) $document->id);
+        $this->assertCount($this->intField($modules, 'document_file_not_file_added_count'), $this->queued());
+
+        Mail::fake();
+        $tree = $files->upload($admin, 'tree.txt', 'tree', 'text/plain');
+        $projectFile = $files->claim($admin, $tree['token'], null, null, 'tree.txt', null, null, (int) $project->id);
+        $this->assertMails($this->moduleCase($modules, 'file_added'), [
+            'attachment' => (string) $projectFile->id,
+            'stamp' => self::STAMP,
+        ]);
+        $this->assertNoIssueHeader();
+
+        Mail::fake();
+        $issueFile = $files->upload($this->user('ada'), 'issue.txt', 'issue', 'text/plain');
+        $files->claim($this->user('ada'), $issueFile['token'], 1, null, 'issue.txt', null);
+        $this->assertCount($this->intField($modules, 'issue_claim_count'), $this->queued());
+    }
+
     public function test_checklist_evidence_cites_this_comparison(): void
     {
         $checklist = file_get_contents(base_path('docs/parity-checklist.md'));
@@ -374,7 +479,45 @@ class NotificationParityTest extends TestCase
         $this->assertStringContainsString('tests/Parity/NotificationParityTest.php', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/notifications/mail.json', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/', $checklist);
-        $this->assertMatchesRegularExpression('/^\| Notifications for news, documents, files, messages, and wiki \| NOT VERIFIED \|/m', $checklist);
+        $this->assertMatchesRegularExpression('/^\| Notifications for news, documents, and files \| VERIFIED \|/m', $checklist);
+        $this->assertMatchesRegularExpression('/^\| Notifications for messages and wiki \| NOT VERIFIED \|/m', $checklist);
+    }
+
+    /**
+     * @param  list<string>  $names
+     */
+    private function grant(int $roleId, array $names): void
+    {
+        $role = Role::query()->find($roleId);
+        $this->assertInstanceOf(Role::class, $role);
+        $permissions = $role->permissions;
+        $this->assertIsArray($permissions);
+        foreach ($names as $name) {
+            $permissions[] = $name;
+        }
+        $role->permissions = array_values(array_unique($permissions));
+        $role->save();
+    }
+
+    /**
+     * @param  array<string, mixed>  $modules
+     * @return array<string, mixed>
+     */
+    private function moduleCase(array $modules, string $key): array
+    {
+        $case = $modules[$key] ?? null;
+        $this->assertIsArray($case);
+
+        return $case;
+    }
+
+    private function assertNoIssueHeader(): void
+    {
+        $mails = $this->queued();
+        $this->assertNotEmpty($mails);
+        foreach ($mails as $mail) {
+            $this->assertArrayNotHasKey('X-Redmine-Issue-Id', $mail['headers']);
+        }
     }
 
     private function bootPin(): void

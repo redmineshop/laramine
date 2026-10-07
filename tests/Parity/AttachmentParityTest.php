@@ -13,10 +13,12 @@ use App\Domain\PermissionDeniedException;
 use App\Domain\Projects\ProjectService;
 use App\Domain\Settings\SettingValue;
 use App\Models\Attachment;
+use App\Models\Document;
 use App\Models\Issue;
 use App\Models\IssueRelation;
 use App\Models\Journal;
 use App\Models\JournalDetail;
+use App\Models\News;
 use App\Models\Project;
 use App\Models\Role;
 use App\Models\Setting;
@@ -420,7 +422,9 @@ class AttachmentParityTest extends TestCase
         $this->getJson('/attachments/issues/'.$issueId.'/download')
             ->assertStatus($this->intField($expected, 'guest_status'))
             ->assertJsonPath('message', 'Permission denied: '.$this->stringField($expected, 'guest_permission'));
-        $this->get('/attachments/wiki_pages/1/download')->assertNotFound();
+        foreach ($this->stringList($expected, 'absent_object_types') as $objectType) {
+            $this->get('/attachments/'.$objectType.'/1/download')->assertNotFound();
+        }
 
         $one = $expected['one'];
         $this->assertIsArray($one);
@@ -533,6 +537,84 @@ class AttachmentParityTest extends TestCase
             $this->zipEntries($versionZip->getContent()),
         );
 
+        $newsFile = $expected['news_file'];
+        $this->assertIsArray($newsFile);
+        $news = News::query()->create([
+            'author_id' => $admin->id,
+            'comments_count' => 0,
+            'created_on' => now(),
+            'description' => null,
+            'project_id' => $project->id,
+            'summary' => '',
+            'title' => 'Pin release',
+        ]);
+        $this->actingAs($ada)->getJson('/attachments/news/'.$this->intField($expected, 'missing_id').'/download')
+            ->assertNotFound()
+            ->assertJsonPath('message', $this->stringField($expected, 'missing_message'));
+        $this->actingAs($ada)->getJson('/attachments/news/'.$news->id.'/download')
+            ->assertForbidden()
+            ->assertJsonPath('message', 'Permission denied: '.$this->stringField($expected, 'news_permission'));
+        $this->actingAs($admin)->getJson('/attachments/news/'.$news->id.'/download')
+            ->assertNotFound()
+            ->assertJsonPath('message', $this->stringField($expected, 'empty_message'));
+        $storedNews = $this->bindContainer(
+            $files,
+            $admin,
+            $this->stringField($newsFile, 'filename'),
+            $this->stringField($newsFile, 'body'),
+            'News',
+            (int) $news->id,
+        );
+        $newsZip = $this->actingAs($admin)->get('/attachments/news/'.$news->id.'/download');
+        $newsZip->assertOk();
+        $this->assertStringContainsString('news-'.$news->id.'-attachments.zip', (string) $newsZip->headers->get('content-disposition'));
+        $this->assertSame(
+            [$this->stringField($newsFile, 'filename') => $this->stringField($newsFile, 'body')],
+            $this->zipEntries($newsZip->getContent()),
+        );
+        $this->grantOnRole($this->intField($expected, 'news_role_id'), $this->stringField($expected, 'news_permission'));
+        $this->actingAs($ada)->getJson('/attachments/news/'.$news->id.'/download')
+            ->assertForbidden()
+            ->assertJsonPath('message', 'Permission denied: '.$this->stringField($expected, 'news_permission'));
+        app(ProjectService::class)->enableModule($project, $this->stringField($expected, 'news_module'));
+        $this->actingAs($ada)->get('/attachments/news/'.$news->id.'/download')->assertOk();
+        $this->assertSame($this->intField($expected, 'downloads'), (int) $storedNews->refresh()->downloads);
+
+        $documentFile = $expected['document_file'];
+        $this->assertIsArray($documentFile);
+        $document = Document::query()->create([
+            'category_id' => $this->intField($expected, 'document_category_id'),
+            'created_on' => now(),
+            'description' => null,
+            'project_id' => $project->id,
+            'title' => 'Pin guide',
+        ]);
+        $this->actingAs($ada)->getJson('/attachments/documents/'.$document->id.'/download')
+            ->assertForbidden()
+            ->assertJsonPath('message', 'Permission denied: '.$this->stringField($expected, 'document_permission'));
+        $storedDocument = $this->bindContainer(
+            $files,
+            $admin,
+            $this->stringField($documentFile, 'filename'),
+            $this->stringField($documentFile, 'body'),
+            'Document',
+            (int) $document->id,
+        );
+        $documentZip = $this->actingAs($admin)->get('/attachments/documents/'.$document->id.'/download');
+        $documentZip->assertOk();
+        $this->assertStringContainsString('document-'.$document->id.'-attachments.zip', (string) $documentZip->headers->get('content-disposition'));
+        $this->assertSame(
+            [$this->stringField($documentFile, 'filename') => $this->stringField($documentFile, 'body')],
+            $this->zipEntries($documentZip->getContent()),
+        );
+        $this->grantOnRole($this->intField($expected, 'news_role_id'), $this->stringField($expected, 'document_permission'));
+        $this->actingAs($ada)->getJson('/attachments/documents/'.$document->id.'/download')
+            ->assertForbidden()
+            ->assertJsonPath('message', 'Permission denied: '.$this->stringField($expected, 'document_permission'));
+        app(ProjectService::class)->enableModule($project, $this->stringField($expected, 'document_module'));
+        $this->actingAs($ada)->get('/attachments/documents/'.$document->id.'/download')->assertOk();
+        $this->assertSame($this->intField($expected, 'downloads'), (int) $storedDocument->refresh()->downloads);
+
         $limit = $expected['limit'];
         $this->assertIsArray($limit);
         $this->setting('bulk_download_max_size', $this->stringField($limit, 'kilobytes'));
@@ -555,6 +637,33 @@ class AttachmentParityTest extends TestCase
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/attachments/thumbnails.json', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/attachments/bulk.json', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/', $checklist);
+    }
+
+    private function bindContainer(
+        AttachmentService $files,
+        User $author,
+        string $filename,
+        string $body,
+        string $type,
+        int $id,
+    ): Attachment {
+        $stored = $files->store($author, $filename, $body, 'text/plain', null, null);
+        $stored->container_type = $type;
+        $stored->container_id = $id;
+        $stored->save();
+
+        return $stored->refresh();
+    }
+
+    private function grantOnRole(int $roleId, string $permission): void
+    {
+        $role = Role::query()->find($roleId);
+        $this->assertInstanceOf(Role::class, $role);
+        $names = $role->permissions;
+        $this->assertIsArray($names);
+        $names[] = $permission;
+        $role->permissions = array_values(array_unique($names));
+        $role->save();
     }
 
     private function claimFile(User $actor, string $filename, string $body, string $contentType, int $issueId): int

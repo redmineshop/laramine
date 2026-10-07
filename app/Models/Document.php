@@ -24,6 +24,16 @@ class Document extends Model
     protected $guarded = ['id'];
 
     /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'created_on' => 'datetime',
+        ];
+    }
+
+    /**
      * @return BelongsTo<Project, $this>
      */
     public function project(): BelongsTo

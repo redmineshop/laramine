@@ -7,6 +7,7 @@ use App\Domain\Acl\PermissionService;
 use App\Domain\DomainException;
 use App\Domain\Issues\IssueJournalWriter;
 use App\Domain\Notifications\IssueNotifier;
+use App\Domain\Notifications\ModuleNotifier;
 use App\Domain\PermissionDeniedException;
 use App\Domain\Settings\SettingValue;
 use App\Models\Attachment;
@@ -40,6 +41,7 @@ final class AttachmentContainerService
         private readonly IssueVisibility $issues,
         private readonly IssueJournalWriter $journals,
         private readonly IssueNotifier $notifications,
+        private readonly ModuleNotifier $modules,
         private readonly SettingValue $settings,
     ) {}
 
@@ -72,6 +74,7 @@ final class AttachmentContainerService
         $attachment = $this->findToken($token);
         $container = $this->claimContainer($actor, $issueId, $journalId, $documentId, $projectId, $versionId);
         $issue = $container['issue'];
+        $record = $container['record'];
 
         $written = null;
         $fresh = DB::transaction(function () use ($actor, $attachment, $container, $filename, $description, $issue, &$written): Attachment {
@@ -87,6 +90,18 @@ final class AttachmentContainerService
         });
         if ($issue instanceof Issue && $written instanceof Journal) {
             $this->notifications->edited($actor, $issue, $written, null);
+        }
+        if ($record instanceof Document) {
+            $record->loadMissing('project');
+            $this->modules->documentFileAdded($actor, $record, $fresh);
+        } elseif ($record instanceof Project) {
+            $this->modules->fileAdded($actor, $record, $fresh);
+        } elseif ($record instanceof Version) {
+            $record->loadMissing('project');
+            $versionProject = $record->project;
+            if ($versionProject instanceof Project) {
+                $this->modules->fileAdded($actor, $versionProject, $fresh);
+            }
         }
 
         return $fresh;

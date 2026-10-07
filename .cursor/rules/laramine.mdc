@@ -15,8 +15,8 @@ Early MIT Laravel core. Domain goal is Redmine 7.0.1 semantics, reimplemented in
 - `app/Domain/CustomFields` — formats and `CustomValueService`. Version values follow `versions.sharing`. See `docs/custom-fields.md`. The checklist row is **VERIFIED** only by `tests/Parity/CustomFieldParityTest.php`.
 - `app/Domain/Queries` — `IssueQuery` runs and is the queries checklist comparison. `UserQuery` runs a limited catalog inside `UserVisibility` and is compared on the users and authentication row. `TimeEntryQuery` runs and is compared on the time entries row. `ProjectQuery` and `ProjectAdminQuery` can be stored and are not executed. See `docs/queries.md`.
 - `app/Domain/Projects` — project nested set and modules.
-- `app/Domain/Notifications` — queued account and issue mail. The checklist row is **VERIFIED** only by `tests/Parity/NotificationParityTest.php`. News, documents, files, messages, and wiki mail stay **NOT VERIFIED**.
-- `app/Domain/Activity` — issue, journal, and time-entry activity plus Atom feeds. The checklist row is **VERIFIED** only by `tests/Parity/ActivityParityTest.php`. Other modules stay **NOT VERIFIED**.
+- `app/Domain/Notifications` — queued account and issue mail. The checklist row is **VERIFIED** only by `tests/Parity/NotificationParityTest.php`. News, document, and file mail is **VERIFIED** by that same test. Message and wiki mail stay **NOT VERIFIED**.
+- `app/Domain/Activity` — issue, journal, and time-entry activity plus Atom feeds. The checklist row is **VERIFIED** only by `tests/Parity/ActivityParityTest.php`. News, documents, and files activity is **VERIFIED** by that same test. Wiki, messages, and changesets stay **NOT VERIFIED**.
 - `app/Domain/News`, `app/Domain/Documents`, and `app/Domain/Files` — news, documents, and project files. The checklist row is **VERIFIED** only by `tests/Parity/ModulesNewsDocumentsFilesParityTest.php`.
 - `app/Models` — Eloquent over Redmine 7.0.1 table and column names. Timestamp columns are `created_on` / `updated_on` where the schema says so. STI `type` values are Redmine class names.
 - `app/Policies` — project, issue, news, and document abilities.

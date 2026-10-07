@@ -4,6 +4,7 @@ namespace App\Domain\News;
 
 use App\Domain\Acl\PermissionService;
 use App\Domain\DomainException;
+use App\Domain\Notifications\ModuleNotifier;
 use App\Domain\PermissionDeniedException;
 use App\Models\Comment;
 use App\Models\News;
@@ -25,7 +26,10 @@ use Illuminate\Support\Facades\DB;
  */
 final class NewsService
 {
-    public function __construct(private readonly PermissionService $permissions) {}
+    public function __construct(
+        private readonly PermissionService $permissions,
+        private readonly ModuleNotifier $notifications,
+    ) {}
 
     public function create(User $actor, Project $project, string $title, ?string $summary, ?string $description): News
     {
@@ -43,8 +47,11 @@ final class NewsService
             'title' => $this->title($title),
         ]);
         $news->save();
+        $fresh = $news->refresh();
+        $fresh->load('project');
+        $this->notifications->newsAdded($actor, $fresh);
 
-        return $news->refresh();
+        return $fresh;
     }
 
     public function update(User $actor, News $news, string $title, ?string $summary, ?string $description): News
@@ -97,7 +104,7 @@ final class NewsService
             throw new DomainException('Comment is too long.');
         }
 
-        return DB::transaction(function () use ($actor, $news, $body): Comment {
+        $comment = DB::transaction(function () use ($actor, $news, $body): Comment {
             $now = now();
             $comment = new Comment([
                 'author_id' => (int) $actor->id,
@@ -112,6 +119,11 @@ final class NewsService
 
             return $comment->refresh();
         });
+        $news->refresh();
+        $news->load('project');
+        $this->notifications->newsCommentAdded($actor, $news, $comment);
+
+        return $comment;
     }
 
     public function deleteComment(User $actor, News $news, Comment $comment): void

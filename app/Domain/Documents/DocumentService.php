@@ -6,6 +6,7 @@ use App\Domain\Acl\PermissionService;
 use App\Domain\Attachments\AttachmentService;
 use App\Domain\Attachments\AttachmentThumbnailRenderer;
 use App\Domain\DomainException;
+use App\Domain\Notifications\ModuleNotifier;
 use App\Domain\PermissionDeniedException;
 use App\Models\Attachment;
 use App\Models\CustomValue;
@@ -33,6 +34,7 @@ final class DocumentService
         private readonly PermissionService $permissions,
         private readonly AttachmentService $attachments,
         private readonly AttachmentThumbnailRenderer $thumbnails,
+        private readonly ModuleNotifier $notifications,
     ) {}
 
     public function create(
@@ -55,8 +57,11 @@ final class DocumentService
             'title' => $this->title($title),
         ]);
         $document->save();
+        $fresh = $document->refresh();
+        $fresh->load('project');
+        $this->notifications->documentAdded($actor, $fresh);
 
-        return $document->refresh();
+        return $fresh;
     }
 
     public function update(

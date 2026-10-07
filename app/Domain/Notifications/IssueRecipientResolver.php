@@ -48,7 +48,7 @@ final class IssueRecipientResolver
         $authorIds = $this->principalIds($issue->author_id);
         $assigneeIds = $this->principalIds($issue->assigned_to_id);
         $previousIds = $previousAssigneeId === null ? [] : $this->principalIds($previousAssigneeId);
-        $watcherIds = $this->watcherIds($issue);
+        $watcherIds = $this->watchableIds('Issue', (int) $issue->id);
         $projectIds = $this->projectLevelIds($project);
 
         /** @var array<int, true> $ids */
@@ -103,6 +103,77 @@ final class IssueRecipientResolver
                 ? $preference->others
                 : null;
             $decoded = $this->preferences->decode($stored);
+            if (($decoded['no_self_notified'] ?? false) === true && $userId === (int) $actor->id) {
+                continue;
+            }
+            $selected[] = $user;
+        }
+
+        return $selected;
+    }
+
+    /**
+     * Members who receive a project event, plus watchers of one news row.
+     *
+     * `all` members and `selected` members with the membership checkbox are included.
+     * A group that is `all`, or whose membership checkbox is on, adds its users.
+     * `only_my_events`, `only_assigned`, and `only_owner` are included only as watchers.
+     * The user must be allowed `$viewPermission`. `no_self_notified` drops the actor.
+     *
+     * @return list<User>
+     */
+    public function projectEventRecipients(
+        User $actor,
+        Project $project,
+        string $viewPermission,
+        ?string $watchableType,
+        ?int $watchableId,
+    ): array {
+        $projectIds = $this->projectLevelIds($project);
+        $watcherIds = $watchableType !== null && $watchableId !== null
+            ? $this->watchableIds($watchableType, $watchableId)
+            : [];
+
+        /** @var array<int, true> $ids */
+        $ids = [];
+        foreach ([...$projectIds, ...$watcherIds] as $id) {
+            $ids[$id] = true;
+        }
+        if ($ids === []) {
+            return [];
+        }
+
+        $users = User::query()
+            ->whereIn('id', array_keys($ids))
+            ->where('type', User::TYPE_USER)
+            ->where('status', User::STATUS_ACTIVE)
+            ->orderBy('id')
+            ->get();
+
+        $preferenceRows = UserPreference::query()
+            ->whereIn('user_id', array_keys($ids))
+            ->get()
+            ->keyBy(fn (UserPreference $row): int => (int) $row->user_id);
+
+        $selected = [];
+        foreach ($users as $user) {
+            $userId = (int) $user->id;
+            if (! $this->permissions->allowed($user, $viewPermission, $project)) {
+                continue;
+            }
+            $preference = (string) $user->mail_notification;
+            if ($preference === '' || $preference === 'none' || ! MailNotification::valid($preference)) {
+                continue;
+            }
+            $projectLevel = in_array($userId, $projectIds, true);
+            $watcher = in_array($userId, $watcherIds, true);
+            if (! $projectLevel && ! $watcher) {
+                continue;
+            }
+            $stored = $preferenceRows->get($userId);
+            $decoded = $this->preferences->decode(
+                $stored instanceof UserPreference && is_string($stored->others) ? $stored->others : null,
+            );
             if (($decoded['no_self_notified'] ?? false) === true && $userId === (int) $actor->id) {
                 continue;
             }
@@ -220,17 +291,17 @@ final class IssueRecipientResolver
     /**
      * @return list<int>
      */
-    private function watcherIds(Issue $issue): array
+    private function watchableIds(string $type, int $id): array
     {
         $rows = Watcher::query()
-            ->where('watchable_type', 'Issue')
-            ->where('watchable_id', $issue->id)
+            ->where('watchable_type', $type)
+            ->where('watchable_id', $id)
             ->orderBy('id')
             ->pluck('user_id');
         $ids = [];
-        foreach ($rows as $id) {
-            if (is_numeric($id)) {
-                $ids[] = (int) $id;
+        foreach ($rows as $userId) {
+            if (is_numeric($userId)) {
+                $ids[] = (int) $userId;
             }
         }
 

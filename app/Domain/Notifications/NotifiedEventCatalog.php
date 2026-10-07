@@ -5,8 +5,8 @@ namespace App\Domain\Notifications;
 /**
  * Core notification event names.
  *
- * Issue events are emitted by this tree. News, document, file, message, and
- * wiki events are named so the setting can store them, and nothing here
+ * Issue, news, document, and file events are emitted by this tree. Message
+ * and wiki events are named so the setting can store them, and nothing here
  * sends those messages.
  */
 final class NotifiedEventCatalog
@@ -92,17 +92,13 @@ final class NotifiedEventCatalog
     }
 
     /**
-     * Modules that are not built. Storing the name does not send mail.
+     * Events this tree stores and does not send.
      *
      * @return list<string>
      */
     public static function unbuilt(): array
     {
         return [
-            self::NEWS_ADDED,
-            self::NEWS_COMMENT_ADDED,
-            self::DOCUMENT_ADDED,
-            self::FILE_ADDED,
             self::MESSAGE_POSTED,
             self::WIKI_CONTENT_ADDED,
             self::WIKI_CONTENT_UPDATED,
