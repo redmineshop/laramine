@@ -8,7 +8,7 @@ MIT Laravel project-management core, clean-room relative to Redmine. Full pointe
 - Before a PR: `composer lint` (Pint `--test`), `composer stan` (Larastan level 8, no baseline), `composer test` (PHPUnit Unit, Feature, and Parity). CI in `.github/workflows/ci.yml` must stay green. Do not weaken it.
 - Clean-room: reimplement from Redmine 7.0.1 behavior and schema semantics. Never add GPLv2 Ruby, ERB, JS, or upstream tests to the tree. Structure dump for reference only: `docs/sources/redmine-7.0.1-schema.rb`.
 - Parity is **NOT VERIFIED** (`docs/parity-checklist.md`). `tests/Parity` is a boot smoke test. Do not mark a row VERIFIED without a fixture-backed Parity test and an evidence path. Do not call the project production-ready.
-- HTTP API, wiki, SCM, forums, news, and webhooks are out of the current slice. Issue journals are written on update and relation add; see `docs/domain.md` and `docs/journals-parity-gate.md`. Projects, membership, workflow, and issues have an MVP smoke in `docs/acl-workflow-parity-gate.md`. Parity remains **NOT VERIFIED**. Neither gate is a 0.1 tag. Say so if you touch those edges.
+- HTTP API, wiki, SCM, forums, news, and webhooks are out of the current slice. Issue journals are written on update and relation add. Quote, edit, and delete of a note also write; see `docs/domain.md` and `docs/journals-parity-gate.md`. Projects, membership, workflow, and issues have an MVP smoke in `docs/acl-workflow-parity-gate.md`. Parity remains **NOT VERIFIED**. Neither gate is a 0.1 tag. Say so if you touch those edges.
 
 ## Where code lives
 
