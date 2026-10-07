@@ -100,6 +100,8 @@ HTTP, session middleware. Sign-in does not use Inertia. `GET /` is the Inertia h
 | `GET /login` | Blade sign-in form |
 | `POST /login` | Session sign-in. JSON returns the id and login. A form posts back to `/` on success. |
 | `POST /logout` | Invalidates the session |
+| `GET /custom-fields/attachments/{id}` | Authorized download of a custom-field attachment. Uses the session user when one is present. A guest is allowed only when the host is visible to Anonymous. Does not sign anyone in. |
+| `GET /custom-fields/links/{id}` | Authorized resolution of a link custom value. Same actor rule. Does not request the remote URL. |
 
 Failed sign-in, unknown identifier, wrong password, inactive status, anonymous or group type, external auth, and two-factor all return the same message: “Invalid user or password.” The domain decision distinguishes them for tests. Empty login or password is a validation error. A signed-in user whose row no longer passes the session gate is signed out on the next request.
 
