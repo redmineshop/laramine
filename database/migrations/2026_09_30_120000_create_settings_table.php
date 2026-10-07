@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('settings', function (Blueprint $table) {
             $table->integer('id', autoIncrement: true);
             $table->string('name')->default('');
-            $table->dateTime('updated_on')->nullable();
+            // The structure dump omits precision: nil, so this column uses fractional seconds.
+            $table->dateTime('updated_on', 6)->nullable();
             $table->text('value')->nullable();
 
             $table->index('name', 'index_settings_on_name');

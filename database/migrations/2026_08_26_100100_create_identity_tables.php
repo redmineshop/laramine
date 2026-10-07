@@ -31,7 +31,8 @@ return new class extends Migration
             $table->integer('id', autoIncrement: true);
             $table->string('action', 30)->default('');
             $table->dateTime('created_on');
-            $table->dateTime('updated_on')->nullable();
+            // The structure dump omits precision: nil, so this column uses fractional seconds.
+            $table->dateTime('updated_on', 6)->nullable();
             $table->integer('user_id')->default(0);
             $table->string('value', 40)->default('');
 

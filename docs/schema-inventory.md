@@ -459,7 +459,7 @@ erDiagram
 | Query operator matrix | **P0b** |
 | Permission name list + workflow field rules matrix | **P0c** |
 | DB-level FK constraints | Redmine historically relies on app-level FKs; dump may show few `add_foreign_key` except newer OAuth tables — treat logical FKs above as source of truth for Eloquent |
-| Adapter differences | Dump from SQLite; Postgres/MySQL types/indexes may differ slightly (e.g. `lower(login)` expression index) — validate on target DB in P1 |
+| Adapter differences | Dump from SQLite. MySQL 8 layout for the 41 P0 tables plus `settings` is compared by `tests/Parity/SchemaLayoutParityTest.php` to this dump. Intentional differences are the table under Laramine migration notes. SCM tables stay out of that compare |
 
 ---
 
@@ -476,6 +476,8 @@ erDiagram
 
 Migrations in this repository create the **P0** tables (41) plus `settings`, and the three SCM tables the issue history revisions tab reads: `repositories`, `changesets`, and `changesets_issues`. Wiki (P1), the rest of SCM (`changes`, `changeset_parents`), forums, news, and `webhooks` / `projects_webhooks` are omitted.
 
+`tests/Parity/SchemaLayoutParityTest.php` compares the migrated MySQL 8 layout of those 41 tables plus `settings` to [`sources/redmine-7.0.1-schema.rb`](sources/redmine-7.0.1-schema.rb). The test also loads `tests/Parity/fixtures/redmine-7.0.1/`. Repository, git, and SCM tables are not part of that compare. A pass marks only the schema row in [parity-checklist.md](parity-checklist.md). It is not a 0.1 tag.
+
 PHPUnit and GitHub Actions apply these migrations on **MySQL 8**. SQLite is an optional local smoke path and is not the authoritative test database.
 
 Eloquent models map the P0 tables. Polymorphic relations are declared, but there is no morph map yet, so Eloquent would persist PHP class names. Rows written with an explicit `*_type` string (for example `Issue`) keep that string. Do not ETL polymorphic type columns through Eloquent until the map is pinned. `type` STI columns are plain strings; PHP subclasses are not mapped.
@@ -491,7 +493,7 @@ Eloquent models map the P0 tables. Polymorphic relations are declared, but there
 | Primary keys | Signed 32-bit integer | `$table->integer('id', autoIncrement: true)` (signed integer, not Laravel `bigIncrements`) |
 | `attachments.filesize` (`limit: 8`) | 8-byte integer | MySQL `BIGINT`. SQLite stores integer affinity |
 | String lengths | `varchar(n)` | Kept on MySQL. SQLite's Laravel grammar emits `varchar` without a length |
-| Datetime precision | `precision: nil` on most Redmine columns; OAuth and `reactions` use the adapter default (fractional seconds) | `dateTime` precision 0, except OAuth and `reactions` at precision 6. SQLite ignores fractional precision |
+| Datetime precision | `precision: nil` means no fractional seconds. Columns that omit `precision: nil` use the adapter default (fractional seconds): OAuth timestamps, `reactions`, `tokens.updated_on`, `settings.updated_on`, `repositories.created_on`, and webhook timestamps | `dateTime` precision 0 where the dump says `precision: nil`. Precision 6 on compared columns that omit it (OAuth, `reactions`, `tokens.updated_on`, `settings.updated_on`). `repositories.created_on` stays precision 0 because that SCM table is outside the layout compare. SQLite ignores fractional precision |
 | `float` | `t.float` | SQL `FLOAT` with no precision argument (Laravel's default precision of 53 is not used) |
 | `index_users_on_lower_login` | Expression index on lower(login) | Same expression on SQLite. MySQL 8 and MariaDB use a parenthesized functional index so the server accepts it |
 | Booleans | Boolean | Laravel boolean (`tinyint(1)` on MySQL) |

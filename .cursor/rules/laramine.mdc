@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Laramine
 
-Early MIT Laravel core. Domain goal is Redmine 7.0.1 semantics, reimplemented in original PHP. Read `AGENTS.md` before a large change. Every row in `docs/parity-checklist.md` is **NOT VERIFIED**. Do not describe the project as production-ready.
+Early MIT Laravel core. Domain goal is Redmine 7.0.1 semantics, reimplemented in original PHP. Read `AGENTS.md` before a large change. The P0 table and column layout row in `docs/parity-checklist.md` is **VERIFIED** by the schema compare. Every other row is **NOT VERIFIED**. Do not describe the project as production-ready.
 
 ## Architecture
 

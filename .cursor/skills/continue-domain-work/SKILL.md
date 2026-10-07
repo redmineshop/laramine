@@ -13,7 +13,7 @@ Use this when extending issues, issue queries, or custom fields. The source of t
    - Issues, workflow, permissions, project tree: `docs/domain.md`
    - Custom fields: `docs/custom-fields.md`
    - Queries and operators: `docs/queries.md`
-2. Read `docs/parity-checklist.md`. Every P0 row is **NOT VERIFIED**. Leave it that way unless you add a real comparison (see below).
+2. Read `docs/parity-checklist.md`. The P0 table and column layout row is **VERIFIED** by `tests/Parity/SchemaLayoutParityTest.php`. Every other P0 row is **NOT VERIFIED**. Leave those rows that way unless you add a real comparison (see below). The schema row does not verify issues, queries, or custom fields.
 3. Read the service you will change and one existing test that already covers a neighbor behavior.
 4. Do not copy Redmine Ruby or other GPLv2 source. Reimplement from the semantic notes already in `docs/`. If you need a new semantic detail, write it in your own words in the doc.
 
@@ -69,7 +69,7 @@ Change a `docs/parity-checklist.md` row to **VERIFIED** only when all of these a
 - the checklist **Evidence** cell cites that test and the fixture or expectation path
 - the pull request does not say the whole product matches Redmine
 
-`tests/Parity/Redmine701FixtureHarnessTest.php` only proves the pin loads on MySQL 8. It does not satisfy the rules above.
+`tests/Parity/Redmine701FixtureHarnessTest.php` only proves the pin loads on MySQL 8. It does not satisfy the rules above. `tests/Parity/SchemaLayoutParityTest.php` is the structure compare for the schema row. It does not satisfy the rules for a behavior row.
 
 Otherwise leave **NOT VERIFIED**. **INCONCLUSIVE** is for a comparison that ran and did not decide, with the evidence path filled in. Do not use it as a soft pass.
 
