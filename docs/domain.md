@@ -66,12 +66,14 @@ Tracked details use `journal_details.property = attr` and `prop_key` set to the 
 `IssueHistoryPresenter` is the issue-show view model. It is not an HTTP response.
 
 - Zero visible journals: no History block and no tab labels.
-- Otherwise the labels are History, Notes, and Property changes. History lists every visible journal. The Notes and Property changes tabs are labels only. Their filters are not implemented.
-- Anchors are `#1`, `#2`, … in visible order. They are not `journals.id`. No fragment href is assigned.
+- Otherwise History is listed. Notes is listed when any visible journal has note text. Property changes is listed when any visible journal has a `journal_details` row. A journal with neither is History only.
+- History lists every visible journal. The Notes tab keeps journals with note text, including a journal that also has details, and it keeps those property lines. A detail-only journal is omitted. The Property changes tab keeps journals that have details, including a journal that also has a note. On that tab the note text is omitted and the only header control is reaction.
+- Anchors are `#1`, `#2`, … in visible order. They are not `journals.id`. The href is `#note-n` for that same index.
 - An attribute with both values reads `{label} changed from {old} to {new}`. The HTML line wraps those two values in `em`. Status uses the status name. Done ratio uses the integer string. A missing old value reads `set to`. A missing new value reads `deleted`.
 - A `relates` detail reads `Related to {tracker} #{id}: {subject} added`. That line is not italicized.
 - Note text is escaped. A textile `*emphasis*` span becomes `em`. Other textile marks stay plain text.
-- A journal with note text exposes reaction (`thumbs-up`), quote, edit (pencil), and more (`⋯`). A journal without note text exposes reaction and more only. Those controls do not change rows and are not filtered by `edit_issue_notes`.
+- On History and Notes, a journal with note text exposes reaction (`thumbs-up`). Quote is added when the actor has `add_issue_notes`. Edit (pencil) is added when the actor has `edit_issue_notes`, or `edit_own_issue_notes` and `journals.user_id` is that actor. More (`⋯`) is always on those two tabs. A journal without note text exposes reaction and more only.
+- The more menu lists Copy link, then Delete when edit is allowed for that note. Copy link carries the same `#note-n` fragment as the anchor. Download all files is not listed. Quote, edit, and Delete do not change rows.
 - After `IssueService::update` returns, the caller passes `justUpdated: true`. The show model then carries the flash `✓ Successful update.` with tone `green`.
 - The notes fieldset is present when the actor can add a note or edit the issue. The Private notes checkbox is present only with `set_notes_private`, and the form leaves it unchecked.
 
@@ -108,9 +110,10 @@ No workflow matrix is seeded, because statuses and trackers are not created by t
 - Archived and closed project statuses are not special-cased.
 - Relation-add journals are written on the source issue only. The other issue does not get a row.
 - A private journal stays hidden from its author when that user lacks `view_private_notes`.
-- Notes and Property changes tabs are labels only. Their filters are not implemented.
-- Quote, edit, and the journal more control are presence markers. They are not permission-filtered and they do not change rows.
-- Anchor labels are display order. No fragment href is stored.
+- Quote, edit, and Delete do not write journal rows. Editing or deleting a note is not implemented.
+- Copy link carries the `#note-n` fragment. There is no issue URL, because the HTTP API is not in this slice.
+- The Notes tab does not keep a detail-only journal for thumbnail attachments. Journal file thumbnails are not implemented.
+- The journal menu does not list Download all files.
 - Custom field workflow failures use `CustomFieldValidationException`. Core field workflow failures still use `WorkflowDeniedException`.
 
 ## Queries

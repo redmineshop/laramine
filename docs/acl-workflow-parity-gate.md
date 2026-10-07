@@ -77,7 +77,7 @@ These checks already pass in existing tests. This change does not rewrite them.
 | `copy_issues`, import, watchers, categories | **Open.** Names exist in the catalog. No write service. |
 | Close / reopen blockers | **Open.** Relations, open subtasks, and a closed parent do not block a transition. |
 | Users auth pack, HTTP, front end, MCP | **Open.** Not part of this slice. |
-| Journal Block C | **Open.** See [journals-parity-gate.md](journals-parity-gate.md). |
+| Journal Block C criteria 16–19 | **Covered by Laramine tests.** Parity is NOT VERIFIED. Edit and delete still do not write. See [journals-parity-gate.md](journals-parity-gate.md). |
 | Redmine parity VERIFIED, tag 0.1 | **Open.** Not claimed. |
 
 An open item does not authorize a parity-verified, production-ready, or 0.1 claim.

@@ -16,17 +16,18 @@ use App\Models\User;
 /**
  * Issue-show history, note rendering, and the private-notes checkbox.
  *
- * This is a view model for a later UI. It does not render HTTP.
- * Notes and Property changes tab contents are not filtered.
+ * This is a view model for a later UI. It does not render HTTP and it does
+ * not edit or delete journals. Quote, edit, and the more menu are markers.
  */
 final class IssueHistoryPresenter
 {
     public const SUCCESSFUL_UPDATE = '✓ Successful update.';
 
-    /**
-     * @var list<string>
-     */
-    public const TAB_LABELS = ['History', 'Notes', 'Property changes'];
+    public const TAB_HISTORY = 'History';
+
+    public const TAB_NOTES = 'Notes';
+
+    public const TAB_PROPERTIES = 'Property changes';
 
     /**
      * @var array<string, string>
@@ -74,17 +75,94 @@ final class IssueHistoryPresenter
         }
 
         $entries = $this->entries($actor, $issue, $project);
-        $visible = $entries !== [];
+        [$notes, $properties] = $this->tabEntries($entries);
 
         return new IssueShowView(
-            $visible,
-            $visible ? self::TAB_LABELS : [],
+            $entries !== [],
+            $this->tabLabels($entries),
             $entries,
+            $notes,
+            $properties,
             $this->showsNotesFieldset($actor, $issue, $project),
             $this->permissions->allowed($actor, 'set_notes_private', $project),
             false,
             $justUpdated ? self::SUCCESSFUL_UPDATE : null,
             $justUpdated ? 'green' : null,
+        );
+    }
+
+    /**
+     * @param  list<JournalEntryView>  $entries
+     * @return list<string>
+     */
+    private function tabLabels(array $entries): array
+    {
+        if ($entries === []) {
+            return [];
+        }
+
+        $hasNotes = false;
+        $hasDetails = false;
+        foreach ($entries as $entry) {
+            $hasNotes = $hasNotes || $entry->hasNote;
+            $hasDetails = $hasDetails || $entry->hasDetails;
+        }
+
+        $labels = [self::TAB_HISTORY];
+        if ($hasNotes) {
+            $labels[] = self::TAB_NOTES;
+        }
+        if ($hasDetails) {
+            $labels[] = self::TAB_PROPERTIES;
+        }
+
+        return $labels;
+    }
+
+    /**
+     * Notes keeps journals with note text. Property changes keeps journals
+     * that stored a detail, and drops the note body plus every control except
+     * reaction.
+     *
+     * @param  list<JournalEntryView>  $entries
+     * @return array{0: list<JournalEntryView>, 1: list<JournalEntryView>}
+     */
+    private function tabEntries(array $entries): array
+    {
+        $notes = [];
+        $properties = [];
+        foreach ($entries as $entry) {
+            if ($entry->hasNote) {
+                $notes[] = $entry;
+            }
+            if ($entry->hasDetails) {
+                $properties[] = $this->propertyTabEntry($entry);
+            }
+        }
+
+        return [$notes, $properties];
+    }
+
+    private function propertyTabEntry(JournalEntryView $entry): JournalEntryView
+    {
+        $actions = [];
+        foreach ($entry->actions as $action) {
+            if ($action->key === 'reaction') {
+                $actions[] = $action;
+            }
+        }
+
+        return new JournalEntryView(
+            $entry->journalId,
+            $entry->anchorLabel,
+            $entry->anchorHref,
+            $entry->hasNote,
+            null,
+            null,
+            $entry->propertyChanges,
+            $actions,
+            $entry->privateNotes,
+            $entry->hasDetails,
         );
     }
 
@@ -105,7 +183,7 @@ final class IssueHistoryPresenter
             if (! $this->visible($actor, $project, (bool) $journal->private_notes)) {
                 continue;
             }
-            $entries[] = $this->entry($journal, count($entries) + 1);
+            $entries[] = $this->entry($actor, $project, $journal, count($entries) + 1);
         }
 
         return $entries;
@@ -121,11 +199,12 @@ final class IssueHistoryPresenter
         return $this->permissions->allowed($actor, 'view_private_notes', $project);
     }
 
-    private function entry(Journal $journal, int $displayNumber): JournalEntryView
+    private function entry(User $actor, Project $project, Journal $journal, int $displayNumber): JournalEntryView
     {
         $noteText = is_string($journal->notes) && trim($journal->notes) !== '' ? $journal->notes : null;
         $hasNote = $noteText !== null;
         $noteHtml = $noteText === null ? null : $this->textile->render($noteText);
+        $hasDetails = $journal->details->isNotEmpty();
         $lines = [];
         foreach ($journal->details->sortBy('id') as $detail) {
             $line = $this->line($detail);
@@ -134,16 +213,35 @@ final class IssueHistoryPresenter
             }
         }
 
+        $anchorHref = '#note-'.$displayNumber;
+
         return new JournalEntryView(
             (int) $journal->id,
             '#'.$displayNumber,
+            $anchorHref,
             $hasNote,
             $noteText,
             $noteHtml,
             $lines,
-            $this->actions->forJournal($hasNote),
+            $this->actions->forJournal(
+                $hasNote,
+                $hasNote && $this->permissions->allowed($actor, 'add_issue_notes', $project),
+                $hasNote && $this->canEditJournalNote($actor, $project, $journal),
+                $anchorHref,
+            ),
             (bool) $journal->private_notes,
+            $hasDetails,
         );
+    }
+
+    private function canEditJournalNote(User $actor, Project $project, Journal $journal): bool
+    {
+        if ($this->permissions->allowed($actor, 'edit_issue_notes', $project)) {
+            return true;
+        }
+
+        return (int) $journal->user_id === (int) $actor->id
+            && $this->permissions->allowed($actor, 'edit_own_issue_notes', $project);
     }
 
     private function line(JournalDetail $detail): ?JournalPropertyLine

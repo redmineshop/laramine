@@ -21,7 +21,7 @@ use Tests\TestCase;
 /**
  * S1 journals smoke for Block A (1–12) and Block B (13–15).
  *
- * Block C (16–19) is capture debt. This file does not assert it and does not
+ * Block C (16–19) is covered by IssueJournalBlockCTest. This file does not
  * compare the rows to a Redmine 7.0.1 database. Parity stays NOT VERIFIED.
  */
 class IssueJournalSmokeTest extends TestCase
