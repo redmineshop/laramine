@@ -28,8 +28,8 @@ use Tests\TestCase;
  *
  * A created row is included in the existing IssueQuery `spent_hours` total.
  * That total's visibility stays with the query depth slice. This is Laramine
- * behavior on MySQL. It does not compare rows with a Redmine 7.0.1 database.
- * Parity stays NOT VERIFIED.
+ * behavior on MySQL. It does not compare rows with the shared pin.
+ * That comparison is `tests/Parity/TimeEntryParityTest.php`.
  */
 class TimeEntryWriteTest extends TestCase
 {

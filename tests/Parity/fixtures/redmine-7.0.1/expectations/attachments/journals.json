@@ -1,0 +1,39 @@
+{
+    "added": {
+        "property": "attachment",
+        "value": "shot.png",
+        "old_value": null,
+        "issue_id": 1
+    },
+    "removed": {
+        "property": "attachment",
+        "old_value": "shot.png",
+        "value": null,
+        "issue_id": 1
+    },
+    "deny": {
+        "login": "ada",
+        "relation_id": 1,
+        "permission": "manage_issue_relations"
+    },
+    "deletes": [
+        {
+            "relation_id": 1,
+            "login": "admin",
+            "user_id": 2,
+            "details": [
+                {"issue_id": 6, "property": "relation", "prop_key": "blocks", "old_value": "4", "value": null},
+                {"issue_id": 4, "property": "relation", "prop_key": "blocked", "old_value": "6", "value": null}
+            ]
+        },
+        {
+            "relation_id": 3,
+            "login": "admin",
+            "user_id": 2,
+            "details": [
+                {"issue_id": 2, "property": "relation", "prop_key": "relates", "old_value": "1", "value": null},
+                {"issue_id": 1, "property": "relation", "prop_key": "relates", "old_value": "2", "value": null}
+            ]
+        }
+    ]
+}

@@ -55,9 +55,13 @@ final class JournalHistoryLines
     private const RELATION_LABELS = [
         'relates' => 'Related to',
         'blocks' => 'Blocks',
+        'blocked' => 'Blocked by',
         'duplicates' => 'Duplicates',
+        'duplicated' => 'Duplicated by',
         'precedes' => 'Precedes',
+        'follows' => 'Follows',
         'copied_to' => 'Copied to',
+        'copied_from' => 'Copied from',
     ];
 
     public function __construct(

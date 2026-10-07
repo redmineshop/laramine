@@ -6,6 +6,7 @@ use App\Domain\Acl\MembershipService;
 use App\Domain\Acl\PermissionService;
 use App\Domain\DomainException;
 use App\Domain\PermissionDeniedException;
+use App\Domain\TimeEntries\TimeEntryQueryRunner;
 use App\Models\Issue;
 use App\Models\Project;
 use App\Models\Query;
@@ -31,6 +32,7 @@ final class SavedQueryService
         private readonly IssueQuerySort $sort,
         private readonly IssueQueryTotals $totals,
         private readonly UserQueryCatalog $userQueries,
+        private readonly TimeEntryQueryRunner $timeEntries,
     ) {}
 
     /**
@@ -56,6 +58,7 @@ final class SavedQueryService
         $columns = array_key_exists('column_names', $attributes)
             ? QueryPayload::columnNames($attributes['column_names'])
             : null;
+        $this->assertTimeEntryColumns($type, $columns, $actor, $project);
         $sort = array_key_exists('sort_criteria', $attributes)
             ? QueryPayload::sort($attributes['sort_criteria'])
             : null;
@@ -123,6 +126,7 @@ final class SavedQueryService
         $columns = array_key_exists('column_names', $attributes)
             ? QueryPayload::columnNames($attributes['column_names'])
             : QueryPayload::columnNames($query->column_names);
+        $this->assertTimeEntryColumns($type, $columns, $actor, $project);
         $sort = array_key_exists('sort_criteria', $attributes)
             ? QueryPayload::sort($attributes['sort_criteria'])
             : QueryPayload::sort($query->sort_criteria);
@@ -283,7 +287,11 @@ final class SavedQueryService
 
             return;
         }
+        if ($type === QueryType::TIME_ENTRY) {
+            $this->timeEntries->assertStored($filters, null, null, null, $actor, $project);
 
+            return;
+        }
         if ($type !== QueryType::ISSUE) {
             if ($filters !== []) {
                 throw new QueryValidationException('Only IssueQuery filters are implemented.');
@@ -306,12 +314,29 @@ final class SavedQueryService
      */
     private function assertOptions(string $type, ?array $options, User $actor, ?Project $project): void
     {
+        if ($type === QueryType::TIME_ENTRY) {
+            $this->timeEntries->assertStored([], null, null, $options, $actor, $project);
+
+            return;
+        }
         if ($type !== QueryType::ISSUE) {
             return;
         }
 
         IssueQueryDisplay::resolve($options);
         $this->totals->columns($options, $actor, $project);
+    }
+
+    /**
+     * @param  list<string>|null  $columns
+     */
+    private function assertTimeEntryColumns(string $type, ?array $columns, User $actor, ?Project $project): void
+    {
+        if ($type !== QueryType::TIME_ENTRY) {
+            return;
+        }
+
+        $this->timeEntries->assertStored([], $columns, null, null, $actor, $project);
     }
 
     /**
@@ -327,6 +352,11 @@ final class SavedQueryService
             foreach ($sort as [$column]) {
                 $this->userQueries->assertSortColumn($column);
             }
+
+            return;
+        }
+        if ($type === QueryType::TIME_ENTRY) {
+            $this->timeEntries->assertStored([], null, $sort, null, $actor, $project);
 
             return;
         }
@@ -545,6 +575,9 @@ final class SavedQueryService
             $this->userQueries->assertSortColumn($value);
 
             return $value;
+        }
+        if ($type === QueryType::TIME_ENTRY) {
+            throw new QueryValidationException('Time entry queries do not group rows.');
         }
 
         $this->sort->assertAvailable($value, $type, $actor, $project);

@@ -11,9 +11,10 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Adds an issue relation and a relation-add journal on the source issue.
+ * Adds and removes issue relations.
  *
- * The other issue does not receive a journal in this slice.
+ * An added relation journals the source issue only. A removed relation
+ * journals both issues. The other issue stores the reverse relation type.
  */
 final class IssueRelationService
 {
@@ -26,6 +27,17 @@ final class IssueRelationService
         'duplicates',
         'precedes',
         'copied_to',
+    ];
+
+    /**
+     * @var array<string, string>
+     */
+    private const REVERSE = [
+        'relates' => 'relates',
+        'blocks' => 'blocked',
+        'duplicates' => 'duplicated',
+        'precedes' => 'follows',
+        'copied_to' => 'copied_from',
     ];
 
     public function __construct(
@@ -61,6 +73,41 @@ final class IssueRelationService
             $this->journals->recordRelationAdded($actor, $from, $to, $type);
 
             return $relation;
+        });
+    }
+
+    public function remove(User $actor, IssueRelation $relation): void
+    {
+        $from = Issue::query()->find($relation->issue_from_id);
+        $to = Issue::query()->find($relation->issue_to_id);
+        if (! $from instanceof Issue || ! $to instanceof Issue) {
+            throw new DomainException('Relation issue does not exist.');
+        }
+        $project = $from->project;
+        if ($project === null) {
+            throw new DomainException('Issue has no project.');
+        }
+        if (! $this->permissions->allowed($actor, 'manage_issue_relations', $project)) {
+            throw new PermissionDeniedException('manage_issue_relations');
+        }
+        $type = (string) $relation->relation_type;
+        if (! isset(self::REVERSE[$type])) {
+            throw new DomainException('Relation type is not supported.');
+        }
+
+        DB::transaction(function () use ($actor, $relation, $from, $to): void {
+            $locked = IssueRelation::query()->whereKey($relation->id)->lockForUpdate()->first();
+            if (! $locked instanceof IssueRelation) {
+                throw new DomainException('Relation does not exist.');
+            }
+            $lockedType = (string) $locked->relation_type;
+            $reverse = self::REVERSE[$lockedType] ?? null;
+            if ($reverse === null) {
+                throw new DomainException('Relation type is not supported.');
+            }
+            $locked->delete();
+            $this->journals->recordRelationRemoved($actor, $from, $lockedType, (int) $to->id);
+            $this->journals->recordRelationRemoved($actor, $to, $reverse, (int) $from->id);
         });
     }
 

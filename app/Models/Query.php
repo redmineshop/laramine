@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 /**
  * Redmine 7.0.1 `queries` row.
  *
- * `type` is the STI name (`IssueQuery`, and stubs for the other query classes).
+ * `type` is the STI name. IssueQuery and TimeEntryQuery are executed. The other names are stubs.
  * `filters`, `column_names`, `sort_criteria`, and `options` are JSON text.
  * A legacy YAML dump is accepted on read and rewritten as JSON on the next save.
  */

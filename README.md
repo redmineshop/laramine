@@ -90,7 +90,7 @@ GitHub Actions runs Pint, PHPStan, and the full PHPUnit suite on MySQL 8 for eve
 
 Coding agents: start at [AGENTS.md](AGENTS.md). Cursor rules are in `.cursor/rules/`. The skill for issues, queries, and custom fields is `.cursor/skills/continue-domain-work/SKILL.md`. Copilot instructions are in `.github/copilot-instructions.md`.
 
-The P0 schema layout, users and authentication, identity, projects nested-set, workflows, custom fields, queries, and journals rows in [docs/parity-checklist.md](docs/parity-checklist.md) are **VERIFIED** by the tests named there. Every other P0 row is **NOT VERIFIED**. [QUALITY.md](QUALITY.md) still lists the v1 ship checklist as open. Community count definitions, separate from product status, are in [docs/community-metrics.md](docs/community-metrics.md).
+The P0 schema layout, users and authentication, identity, projects nested-set, workflows, custom fields, queries, journals, and time entries and attachments rows in [docs/parity-checklist.md](docs/parity-checklist.md) are **VERIFIED** by the tests named there. Every other P0 row is **NOT VERIFIED**. [QUALITY.md](QUALITY.md) still lists the v1 ship checklist as open. Community count definitions, separate from product status, are in [docs/community-metrics.md](docs/community-metrics.md).
 
 ## License
 

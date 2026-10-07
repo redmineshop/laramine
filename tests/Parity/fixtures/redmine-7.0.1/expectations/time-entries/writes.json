@@ -1,0 +1,111 @@
+{
+    "clock": {
+        "hours": "1:30",
+        "spent_on": "2026-10-01",
+        "issue_id": 1,
+        "comments": "Clock",
+        "activity_id": 3,
+        "row": {
+            "project_id": 1,
+            "issue_id": 1,
+            "user_id": 1,
+            "author_id": 1,
+            "activity_id": 3,
+            "hours": "1.5000",
+            "comments": "Clock",
+            "spent_on": "2026-10-01",
+            "tyear": 2026,
+            "tmonth": 10,
+            "tweek": 40
+        }
+    },
+    "parses": [
+        {"hours": "1,5", "stored": "1.5000"},
+        {"hours": "2h15m", "stored": "2.2500"},
+        {"hours": "45m", "stored": "0.7500"}
+    ],
+    "reject_hours": [
+        {"hours": "0", "message": "Hours must be a number greater than zero."},
+        {"hours": "no", "message": "Hours must be a number greater than zero."}
+    ],
+    "deny_log": {"login": "finn", "permission": "log_time"},
+    "closed": {"status": 5, "permission": "log_time", "logins": ["ada", "admin"]},
+    "archived": {"status": 9, "permission": "log_time", "logins": ["ada", "admin"]},
+    "other_project": {"issue_id": 5, "message": "Issue is not in this project."},
+    "missing_activity": {"message": "Activity is not a time entry activity."},
+    "inactive_activity": {"message": "Activity is not available on this project."},
+    "required_json": "[\"issue_id\",\"comments\",\"activity_id\"]",
+    "required_yaml": "---\n- issue_id\n- comments\n- activity_id\n",
+    "required_messages": {
+        "issue_id": "Issue is required.",
+        "comments": "Comments are required."
+    },
+    "custom_field": {
+        "name": "Billing",
+        "value": "B-1",
+        "message": "Billing: Value is required.",
+        "customized_type": "TimeEntry"
+    },
+    "edit_denied": {"permission": "edit_time_entries"},
+    "own_comment": "Edited own",
+    "manager_comment": "Edited manager",
+    "reassign_permission": "log_time_for_other_users",
+    "remaining": [
+        {
+            "id": 2,
+            "project_id": 1,
+            "issue_id": 1,
+            "user_id": 4,
+            "author_id": 4,
+            "activity_id": 3,
+            "hours": "2.0000",
+            "comments": "Edited manager",
+            "spent_on": "2026-08-27",
+            "tyear": 2026,
+            "tmonth": 8,
+            "tweek": 35
+        },
+        {
+            "id": 3,
+            "project_id": 1,
+            "issue_id": 6,
+            "user_id": 1,
+            "author_id": 1,
+            "activity_id": 3,
+            "hours": "0.5000",
+            "comments": "Feature time",
+            "spent_on": "2026-08-27",
+            "tyear": 2026,
+            "tmonth": 8,
+            "tweek": 36
+        },
+        {
+            "id": 4,
+            "project_id": 2,
+            "issue_id": 5,
+            "user_id": 7,
+            "author_id": 7,
+            "activity_id": 3,
+            "hours": "3.0000",
+            "comments": "Child time",
+            "spent_on": "2026-08-27",
+            "tyear": 2026,
+            "tmonth": 8,
+            "tweek": 36
+        },
+        {
+            "id": 5,
+            "project_id": 1,
+            "issue_id": 1,
+            "user_id": 9,
+            "author_id": 9,
+            "activity_id": 3,
+            "hours": "1.0000",
+            "comments": "Own time",
+            "spent_on": "2026-08-27",
+            "tyear": 2026,
+            "tmonth": 8,
+            "tweek": 36
+        }
+    ]
+}

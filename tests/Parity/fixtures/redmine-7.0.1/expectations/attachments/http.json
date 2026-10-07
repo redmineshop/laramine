@@ -1,0 +1,99 @@
+{
+    "upload_filename": "shot.png",
+    "content_type": "image/png",
+    "issue_id": 1,
+    "bad_token_status": 422,
+    "bad_token_message": "Attachment token is invalid.",
+    "guest_status": 403,
+    "guest_message": "Sign in to upload a file.",
+    "outsider_login": "cleo",
+    "outsider_permission": "view_issues",
+    "download": {
+        "content_type": "image/png",
+        "disposition": "inline",
+        "filename": "shot.png",
+        "downloads": 0
+    },
+    "pdf": {
+        "filename": "note.pdf",
+        "content_type": "application/pdf",
+        "disposition": "inline",
+        "body": "pdf-bytes"
+    },
+    "binary": {
+        "filename": "payload.bin",
+        "content_type": "application/octet-stream",
+        "disposition": "attachment",
+        "body": "bin-bytes"
+    },
+    "private_issue": {
+        "issue_id": 4,
+        "filename": "secret.txt",
+        "body": "secret",
+        "content_type": "text/plain",
+        "denied_login": "ada",
+        "denied_permission": "view_issues",
+        "allowed_login": "bea"
+    },
+    "private_journal": {
+        "journal_id": 2,
+        "claim_permission": "view_private_notes",
+        "download_permission": "view_private_notes",
+        "allowed_login": "bea"
+    },
+    "public_journal": {
+        "journal_id": 8,
+        "permission": "edit_issue_notes"
+    },
+    "own_private_journal": {
+        "journal_id": 7,
+        "permission": "view_private_notes"
+    },
+    "second_claim_message": "Attachment token is invalid.",
+    "delete_detail": {
+        "property": "attachment",
+        "old_value": "shot.png",
+        "value": null
+    },
+    "thumbnail": {
+        "enabled": "1",
+        "size": 2,
+        "width": 2,
+        "height": 1,
+        "content_type": "image/png",
+        "disabled_value": "0",
+        "disabled_message": "Thumbnails are disabled.",
+        "unreadable_filename": "photo.jpg",
+        "unreadable_message": "Thumbnail image could not be read."
+    },
+    "project_file": {
+        "filename": "notes.txt",
+        "body": "hello",
+        "content_type": "text/plain",
+        "downloads_after": 1,
+        "denied_permission": "view_files"
+    },
+    "version_file": {
+        "version_id": 1,
+        "filename": "notes.txt",
+        "body": "version",
+        "content_type": "text/plain",
+        "downloads_after": 1
+    },
+    "max_size": {
+        "kilobytes": "1",
+        "too_large_bytes": 2000,
+        "too_large_message": "Attachment file is too large.",
+        "accepted_bytes": 100
+    },
+    "extensions": {
+        "allowed": "png,txt",
+        "rejected_filename": "file.pdf",
+        "rejected_message": "Attachment extension is not allowed.",
+        "denied": "exe",
+        "denied_filename": "virus.exe",
+        "allow_and_deny": "png,exe",
+        "allow_and_deny_filename": "tool.exe"
+    },
+    "empty_message": "Attachment file is empty."
+}

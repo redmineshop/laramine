@@ -40,6 +40,16 @@ final class SettingValue
 
     public const SESSION_TIMEOUT = 'session_timeout';
 
+    public const TIMESPAN_FORMAT = 'timespan_format';
+
+    public const TIMELOG_REQUIRED_FIELDS = 'timelog_required_fields';
+
+    public const ATTACHMENT_MAX_SIZE = 'attachment_max_size';
+
+    public const ATTACHMENT_EXTENSIONS_ALLOWED = 'attachment_extensions_allowed';
+
+    public const ATTACHMENT_EXTENSIONS_DENIED = 'attachment_extensions_denied';
+
     /**
      * Redmine `display_subprojects_issues` defaults to 1.
      */
@@ -140,6 +150,68 @@ final class SettingValue
     }
 
     /**
+     * `minutes` renders `h:mm`. `decimal` renders two fractional digits. Anything else is `minutes`.
+     */
+    public function timespanFormat(): string
+    {
+        $stored = $this->string(self::TIMESPAN_FORMAT);
+        if ($stored !== null && strtolower($stored) === 'decimal') {
+            return 'decimal';
+        }
+
+        return 'minutes';
+    }
+
+    /**
+     * Recognized timelog requirements are `issue_id` and `comments`.
+     *
+     * The stored value may be a JSON array, a comma-separated list, or a
+     * simple YAML list of `- name` lines. Other tokens are ignored.
+     *
+     * @return list<string>
+     */
+    public function timelogRequiredFields(): array
+    {
+        $recognized = [];
+        foreach ($this->stringList(self::TIMELOG_REQUIRED_FIELDS) as $name) {
+            if (in_array($name, ['issue_id', 'comments'], true) && ! in_array($name, $recognized, true)) {
+                $recognized[] = $name;
+            }
+        }
+
+        return $recognized;
+    }
+
+    /**
+     * Maximum attachment size in kilobytes. A missing or unreadable value is 5120.
+     */
+    public function attachmentMaxKilobytes(): int
+    {
+        $stored = $this->string(self::ATTACHMENT_MAX_SIZE);
+        if ($stored !== null && preg_match('/^\d+$/', $stored) === 1) {
+            return (int) $stored;
+        }
+
+        return 5120;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function attachmentExtensionsAllowed(): array
+    {
+        return $this->extensions(self::ATTACHMENT_EXTENSIONS_ALLOWED);
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function attachmentExtensionsDenied(): array
+    {
+        return $this->extensions(self::ATTACHMENT_EXTENSIONS_DENIED);
+    }
+
+    /**
      * Mail notification stored on a newly registered account. Missing means `only_my_events`.
      */
     public function defaultMailNotification(): string
@@ -232,5 +304,73 @@ final class SettingValue
         $trimmed = trim($stored);
 
         return $trimmed === '' ? null : $trimmed;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function stringList(string $name): array
+    {
+        $stored = Setting::query()->where('name', $name)->value('value');
+        if (! is_string($stored)) {
+            return [];
+        }
+        $trimmed = trim($stored);
+        if ($trimmed === '') {
+            return [];
+        }
+        if (str_starts_with($trimmed, '[')) {
+            $decoded = json_decode($trimmed, true);
+            if (! is_array($decoded)) {
+                return [];
+            }
+            $items = [];
+            foreach ($decoded as $item) {
+                if (is_string($item) && trim($item) !== '') {
+                    $items[] = trim($item);
+                }
+            }
+
+            return $items;
+        }
+        if (str_starts_with($trimmed, '---') || str_contains($trimmed, "\n")) {
+            $items = [];
+            foreach (preg_split('/\R/', $trimmed) ?: [] as $line) {
+                if (preg_match('/^\s*-\s+(.+)$/', $line, $match) === 1) {
+                    $token = trim($match[1], " \t\"'");
+                    if ($token !== '') {
+                        $items[] = $token;
+                    }
+                }
+            }
+
+            return $items;
+        }
+
+        $items = [];
+        foreach (explode(',', $trimmed) as $part) {
+            $token = trim($part);
+            if ($token !== '') {
+                $items[] = $token;
+            }
+        }
+
+        return $items;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function extensions(string $name): array
+    {
+        $extensions = [];
+        foreach ($this->stringList($name) as $token) {
+            $extension = strtolower(ltrim($token, '.'));
+            if ($extension !== '' && ! in_array($extension, $extensions, true)) {
+                $extensions[] = $extension;
+            }
+        }
+
+        return $extensions;
     }
 }

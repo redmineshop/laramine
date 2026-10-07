@@ -1,0 +1,110 @@
+{
+    "anchor": "2026-10-07 12:00:00",
+    "ada_rows": [
+        {"id": "5", "spent_on": "2026-08-27", "user": "Finn Own", "activity": "Development", "project": "Parity Core", "issue": "Bug #1: Parity pin parent", "comments": "Own time", "hours": "1:00"},
+        {"id": "4", "spent_on": "2026-08-27", "user": "Dora Child", "activity": "Development", "project": "Parity Child", "issue": "Bug #5: Child project bug", "comments": "Child time", "hours": "3:00"},
+        {"id": "3", "spent_on": "2026-08-27", "user": "Ada Lovelace", "activity": "Development", "project": "Parity Core", "issue": "Feature #6: Grouped assignee", "comments": "Feature time", "hours": "0:30"},
+        {"id": "2", "spent_on": "2026-08-27", "user": "Bea Manager", "activity": "Development", "project": "Parity Core", "issue": "Bug #1: Parity pin parent", "comments": "Manager time", "hours": "2:00"},
+        {"id": "1", "spent_on": "2026-08-26", "user": "Ada Lovelace", "activity": "Development", "project": "Parity Core", "issue": "Bug #1: Parity pin parent", "comments": "Pin time", "hours": "1:30"}
+    ],
+    "lists": [
+        {"name": "ada", "login": "ada", "ids": [5, 4, 3, 2, 1]},
+        {"name": "finn", "login": "finn", "ids": [5]},
+        {"name": "dora", "login": "dora", "ids": [4]},
+        {"name": "admin", "login": "admin", "ids": [5, 4, 3, 2, 1]},
+        {"name": "project-1", "login": "ada", "filters": {"project_id": {"operator": "=", "values": ["1"]}}, "ids": [5, 3, 2, 1]},
+        {"name": "me", "login": "ada", "filters": {"user_id": {"operator": "=", "values": ["me"]}}, "ids": [3, 1]},
+        {"name": "hours", "login": "ada", "filters": {"hours": {"operator": ">=", "values": ["2"]}}, "ids": [4, 2]},
+        {"name": "comments", "login": "ada", "filters": {"comments": {"operator": "~", "values": ["Pin"]}}, "ids": [1]},
+        {"name": "tracker", "login": "ada", "filters": {"issue.tracker_id": {"operator": "=", "values": ["2"]}}, "ids": [3]},
+        {"name": "spent-on", "login": "ada", "filters": {"spent_on": {"operator": "=", "values": ["2026-08-26"]}}, "ids": [1]},
+        {"name": "this-year", "login": "ada", "filters": {"spent_on": {"operator": "y", "values": []}}, "ids": [5, 4, 3, 2, 1]},
+        {"name": "this-month", "login": "ada", "filters": {"spent_on": {"operator": "m", "values": []}}, "ids": []},
+        {"name": "hours-asc", "login": "ada", "sort_criteria": [["hours", "asc"]], "ids": [3, 5, 1, 2, 4]}
+    ],
+    "csv_minutes": "Date,User,Activity,Project,Issue,Comment,Hours\n2026-08-27,Finn Own,Development,Parity Core,Bug #1: Parity pin parent,Own time,1:00\n2026-08-27,Dora Child,Development,Parity Child,Bug #5: Child project bug,Child time,3:00\n2026-08-27,Ada Lovelace,Development,Parity Core,Feature #6: Grouped assignee,Feature time,0:30\n2026-08-27,Bea Manager,Development,Parity Core,Bug #1: Parity pin parent,Manager time,2:00\n2026-08-26,Ada Lovelace,Development,Parity Core,Bug #1: Parity pin parent,Pin time,1:30\nTotal,,,,,,8:00\n",
+    "csv_decimal": "Date,User,Activity,Project,Issue,Comment,Hours\n2026-08-27,Finn Own,Development,Parity Core,Bug #1: Parity pin parent,Own time,1.00\n2026-08-27,Dora Child,Development,Parity Child,Bug #5: Child project bug,Child time,3.00\n2026-08-27,Ada Lovelace,Development,Parity Core,Feature #6: Grouped assignee,Feature time,0.50\n2026-08-27,Bea Manager,Development,Parity Core,Bug #1: Parity pin parent,Manager time,2.00\n2026-08-26,Ada Lovelace,Development,Parity Core,Bug #1: Parity pin parent,Pin time,1.50\nTotal,,,,,,8.00\n",
+    "reports": [
+        {
+            "name": "user-month",
+            "format": "decimal",
+            "login": "ada",
+            "options": {"report_criteria": ["user"], "report_columns": "month"},
+            "periods": ["2026-8"],
+            "rows": [
+                {"key": ["1"], "label": ["Ada Lovelace"], "hours": {"2026-8": "2.00"}, "total": "2.00"},
+                {"key": ["4"], "label": ["Bea Manager"], "hours": {"2026-8": "2.00"}, "total": "2.00"},
+                {"key": ["7"], "label": ["Dora Child"], "hours": {"2026-8": "3.00"}, "total": "3.00"},
+                {"key": ["9"], "label": ["Finn Own"], "hours": {"2026-8": "1.00"}, "total": "1.00"}
+            ],
+            "totals": {"total": "8.00", "2026-8": "8.00"}
+        },
+        {
+            "name": "activity-week",
+            "format": "minutes",
+            "login": "ada",
+            "options": {"report_criteria": ["activity"], "report_columns": "week"},
+            "periods": ["2026-35", "2026-36"],
+            "rows": [
+                {"key": ["3"], "label": ["Development"], "hours": {"2026-35": "1:30", "2026-36": "6:30"}, "total": "8:00"}
+            ],
+            "totals": {"total": "8:00", "2026-35": "1:30", "2026-36": "6:30"}
+        },
+        {
+            "name": "project-issue-year",
+            "format": "minutes",
+            "login": "ada",
+            "options": {"report_criteria": ["project", "issue"], "report_columns": "year"},
+            "periods": ["2026"],
+            "rows": [
+                {"key": ["2", "5"], "label": ["Parity Child", "Bug #5: Child project bug"], "hours": {"2026": "3:00"}, "total": "3:00"},
+                {"key": ["1", "1"], "label": ["Parity Core", "Bug #1: Parity pin parent"], "hours": {"2026": "4:30"}, "total": "4:30"},
+                {"key": ["1", "6"], "label": ["Parity Core", "Feature #6: Grouped assignee"], "hours": {"2026": "0:30"}, "total": "0:30"}
+            ],
+            "totals": {"total": "8:00", "2026": "8:00"}
+        },
+        {
+            "name": "version-year",
+            "format": "decimal",
+            "login": "ada",
+            "options": {"report_criteria": ["version"], "report_columns": "year"},
+            "periods": ["2026"],
+            "rows": [
+                {"key": ["1"], "label": ["1.0"], "hours": {"2026": "5.00"}, "total": "5.00"},
+                {"key": [""], "label": ["none"], "hours": {"2026": "3.00"}, "total": "3.00"}
+            ],
+            "totals": {"total": "8.00", "2026": "8.00"}
+        },
+        {
+            "name": "tracker-year",
+            "format": "minutes",
+            "login": "ada",
+            "options": {"report_criteria": ["tracker"], "report_columns": "year"},
+            "periods": ["2026"],
+            "rows": [
+                {"key": ["1"], "label": ["Bug"], "hours": {"2026": "7:30"}, "total": "7:30"},
+                {"key": ["2"], "label": ["Feature"], "hours": {"2026": "0:30"}, "total": "0:30"}
+            ],
+            "totals": {"total": "8:00", "2026": "8:00"}
+        }
+    ],
+    "private_issue": {
+        "issue_id": 4,
+        "login": "bea",
+        "hours": "1",
+        "ada": "#4",
+        "bea": "Bug #4: Bea private bug"
+    },
+    "archived_project": {"project_id": 2, "status": 9, "login": "admin", "ids": [5, 3, 2, 1]},
+    "custom_field": {"value": "B-1", "ids": [1]},
+    "saved": {
+        "name": "August",
+        "project_id": 1,
+        "filters": {"spent_on": {"operator": "=", "values": ["2026-08-26"]}},
+        "column_names": ["spent_on", "hours"],
+        "sort_criteria": [["id", "asc"]],
+        "row": {"id": "1", "spent_on": "2026-08-26", "hours": "1:30"},
+        "csv": "Date,Hours\n2026-08-26,1:30\nTotal,1:30\n"
+    },
+    "group_by_message": "Time entry queries do not group rows."
+}
