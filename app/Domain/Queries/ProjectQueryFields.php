@@ -134,7 +134,13 @@ final class ProjectQueryFields
             return;
         }
 
-        $field = $this->require($column, $actor, false);
+        $field = $this->find($column);
+        if (! $field instanceof CustomField) {
+            throw new QueryValidationException('Sort column is not available: '.$column.'.');
+        }
+        if (! $this->visibility->canSee($actor, $field, null)) {
+            throw new QueryValidationException('Custom field is not visible: '.$column.'.');
+        }
         $key = FieldFormatKey::tryFrom((string) $field->field_format);
         if ($key === null || $key === FieldFormatKey::Attachment) {
             throw new QueryValidationException('Custom field is not sortable: '.$column.'.');
