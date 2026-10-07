@@ -43,7 +43,7 @@ class PermissionCatalogTest extends TestCase
         $catalog = new PermissionCatalog;
 
         $modular = [
-            'view_issues' => [false, false, null, 'issue_tracking'],
+            'view_issues' => [false, true, null, 'issue_tracking'],
             'add_issues' => [false, false, null, 'issue_tracking'],
             'edit_issues' => [false, false, null, 'issue_tracking'],
             'edit_own_issues' => [false, false, null, 'issue_tracking'],

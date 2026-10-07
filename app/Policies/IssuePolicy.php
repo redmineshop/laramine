@@ -28,10 +28,7 @@ class IssuePolicy
         if ($project === null || $user === null) {
             return false;
         }
-        if ($user->admin && $user->isActive()) {
-            return true;
-        }
-        if ($this->permissions->allowed($user, 'edit_issues', $project)) {
+        if ($this->permissions->allowed($user, 'edit_issues', $project, $issue->tracker)) {
             return true;
         }
 
@@ -46,6 +43,6 @@ class IssuePolicy
             return false;
         }
 
-        return $this->permissions->allowed($user, 'delete_issues', $project);
+        return $this->permissions->allowed($user, 'delete_issues', $project, $issue->tracker);
     }
 }

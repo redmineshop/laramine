@@ -1,0 +1,23 @@
+[
+    {
+        "id": 1,
+        "issue_from_id": 6,
+        "issue_to_id": 4,
+        "relation_type": "blocks",
+        "delay": null
+    },
+    {
+        "id": 2,
+        "issue_from_id": 3,
+        "issue_to_id": 5,
+        "relation_type": "blocks",
+        "delay": null
+    },
+    {
+        "id": 3,
+        "issue_from_id": 2,
+        "issue_to_id": 1,
+        "relation_type": "relates",
+        "delay": null
+    }
+]

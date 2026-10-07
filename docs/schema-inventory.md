@@ -484,7 +484,7 @@ Eloquent models map the P0 tables. Polymorphic relations are declared, but there
 
 ### Role permission codec
 
-`roles.permissions` and `roles.settings` are unchanged text columns. Laramine writes `permissions` as a JSON array of name strings, for example `["view_issues","add_issues"]`. The reader also accepts a Redmine YAML symbol list (`- :view_issues`) so an ETL load can be interpreted before it is rewritten. Empty or unrecognized text grants no non-public permissions. Public permission names are implied and do not need to be stored. `roles.settings` is JSON when written through the model; non-JSON text is ignored at runtime. Per-tracker masks inside settings are not evaluated. Details and seeded roles: [domain.md](domain.md).
+`roles.permissions` and `roles.settings` are unchanged text columns. Laramine writes `permissions` as a JSON array of name strings, for example `["view_issues","add_issues"]`. The reader also accepts a Redmine YAML symbol list (`- :view_issues`) so an ETL load can be interpreted before it is rewritten. Empty or unrecognized text grants no non-public permissions. Public permission names are implied and do not need to be stored. `roles.settings` is JSON when written through the model; non-JSON text is ignored at runtime. `TrackerPermissionMask` reads `permissions_all_trackers` and `permissions_tracker_ids` for `view_issues`, `add_issues`, `edit_issues`, `add_issue_notes`, and `delete_issues` when a tracker is passed. Details and seeded roles: [domain.md](domain.md).
 
 ### Intentional adapter differences
 

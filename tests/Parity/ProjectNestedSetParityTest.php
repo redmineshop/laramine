@@ -2,13 +2,21 @@
 
 namespace Tests\Parity;
 
+use App\Domain\Acl\IssueVisibility;
+use App\Domain\Acl\ManagedRoleGuard;
 use App\Domain\Acl\MembershipService;
+use App\Domain\Acl\PermissionService;
+use App\Domain\Acl\TimeEntryVisibility;
+use App\Domain\DomainException;
+use App\Domain\Issues\IssueService;
 use App\Domain\Issues\IssueTree;
 use App\Domain\Projects\ProjectService;
+use App\Domain\Queries\IssueQueryRunner;
 use App\Domain\TreeException;
 use App\Models\Issue;
 use App\Models\Project;
 use App\Models\Role;
+use App\Models\TimeEntry;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +27,7 @@ use Tests\TestCase;
  * Compares project and issue nested-set coordinates, and the inherit_members
  * walk after a parent change, to the shared pin.
  *
- * Archived and closed project statuses are not part of this comparison.
+ * Archived and closed project statuses are compared to status.json.
  */
 class ProjectNestedSetParityTest extends TestCase
 {
@@ -149,6 +157,228 @@ class ProjectNestedSetParityTest extends TestCase
         $this->assertMatchesRegularExpression('/^\| Projects and issue nested sets \| VERIFIED \|/m', $checklist);
         $this->assertStringContainsString('tests/Parity/ProjectNestedSetParityTest.php', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/projects-nested-set/tree.json', $checklist);
+        $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/projects-nested-set/status.json', $checklist);
+    }
+
+    public function test_archived_and_closed_statuses_match_the_recorded_gates(): void
+    {
+        Redmine701Fixture::load();
+        $expected = $this->statusExpectation();
+        $closed = $expected['closed'];
+        $archived = $expected['archived'];
+        $this->assertIsArray($closed);
+        $this->assertIsArray($archived);
+        $this->assertClosedProject($closed);
+        $this->assertArchivedProject($archived);
+    }
+
+    /**
+     * @param  array<mixed>  $spec
+     */
+    private function assertClosedProject(array $spec): void
+    {
+        $project = $this->requireProject($this->intField($spec, 'project_id'));
+        $role = Role::query()->find($this->intField($spec, 'grant_role_id'));
+        $this->assertInstanceOf(Role::class, $role);
+        $grant = $spec['grant_permissions'];
+        $this->assertIsArray($grant);
+        $names = $role->permissions;
+        foreach ($grant as $name) {
+            $this->assertIsString($name);
+            $names[] = $name;
+        }
+        $role->permissions = array_values(array_unique($names));
+        $role->save();
+        $project->status = $this->intField($spec, 'status');
+        $project->save();
+
+        $this->assertVisibilityMatrix($spec, $project);
+        $this->assertPermissionMatrix($spec, $project);
+        $module = $spec['enabled_module'];
+        $this->assertIsArray($module);
+        app(ProjectService::class)->enableModule($project, $this->stringField($module, 'name'));
+        $checks = $module['checks'];
+        $this->assertIsArray($checks);
+        $permissions = app(PermissionService::class);
+        foreach ($checks as $case) {
+            $this->assertIsArray($case);
+            $this->assertSame(
+                (bool) $case['allowed'],
+                $permissions->allowed(
+                    $this->findUser($case['login'] ?? null),
+                    $this->stringField($case, 'permission'),
+                    $project->fresh() ?? $project,
+                ),
+            );
+        }
+        $this->assertDeniedEdits($spec);
+        $this->assertListedIssueIds($spec);
+        $this->assertListedTimeEntries($spec, $project);
+        $membership = $spec['membership'];
+        $this->assertIsArray($membership);
+        $this->assertManagedAssignmentDenied($membership, $project);
+    }
+
+    /**
+     * @param  array<mixed>  $spec
+     */
+    private function assertArchivedProject(array $spec): void
+    {
+        $project = $this->requireProject($this->intField($spec, 'project_id'));
+        $project->status = $this->intField($spec, 'status');
+        $project->is_public = (bool) $spec['is_public'];
+        $project->save();
+
+        $this->assertVisibilityMatrix($spec, $project);
+        $this->assertPermissionMatrix($spec, $project);
+        $seeing = $spec['see_issue'];
+        $this->assertIsArray($seeing);
+        $visibility = app(IssueVisibility::class);
+        foreach ($seeing as $case) {
+            $this->assertIsArray($case);
+            $issue = Issue::query()->find($this->intField($case, 'issue_id'));
+            $this->assertInstanceOf(Issue::class, $issue);
+            $login = $case['login'] ?? null;
+            $this->assertTrue($login === null || is_string($login));
+            $this->assertSame((bool) $case['visible'], $visibility->canSee($this->findUser($login), $issue));
+        }
+        $this->assertListedIssueIds($spec);
+        $this->assertListedTimeEntries($spec, $project);
+        $edit = $spec['edit'];
+        $this->assertIsArray($edit);
+        $this->assertDeniedEdits(['edits' => [$edit]]);
+    }
+
+    /**
+     * @param  array<mixed>  $spec
+     */
+    private function assertVisibilityMatrix(array $spec, Project $project): void
+    {
+        $permissions = app(PermissionService::class);
+        $rows = $spec['visible'];
+        $this->assertIsArray($rows);
+        foreach ($rows as $case) {
+            $this->assertIsArray($case);
+            $login = $case['login'] ?? null;
+            $this->assertTrue($login === null || is_string($login));
+            $this->assertSame((bool) $case['visible'], $permissions->projectVisible($this->findUser($login), $project->fresh() ?? $project));
+        }
+    }
+
+    /**
+     * @param  array<mixed>  $spec
+     */
+    private function assertPermissionMatrix(array $spec, Project $project): void
+    {
+        $permissions = app(PermissionService::class);
+        $rows = $spec['permissions'];
+        $this->assertIsArray($rows);
+        foreach ($rows as $case) {
+            $this->assertIsArray($case);
+            $login = $case['login'] ?? null;
+            $this->assertTrue($login === null || is_string($login));
+            $this->assertSame(
+                (bool) $case['allowed'],
+                $permissions->allowed($this->findUser($login), $this->stringField($case, 'permission'), $project->fresh() ?? $project),
+                ($login ?? 'guest').' '.$this->stringField($case, 'permission'),
+            );
+        }
+    }
+
+    /**
+     * @param  array<mixed>  $spec
+     */
+    private function assertDeniedEdits(array $spec): void
+    {
+        $issues = app(IssueService::class);
+        $rows = $spec['edits'];
+        $this->assertIsArray($rows);
+        foreach ($rows as $case) {
+            $this->assertIsArray($case);
+            $actor = $this->findUser($this->stringField($case, 'login'));
+            $issue = Issue::query()->find($this->intField($case, 'issue_id'));
+            $this->assertInstanceOf(User::class, $actor);
+            $this->assertInstanceOf(Issue::class, $issue);
+            try {
+                $issues->update($actor, $issue, ['subject' => 'Closed edit']);
+                $this->fail($this->stringField($case, 'error'));
+            } catch (DomainException $exception) {
+                $this->assertStringContainsString($this->stringField($case, 'error'), $exception->getMessage());
+            }
+            $this->assertSame($this->stringField($case, 'stored_subject'), DB::table('issues')->where('id', $issue->id)->value('subject'));
+        }
+    }
+
+    /**
+     * @param  array<mixed>  $spec
+     */
+    private function assertListedIssueIds(array $spec): void
+    {
+        $runner = app(IssueQueryRunner::class);
+        $rows = $spec['issue_ids'];
+        $this->assertIsArray($rows);
+        foreach ($rows as $case) {
+            $this->assertIsArray($case);
+            $login = $case['login'] ?? null;
+            $this->assertIsString($login);
+            $projectId = $case['project_id'] ?? null;
+            $this->assertTrue($projectId === null || is_int($projectId));
+            $project = is_int($projectId) ? $this->requireProject($projectId) : null;
+            $ids = $runner->preview($this->findUser($login), $project, [])->orderBy('id')->pluck('issues.id')->all();
+            $actual = [];
+            foreach ($ids as $id) {
+                if (is_numeric($id)) {
+                    $actual[] = (int) $id;
+                }
+            }
+            $this->assertSame($this->idList($case), $actual, $login);
+        }
+    }
+
+    /**
+     * @param  array<mixed>  $spec
+     */
+    private function assertListedTimeEntries(array $spec, Project $project): void
+    {
+        $visibility = app(TimeEntryVisibility::class);
+        $rows = $spec['time_entry_ids'];
+        $this->assertIsArray($rows);
+        foreach ($rows as $case) {
+            $this->assertIsArray($case);
+            $actor = $this->findUser($this->stringField($case, 'login'));
+            $this->assertInstanceOf(User::class, $actor);
+            $ids = $visibility
+                ->apply(TimeEntry::query()->where('project_id', $project->id), $actor, $project->fresh() ?? $project)
+                ->orderBy('id')
+                ->pluck('id')
+                ->all();
+            $actual = [];
+            foreach ($ids as $id) {
+                if (is_numeric($id)) {
+                    $actual[] = (int) $id;
+                }
+            }
+            $this->assertSame($this->idList($case), $actual);
+        }
+    }
+
+    /**
+     * @param  array<mixed>  $spec
+     */
+    private function assertManagedAssignmentDenied(array $spec, Project $project): void
+    {
+        $actor = $this->findUser($this->stringField($spec, 'actor'));
+        $principal = $this->findUser($this->stringField($spec, 'principal'));
+        $role = Role::query()->find($this->intField($spec, 'role_id'));
+        $this->assertInstanceOf(User::class, $actor);
+        $this->assertInstanceOf(User::class, $principal);
+        $this->assertInstanceOf(Role::class, $role);
+        try {
+            app(ManagedRoleGuard::class)->assign($actor, $project->fresh() ?? $project, $principal, $role);
+            $this->fail($this->stringField($spec, 'error'));
+        } catch (DomainException $exception) {
+            $this->assertStringContainsString($this->stringField($spec, 'error'), $exception->getMessage());
+        }
     }
 
     /**
@@ -272,6 +502,58 @@ class ProjectNestedSetParityTest extends TestCase
         $this->assertIsInt($value);
 
         return $value;
+    }
+
+    private function requireProject(int $id): Project
+    {
+        $project = Project::query()->find($id);
+        $this->assertInstanceOf(Project::class, $project);
+
+        return $project;
+    }
+
+    private function findUser(mixed $login): ?User
+    {
+        if ($login === null) {
+            return null;
+        }
+        $this->assertIsString($login);
+        $user = User::query()->where('login', $login)->first();
+        $this->assertInstanceOf(User::class, $user);
+
+        return $user;
+    }
+
+    /**
+     * @param  array<mixed>  $case
+     * @return list<int>
+     */
+    private function idList(array $case): array
+    {
+        $ids = $case['ids'] ?? null;
+        $this->assertIsArray($ids);
+        $list = [];
+        foreach ($ids as $id) {
+            $this->assertIsInt($id);
+            $list[] = $id;
+        }
+
+        return $list;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function statusExpectation(): array
+    {
+        $path = Redmine701Fixture::directory().'/expectations/projects-nested-set/status.json';
+        $raw = file_get_contents($path);
+        $this->assertIsString($raw);
+        $decoded = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
+        $this->assertIsArray($decoded);
+        $this->assertSame('7.0.1', $decoded['pin'] ?? null);
+
+        return $decoded;
     }
 
     /**

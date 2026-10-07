@@ -138,7 +138,7 @@ final class PermissionCatalog
         ['project', 'save_queries', 'l'],
         ['project', 'use_webhooks', 'm'],
 
-        ['issue_tracking', 'view_issues', ''],
+        ['issue_tracking', 'view_issues', 'r'],
         ['issue_tracking', 'add_issues', ''],
         ['issue_tracking', 'edit_issues', ''],
         ['issue_tracking', 'edit_own_issues', ''],

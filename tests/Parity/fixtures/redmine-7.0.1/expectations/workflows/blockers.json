@@ -1,0 +1,15 @@
+{
+    "pin": "7.0.1",
+    "steps": [
+        {"action": "close", "login": "admin", "issue_id": 1, "status_id": 4, "error": "open subtask", "stored_status_id": 1},
+        {"action": "close", "login": "ada", "issue_id": 4, "status_id": 4, "error": "blocked by", "stored_status_id": 2},
+        {"action": "close", "login": "admin", "issue_id": 5, "status_id": 4, "error": null, "stored_status_id": 4},
+        {"action": "attach", "login": "admin", "issue_id": 6, "parent_id": 3, "error": "closed parent", "stored_parent_id": null},
+        {"action": "close", "login": "admin", "issue_id": 6, "status_id": 4, "error": null, "stored_status_id": 4},
+        {"action": "close", "login": "ada", "issue_id": 4, "status_id": 4, "error": null, "stored_status_id": 4},
+        {"action": "close", "login": "admin", "issue_id": 2, "status_id": 4, "error": null, "stored_status_id": 4},
+        {"action": "close", "login": "admin", "issue_id": 1, "status_id": 4, "error": null, "stored_status_id": 4},
+        {"action": "reopen", "login": "admin", "issue_id": 2, "status_id": 1, "error": "parent issue is closed", "stored_status_id": 4},
+        {"action": "create", "login": "admin", "project_id": 1, "tracker_id": 1, "parent_id": 3, "subject": "Open under closed", "error": "closed parent", "issue_count": 6}
+    ]
+}

@@ -14,8 +14,10 @@ use Illuminate\Support\Collection;
  *
  * `all` includes private issues. `default` hides private issues unless the
  * user is the author or the assignee (or a member of the assignee group).
- * `own` keeps only those author/assignee rows. Several roles use the most
- * open value. Active admins are not filtered.
+ * `own` keeps only those author/assignee rows. Roles that grant
+ * `view_issues` are combined with OR, including each role's tracker mask.
+ * Active admins are not filtered by role when the project still allows
+ * `view_issues`.
  */
 final class IssueVisibility
 {
@@ -28,6 +30,7 @@ final class IssueVisibility
     public function __construct(
         private readonly PermissionService $permissions,
         private readonly MembershipService $memberships,
+        private readonly TrackerPermissionMask $trackers,
     ) {}
 
     /**
@@ -40,31 +43,50 @@ final class IssueVisibility
             return $query->whereRaw('1 = 0');
         }
 
-        $query->where('project_id', $project->id);
+        $query->where('issues.project_id', $project->id);
 
         if ($user !== null && $user->admin && $user->isActive()) {
             return $query;
         }
 
-        $visibility = $this->effective($this->permissions->rolesFor($user, $project));
+        /** @var list<Role> $roles */
+        $roles = [];
+        foreach ($this->permissions->rolesFor($user, $project) as $role) {
+            if ($role->grants('view_issues')) {
+                $roles[] = $role;
+            }
+        }
+        if ($roles === []) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        /** @var list<array{0: Role, 1: list<int>|null}> $clauses */
+        $clauses = [];
+        foreach ($roles as $role) {
+            $trackerIds = $this->trackers->ids($role, 'view_issues');
+            if ($trackerIds === []) {
+                continue;
+            }
+            $clauses[] = [$role, $trackerIds];
+        }
+        if ($clauses === []) {
+            return $query->whereRaw('1 = 0');
+        }
+
         $principalIds = $user instanceof User && $this->permissions->isLoggedIn($user)
             ? $this->memberships->principalIds($user)
             : [];
 
-        if ($visibility === self::ALL) {
-            return $query;
-        }
-
-        if ($visibility === self::OWN) {
-            return $this->whereAuthorOrAssignee($query, $principalIds);
-        }
-
-        return $query->where(function (Builder $inner) use ($principalIds): void {
-            /** @var Builder<Issue> $inner */
-            $inner->where('is_private', false);
-            if ($principalIds !== []) {
-                $inner->orWhereIn('author_id', $principalIds)
-                    ->orWhereIn('assigned_to_id', $principalIds);
+        return $query->where(function (Builder $outer) use ($clauses, $principalIds): void {
+            /** @var Builder<Issue> $outer */
+            foreach ($clauses as [$role, $trackerIds]) {
+                $outer->orWhere(function (Builder $inner) use ($role, $trackerIds, $principalIds): void {
+                    /** @var Builder<Issue> $inner */
+                    $this->visibilityPredicate($inner, (string) $role->issues_visibility, $principalIds);
+                    if (is_array($trackerIds)) {
+                        $inner->whereIn('issues.tracker_id', $trackerIds);
+                    }
+                });
             }
         });
     }
@@ -106,18 +128,47 @@ final class IssueVisibility
     /**
      * @param  Builder<Issue>  $query
      * @param  list<int>  $principalIds
-     * @return Builder<Issue>
      */
-    private function whereAuthorOrAssignee(Builder $query, array $principalIds): Builder
+    private function visibilityPredicate(Builder $query, string $mode, array $principalIds): void
     {
-        if ($principalIds === []) {
-            return $query->whereRaw('1 = 0');
+        if ($mode === self::ALL) {
+            $query->whereRaw('1 = 1');
+
+            return;
         }
 
-        return $query->where(function (Builder $inner) use ($principalIds): void {
+        if ($mode === self::OWN) {
+            $this->whereAuthorOrAssignee($query, $principalIds);
+
+            return;
+        }
+
+        $query->where(function (Builder $inner) use ($principalIds): void {
             /** @var Builder<Issue> $inner */
-            $inner->whereIn('author_id', $principalIds)
-                ->orWhereIn('assigned_to_id', $principalIds);
+            $inner->where('issues.is_private', false);
+            if ($principalIds !== []) {
+                $inner->orWhereIn('issues.author_id', $principalIds)
+                    ->orWhereIn('issues.assigned_to_id', $principalIds);
+            }
+        });
+    }
+
+    /**
+     * @param  Builder<Issue>  $query
+     * @param  list<int>  $principalIds
+     */
+    private function whereAuthorOrAssignee(Builder $query, array $principalIds): void
+    {
+        if ($principalIds === []) {
+            $query->whereRaw('1 = 0');
+
+            return;
+        }
+
+        $query->where(function (Builder $inner) use ($principalIds): void {
+            /** @var Builder<Issue> $inner */
+            $inner->whereIn('issues.author_id', $principalIds)
+                ->orWhereIn('issues.assigned_to_id', $principalIds);
         });
     }
 }

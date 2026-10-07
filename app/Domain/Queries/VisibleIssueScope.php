@@ -3,7 +3,6 @@
 namespace App\Domain\Queries;
 
 use App\Domain\Acl\IssueVisibility;
-use App\Domain\Acl\MembershipService;
 use App\Domain\Acl\PermissionService;
 use App\Models\Issue;
 use App\Models\Project;
@@ -13,15 +12,14 @@ use Illuminate\Database\Eloquent\Builder;
 /**
  * Limits an issue query to rows the actor may view.
  *
- * A project scope reuses `IssueVisibility`. A global query ORs the same
- * `all` / `default` / `own` rules across every project where `view_issues` is allowed.
+ * A project scope reuses `IssueVisibility`. A wider query ORs that same
+ * per-project scope, including tracker masks and closed or archived gates.
  */
 final class VisibleIssueScope
 {
     public function __construct(
         private readonly IssueVisibility $visibility,
         private readonly PermissionService $permissions,
-        private readonly MembershipService $memberships,
         private readonly SubprojectScope $subprojects,
     ) {}
 
@@ -73,92 +71,42 @@ final class VisibleIssueScope
             return $query->whereRaw('1 = 0');
         }
 
-        if ($user !== null && $user->admin && $user->isActive()) {
-            if ($onlyIds === null) {
-                return $query;
-            }
-
-            return $query->whereIn('issues.project_id', $onlyIds);
-        }
-
-        $groups = [
-            IssueVisibility::ALL => [],
-            IssueVisibility::DEFAULT => [],
-            IssueVisibility::OWN => [],
-        ];
-
         $projects = Project::query()->orderBy('id');
         if ($onlyIds !== null) {
             $projects->whereIn('id', $onlyIds);
         }
+        $candidates = $projects->get();
 
-        foreach ($projects->get() as $candidate) {
-            if (! $this->permissions->allowed($user, 'view_issues', $candidate)) {
-                continue;
+        if ($user !== null && $user->admin && $user->isActive()) {
+            $ids = [];
+            foreach ($candidates as $candidate) {
+                if ($this->permissions->allowed($user, 'view_issues', $candidate)) {
+                    $ids[] = (int) $candidate->id;
+                }
             }
-            $mode = $this->visibility->effective($this->permissions->rolesFor($user, $candidate));
-            $projectId = (int) $candidate->id;
-            if ($mode === IssueVisibility::ALL) {
-                $groups[IssueVisibility::ALL][] = $projectId;
-            } elseif ($mode === IssueVisibility::DEFAULT) {
-                $groups[IssueVisibility::DEFAULT][] = $projectId;
-            } elseif ($mode === IssueVisibility::OWN) {
-                $groups[IssueVisibility::OWN][] = $projectId;
+            if ($ids === []) {
+                return $query->whereRaw('1 = 0');
             }
+
+            return $query->whereIn('issues.project_id', $ids);
         }
 
-        $principalIds = $user instanceof User && $this->permissions->isLoggedIn($user)
-            ? $this->memberships->principalIds($user)
-            : [];
-
-        if ($groups[IssueVisibility::ALL] === []
-            && $groups[IssueVisibility::DEFAULT] === []
-            && $groups[IssueVisibility::OWN] === []) {
+        $visible = [];
+        foreach ($candidates as $candidate) {
+            if ($this->permissions->allowed($user, 'view_issues', $candidate)) {
+                $visible[] = $candidate;
+            }
+        }
+        if ($visible === []) {
             return $query->whereRaw('1 = 0');
         }
 
-        return $query->where(function (Builder $outer) use ($groups, $principalIds): void {
+        return $query->where(function (Builder $outer) use ($user, $visible): void {
             /** @var Builder<Issue> $outer */
-            $this->whereProjects($outer, $groups[IssueVisibility::ALL], null, $principalIds);
-            $this->whereProjects($outer, $groups[IssueVisibility::DEFAULT], IssueVisibility::DEFAULT, $principalIds);
-            $this->whereProjects($outer, $groups[IssueVisibility::OWN], IssueVisibility::OWN, $principalIds);
-        });
-    }
-
-    /**
-     * @param  Builder<Issue>  $query
-     * @param  list<int>  $projectIds
-     * @param  list<int>  $principalIds
-     */
-    private function whereProjects(Builder $query, array $projectIds, ?string $mode, array $principalIds): void
-    {
-        if ($projectIds === []) {
-            return;
-        }
-
-        $query->orWhere(function (Builder $inner) use ($projectIds, $mode, $principalIds): void {
-            /** @var Builder<Issue> $inner */
-            $inner->whereIn('issues.project_id', $projectIds);
-            if ($mode === IssueVisibility::DEFAULT) {
-                $inner->where(function (Builder $visible) use ($principalIds): void {
-                    /** @var Builder<Issue> $visible */
-                    $visible->where('issues.is_private', false);
-                    if ($principalIds !== []) {
-                        $visible->orWhereIn('issues.author_id', $principalIds)
-                            ->orWhereIn('issues.assigned_to_id', $principalIds);
-                    }
-                });
-            }
-            if ($mode === IssueVisibility::OWN) {
-                if ($principalIds === []) {
-                    $inner->whereRaw('1 = 0');
-
-                    return;
-                }
-                $inner->where(function (Builder $owned) use ($principalIds): void {
-                    /** @var Builder<Issue> $owned */
-                    $owned->whereIn('issues.author_id', $principalIds)
-                        ->orWhereIn('issues.assigned_to_id', $principalIds);
+            foreach ($visible as $candidate) {
+                $outer->orWhere(function (Builder $inner) use ($user, $candidate): void {
+                    /** @var Builder<Issue> $inner */
+                    $this->visibility->apply($inner, $user, $candidate);
                 });
             }
         });

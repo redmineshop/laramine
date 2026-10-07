@@ -496,6 +496,10 @@ class AclWorkflowSmokeTest extends TestCase
             $permissions->allowed($world->user->fresh(), 'add_issues', $world->project->fresh()),
             'criterion 18',
         );
+        $this->assertFalse(
+            $permissions->allowed($world->user->fresh(), 'add_issues', $world->project->fresh(), $world->tracker->fresh()),
+            'criterion 18',
+        );
 
         $managed = Role::query()->create([
             'name' => 'Managed',

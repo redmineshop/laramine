@@ -31,6 +31,7 @@ final class IssueService
         private readonly IssueTree $trees,
         private readonly CustomValueService $customValues,
         private readonly IssueJournalWriter $journals,
+        private readonly IssueCloseGuard $closeGuard,
     ) {}
 
     /**
@@ -38,16 +39,18 @@ final class IssueService
      */
     public function create(User $actor, Project $project, array $attributes): Issue
     {
-        if (! $this->permissions->allowed($actor, 'add_issues', $project)) {
+        $tracker = $this->tracker($project, $attributes);
+        if (! $this->permissions->allowed($actor, 'add_issues', $project, $tracker)) {
             throw new PermissionDeniedException('add_issues');
         }
-
-        $tracker = $this->tracker($project, $attributes);
         $subject = $this->subject($attributes);
         $assignee = $this->optionalAssignee($actor, $attributes['assigned_to_id'] ?? null, null);
         $status = $this->resolveCreateStatus($actor, $project, $tracker, $this->optionalInt($attributes, 'status_id'), $assignee);
         $priority = $this->priority($attributes);
         $parent = $this->optionalParent($attributes, $project, $actor, true);
+        if ($parent !== null && ! $status->is_closed) {
+            $this->closeGuard->assertOpenIssueUnder($parent);
+        }
 
         $isPrivate = array_key_exists('is_private', $attributes)
             ? (bool) $attributes['is_private']
@@ -105,7 +108,8 @@ final class IssueService
 
         $notes = $this->optionalNote($attributes);
         $privateNotes = $this->privateNotesRequested($attributes);
-        if ($notes !== null && ! $this->permissions->allowed($actor, 'add_issue_notes', $project)) {
+        $tracker = $issue->tracker;
+        if ($notes !== null && ! $this->permissions->allowed($actor, 'add_issue_notes', $project, $tracker)) {
             throw new PermissionDeniedException('add_issue_notes');
         }
         if ($privateNotes && ! $this->permissions->allowed($actor, 'set_notes_private', $project)) {
@@ -207,6 +211,7 @@ final class IssueService
             'parent_id' => $parent?->id,
         ];
         $this->enforceFieldRules($actor, $issue, $incoming, $current);
+        $this->assertStatusChange($issue, $nextStatus, $parent);
         $customInputs = $this->customFieldInputs($attributes);
 
         return DB::transaction(function () use ($actor, $issue, $parent, $parentChanged, $nextStatus, $customInputs, $before, $customBefore, $notes, $privateNotes): Issue {
@@ -341,15 +346,30 @@ final class IssueService
 
     private function canEdit(User $actor, Issue $issue, Project $project): bool
     {
-        if ($actor->admin && $actor->isActive()) {
-            return true;
-        }
-        if ($this->permissions->allowed($actor, 'edit_issues', $project)) {
+        if ($this->permissions->allowed($actor, 'edit_issues', $project, $issue->tracker)) {
             return true;
         }
 
         return (int) $issue->author_id === (int) $actor->id
             && $this->permissions->allowed($actor, 'edit_own_issues', $project);
+    }
+
+    private function assertStatusChange(Issue $issue, ?IssueStatus $nextStatus, ?Issue $parent): void
+    {
+        $current = IssueStatus::query()->find($issue->status_id);
+        $wasClosed = $current instanceof IssueStatus && $current->is_closed;
+        $willBeClosed = $nextStatus instanceof IssueStatus ? $nextStatus->is_closed : $wasClosed;
+        if ($nextStatus instanceof IssueStatus && ! $wasClosed && $willBeClosed) {
+            $this->closeGuard->assertCanClose($issue);
+        }
+        if ($nextStatus instanceof IssueStatus && $wasClosed && ! $willBeClosed) {
+            $this->closeGuard->assertCanReopen($parent);
+        }
+        $currentParentId = $issue->parent_id !== null ? (int) $issue->parent_id : null;
+        $nextParentId = $parent !== null ? (int) $parent->id : null;
+        if (! $willBeClosed && $parent !== null && $currentParentId !== $nextParentId) {
+            $this->closeGuard->assertOpenIssueUnder($parent);
+        }
     }
 
     /**
@@ -433,9 +453,7 @@ final class IssueService
         if (! is_numeric($attributes['parent_id'])) {
             throw new DomainException('Parent issue does not exist.');
         }
-        if (! $actor->admin && ! $this->permissions->allowed($actor, 'manage_subtasks', $project)) {
-            throw new PermissionDeniedException('manage_subtasks');
-        }
+        $this->assertCanManageSubtasks($actor, $project);
         $parent = Issue::query()->find((int) $attributes['parent_id']);
         if ($parent === null) {
             throw new DomainException('Parent issue does not exist.');
@@ -489,9 +507,6 @@ final class IssueService
 
     private function assertCanManageSubtasks(User $actor, Project $project): void
     {
-        if ($actor->admin && $actor->isActive()) {
-            return;
-        }
         if (! $this->permissions->allowed($actor, 'manage_subtasks', $project)) {
             throw new PermissionDeniedException('manage_subtasks');
         }
@@ -628,9 +643,6 @@ final class IssueService
 
     private function assertCanSetPrivate(User $actor, Project $project, User $author): void
     {
-        if ($actor->admin && $actor->isActive()) {
-            return;
-        }
         if ($this->permissions->allowed($actor, 'set_issues_private', $project)) {
             return;
         }

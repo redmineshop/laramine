@@ -20,18 +20,27 @@ Laramine services in `app/Domain` maintain the P0 tables. This is not a Redmine 
 
 Reads also accept a Redmine YAML symbol list (`- :view_issues`) so an ETL load can be checked before it is rewritten as JSON. Empty or unrecognized text grants nothing beyond public permissions.
 
-`PermissionCatalog` holds the 80 Redmine 7.0.1 names, their module, and the flags `public`, `read`, `require=loggedin`, and `require=member`. `PermissionService::allowed($user, 'view_issues', $project)` is the check. The same strings are registered as Gates. `ProjectPolicy` and `IssuePolicy` cover view, update, and delete.
+`PermissionCatalog` holds the 80 Redmine 7.0.1 names, their module, and the flags `public`, `read`, `require=loggedin`, and `require=member`. `view_issues` is a read permission. `PermissionService::allowed($user, 'view_issues', $project, $tracker)` is the check. The tracker argument is optional. The same strings are registered as Gates. `ProjectPolicy` and `IssuePolicy` cover view, update, and delete.
 
 Evaluation order:
 
 1. Unknown names throw.
-2. An active admin (`users.admin` and `users.status = 1`) is allowed.
-3. Modular permissions require that module on the project.
-4. `require=loggedin` and `require=member` are enforced even if the role lists the name. Anonymous cannot use logged-in or member permissions. A non-member cannot use member permissions.
-5. Public names (`view_project`, `search_project`, `view_members`) are implied when the project is visible.
-6. Otherwise the name must appear on an applicable role.
+2. Project status is checked before the admin bypass. `status` 9 (archived) denies every action, including for an active admin. `status` 5 (closed) allows only permissions whose catalog flag is read, including for an active admin. Any other status except `1` (active) denies the action. An active project continues.
+3. An active admin (`users.admin` and `users.status = 1`) is allowed. That bypass still skips a disabled module when the status gate allowed the action.
+4. Modular permissions require that module on the project.
+5. `require=loggedin` and `require=member` are enforced even if the role lists the name. Anonymous cannot use logged-in or member permissions. A non-member cannot use member permissions.
+6. Public names (`view_project`, `search_project`, `view_members`) are implied when the project is visible.
+7. Otherwise the name must appear on an applicable role. When a `Tracker` is passed, the five masked names also have to pass that role's tracker mask.
 
 Applicable roles are memberships of the user and of the user's groups. With no membership, a visible public project uses the Non member role (`builtin = 1`) for a logged-in user and the Anonymous role (`builtin = 2`) for a guest. Builtin roles are not assigned through `members`.
+
+`roles.settings` stores a per-tracker mask for `view_issues`, `add_issues`, `edit_issues`, `add_issue_notes`, and `delete_issues`. `permissions_all_trackers` set to `"0"` keeps only the integer ids in `permissions_tracker_ids` for that name. A missing setting, or any flag other than `"0"`, means every tracker. An empty id list matches no tracker. `edit_own_issues` is not masked. A call that omits the tracker does not apply the mask, so a project-level allow stays true. Roles that grant the name are OR-ed. `IssueVisibility` applies the `view_issues` mask when it builds the issue list.
+
+`ManagedRoleGuard::assign` is the membership write that checks the actor. It requires `manage_members` on the project, then `all_roles_managed` or a `roles_managed_roles` row for the target role. Roles that grant `manage_members` are unioned. `all_roles_managed` ignores the join table. An active admin who is allowed `manage_members` may assign any `builtin = 0` role. Builtin roles cannot be assigned. `MembershipService::assignRole` stays the unchecked write used by inheritance and group expansion.
+
+Project visibility follows the same statuses. An archived project is visible only to an active admin. A closed project is visible the same way as an active project. An unknown status is hidden. Members of a visible project see it. A public project is visible to a guest and to a logged-in user with no membership.
+
+`time_entries_visibility` filters spent-time rows after `view_time_entries` is allowed. `all` shows every row on the project. `own` keeps rows whose `user_id` is the actor. Several roles that grant `view_time_entries` use the most open value. Any other stored value contributes nothing. An active admin sees every row when `view_time_entries` is allowed, so an archived project yields no rows. IssueQuery `spent_hours` uses the same mode. The time-entries checklist row stays **NOT VERIFIED** because writes have no dump comparison.
 
 `issues_visibility` filters issue lists:
 
@@ -60,13 +69,15 @@ Status changes read `workflows` rows with `type = WorkflowTransition` for the us
 
 Field rules (`type = WorkflowPermission`, `rule = readonly|required`) are enforced for the disablable core fields on create and update. On create they are read for the initial status id. Only roles that grant `add_issues`, `edit_issues`, or `edit_own_issues` take part in transitions and field rules. A role outside that set does not add a transition and does not loosen a rule by lacking a row. Across the roles that remain, a missing row leaves the field unconstrained. If every such role has a row and one of them is `required`, the field is required. Two rows for the same role resolve to `required` when either row is `required`. Custom field ids are enforced by `CustomValueService` when values are written; see [custom-fields.md](custom-fields.md).
 
+Closing an open issue is refused when any descendant is still open, and when a `blocks` relation has this issue as `issue_to_id` and `issue_from_id` is still open. A closed blocker does not count. `relates` does not block. Reopening is refused when the resulting parent or ancestor is closed. An open issue cannot be created or moved under a closed parent. A closed child may stay under a closed parent. These checks run after the workflow matrix and apply to every actor, including an active admin. The messages contain `open subtask`, `blocked by`, `parent issue is closed`, and `closed parent`.
+
 The MVP smoke for projects, membership, workflow, and issues is [acl-workflow-parity-gate.md](acl-workflow-parity-gate.md). The core checklist acceptance section there marks **PASS** only for the happy paths stored by `tests/Feature/CoreChecklistSmokeTest.php`. A green smoke is Laramine behavior. The identity, nested-set, and workflows checklist rows are **VERIFIED** only by the parity tests named in [parity-checklist.md](parity-checklist.md). This slice is not a 0.1 tag.
 
 ## Journals
 
 `IssueService::update` writes one `journals` row when a tracked attribute changes, a custom value changes, or the caller sends a non-blank `notes` string. `journalized_type` is `Issue`. `user_id` is the actor. Blank notes are stored as null and do not create a journal by themselves. Create does not write a journal.
 
-A non-blank note requires `add_issue_notes`. `private_notes` true requires `set_notes_private` and is stored on that journal, including when the journal also has property details. Attribute changes still require `edit_issues` or `edit_own_issues`. A notes-only update does not require edit permission. Active admins bypass these checks.
+A non-blank note requires `add_issue_notes`. `private_notes` true requires `set_notes_private` and is stored on that journal, including when the journal also has property details. Attribute changes still require `edit_issues` or `edit_own_issues`. A notes-only update does not require edit permission. Active admins pass those permission checks when the project status allows the action. An archived project denies them. A closed project denies writes, including notes and edits.
 
 Tracked details use `journal_details.property = attr` and `prop_key` set to the issue column, in this order: `status_id`, `done_ratio`, `subject`, `description`, `priority_id`, `assigned_to_id`, `start_date`, `due_date`, `estimated_hours`, `is_private`, `parent_id`. Compared values are strings. `status_id` and `priority_id` are decimal id strings. `done_ratio` is an integer string. Custom-field diffs follow those rows. Each changed field is one detail with `property = cf`, `prop_key` the custom field id, and the stored strings joined by a comma when the field has several values. A cleared field stores null. History lines for those rows are described below. See [custom-fields.md](custom-fields.md).
 
@@ -87,7 +98,7 @@ Tracked details use `journal_details.property = attr` and `prop_key` set to the 
 - On History and Notes, a journal with note text exposes reaction (`thumbs-up`). Quote is added when the actor has `add_issue_notes`. Edit (pencil) is added when the actor has `edit_issue_notes`, or `edit_own_issue_notes` and `journals.user_id` is that actor. More (`⋯`) is always on those two tabs. A journal without note text exposes reaction and more only.
 - The more menu lists Download all files when that journal has more than one attachment, then Copy link, then Delete when edit is allowed for that note. The issue show model offers the same Download all files item when the issue container itself has more than one attachment. `AttachmentArchive` returns a zip named `issue-{id}.zip` or `journal-{id}.zip`. Repeated filenames keep the extension and insert `(2)`, `(3)`, and so on. One attachment is not an archive. A private journal stays hidden, and the zip is refused, without `view_private_notes`. The show model records the control. There is no HTTP route.
 - Image filenames (`bmp`, `gif`, `jpg`, `jpe`, `jpeg`, `png`, `webp`) are thumbnails when `thumbnails_enabled` is on. The default is off. `thumbnails_size` defaults to 100 and is stored on the show model. Thumbnail image bytes are not rendered. A non-image file does not put a detail-only journal on Notes.
-- Spent time rows are ordered by `spent_on` descending, then `created_on`, then `id`. Hours are rounded to two decimals. `time_entries_visibility` applies to those rows: `all`, or `own` where `user_id` is the actor. Only roles that grant `view_time_entries` count, and several of those roles use the most open value. The tab stays when the hours sum is above zero even if that filter leaves no rows. Active admins see every row. Writes go through `TimeEntryService`.
+- Spent time rows are ordered by `spent_on` descending, then `created_on`, then `id`. Hours are rounded to two decimals. `time_entries_visibility` applies to those rows: `all`, or `own` where `user_id` is the actor. Only roles that grant `view_time_entries` count, and several of those roles use the most open value. The tab stays when the hours sum is above zero even if that filter leaves no rows. Active admins see every row when `view_time_entries` is allowed. Writes go through `TimeEntryService`.
 - Associated revisions are `changesets` rows joined through `changesets_issues`, newest `committed_on` first. The actor needs `view_changesets` on the repository's project. The repository `type` string is stored and is not used to fetch commits.
 - After `IssueService::update` returns, the caller passes `justUpdated: true`. The show model then carries the flash `✓ Successful update.` with tone `green`.
 
@@ -134,17 +145,15 @@ No workflow matrix is seeded, because statuses and trackers are not created by t
 - Permission storage is JSON text, not a YAML dump of symbols. YAML symbol lists are accepted on read only.
 - `issues_visibility = all` includes other people's private issues. `default` is the mode that hides them.
 - Same-status saves do not require a workflow row that points at the current status.
-- Closing and reopening blockers (relations, open subtasks, a closed parent) are not applied.
-- `roles.settings` tracker masks are stored when they are JSON and are not applied.
-- `roles.time_entries_visibility` is applied on the issue history Spent time tab and on IssueQuery `spent_hours` totals, the projected column, and the `spent_time` filter. `TimeEntryService` writes rows. `roles.default_time_entry_activity_id` is stored and is not applied. The spent user's membership is not checked.
+- A permission check that omits the tracker does not apply `roles.settings` masks. `edit_own_issues` is not tracker-scoped.
+- `roles.time_entries_visibility` is applied on the issue history Spent time tab, on spent-time row lists, and on IssueQuery `spent_hours` totals, the projected column, and the `spent_time` filter. `TimeEntryService` writes rows. `roles.default_time_entry_activity_id` is stored and is not applied. The spent user's membership is not checked.
 - `roles.users_visibility` is applied by `UserVisibility`. A new assignee must be visible to the actor. The assignee does not have to be a member of the issue's project. Account administration and the user directory are not in this slice. Web sign-in is in [users-auth-spec.md](users-auth-spec.md). This is not a 0.1 tag.
-- `roles_managed_roles` is stored and is not checked when a role is assigned.
-- `MembershipService::assignRole` does not itself require `manage_members`.
+- `MembershipService::assignRole` does not itself require `manage_members` or `roles_managed_roles`. `ManagedRoleGuard` does.
+- An active admin still bypasses a disabled module after the project status gate. The status gate itself applies to that admin.
 - Subtask parents must belong to the same project.
 - `inherit_members` walks descendants by chaining each new inherited row, not only the direct child.
 - Turning `inherit_members` off removes roles this project inherited from another project. Group expansion on the same project is kept.
 - A user with `status` other than `1` is treated as logged out for ACL, including admins.
-- Archived and closed project statuses are not special-cased.
 - Relation-add journals are written on the source issue only. The other issue does not get a row.
 - A private journal stays hidden from its author when that user lacks `view_private_notes`.
 - Quote writes a new journal immediately. It does not fill a notes field for a later update.
