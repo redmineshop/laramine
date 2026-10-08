@@ -73,7 +73,7 @@
         "id": 6,
         "type": "IssueQuery",
         "name": "Open board",
-        "description": "Synthetic public board with totals",
+        "description": "Synthetic public list with totals",
         "project_id": 1,
         "user_id": 1,
         "visibility": 2,
@@ -82,7 +82,7 @@
         "sort_criteria": [["id", "asc"]],
         "group_by": "tracker",
         "options": {
-            "display_type": "board",
+            "display_type": "list",
             "totalable_names": ["estimated_hours", "spent_hours", "cf_6", "cf_7"]
         }
     }

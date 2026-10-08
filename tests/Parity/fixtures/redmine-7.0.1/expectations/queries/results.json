@@ -91,7 +91,6 @@
         "tracker"
       ],
       "display_type": "list",
-      "board": [],
       "groups": null,
       "totals": {
         "estimated_hours": "3"
@@ -139,7 +138,6 @@
         "tracker"
       ],
       "display_type": "list",
-      "board": [],
       "groups": null,
       "totals": {
         "estimated_hours": "4.25"
@@ -191,7 +189,6 @@
         "status"
       ],
       "display_type": "list",
-      "board": [],
       "groups": null,
       "totals": {},
       "rows": [
@@ -232,7 +229,6 @@
         "status"
       ],
       "display_type": "list",
-      "board": [],
       "groups": null,
       "totals": {},
       "rows": [
@@ -273,7 +269,6 @@
         "subject"
       ],
       "display_type": "list",
-      "board": [],
       "groups": null,
       "totals": {},
       "rows": [
@@ -293,7 +288,6 @@
         "subject"
       ],
       "display_type": "list",
-      "board": [],
       "groups": null,
       "totals": {},
       "rows": [
@@ -313,7 +307,6 @@
         "subject"
       ],
       "display_type": "list",
-      "board": [],
       "groups": null,
       "totals": {},
       "rows": [
@@ -333,7 +326,6 @@
         "subject"
       ],
       "display_type": "list",
-      "board": [],
       "groups": null,
       "totals": {},
       "rows": [
@@ -353,7 +345,6 @@
         "subject"
       ],
       "display_type": "list",
-      "board": [],
       "groups": null,
       "totals": {},
       "rows": [
@@ -371,7 +362,6 @@
         "subject"
       ],
       "display_type": "list",
-      "board": [],
       "groups": null,
       "totals": {},
       "rows": []
@@ -384,7 +374,6 @@
         "subject"
       ],
       "display_type": "list",
-      "board": [],
       "groups": null,
       "totals": {},
       "rows": []
@@ -403,7 +392,6 @@
         "id"
       ],
       "display_type": "list",
-      "board": [],
       "groups": null,
       "totals": {},
       "rows": [
@@ -444,7 +432,6 @@
         "id"
       ],
       "display_type": "list",
-      "board": [],
       "groups": null,
       "totals": {},
       "rows": [
@@ -488,7 +475,6 @@
         "priority"
       ],
       "display_type": "list",
-      "board": [],
       "groups": null,
       "totals": {},
       "rows": [
@@ -529,7 +515,6 @@
         "priority"
       ],
       "display_type": "list",
-      "board": [],
       "groups": null,
       "totals": {},
       "rows": [
@@ -599,24 +584,6 @@
           "spent_hours": "0.5"
         }
       ],
-      "board": [
-        {
-          "status_id": 1,
-          "name": "New",
-          "ids": [
-            1,
-            5,
-            2
-          ]
-        },
-        {
-          "status_id": 2,
-          "name": "In Progress",
-          "ids": [
-            6
-          ]
-        }
-      ],
       "groups": [
         {
           "key": 1,
@@ -641,7 +608,7 @@
         "cf_6": "50",
         "cf_7": "2"
       },
-      "display_type": "board",
+      "display_type": "list",
       "columns": [
         "subject",
         "status",
@@ -688,24 +655,6 @@
           "spent_hours": "0.5"
         }
       ],
-      "board": [
-        {
-          "status_id": 1,
-          "name": "New",
-          "ids": [
-            1,
-            2
-          ]
-        },
-        {
-          "status_id": 2,
-          "name": "In Progress",
-          "ids": [
-            4,
-            6
-          ]
-        }
-      ],
       "groups": [
         {
           "key": 1,
@@ -730,7 +679,7 @@
         "cf_6": "50",
         "cf_7": "1.5"
       },
-      "display_type": "board",
+      "display_type": "list",
       "columns": [
         "subject",
         "status",
@@ -785,25 +734,6 @@
           "spent_hours": "0.5"
         }
       ],
-      "board": [
-        {
-          "status_id": 1,
-          "name": "New",
-          "ids": [
-            1,
-            5,
-            2
-          ]
-        },
-        {
-          "status_id": 2,
-          "name": "In Progress",
-          "ids": [
-            4,
-            6
-          ]
-        }
-      ],
       "groups": [
         {
           "key": 1,
@@ -829,7 +759,7 @@
         "cf_6": "50",
         "cf_7": "2"
       },
-      "display_type": "board",
+      "display_type": "list",
       "columns": [
         "subject",
         "status",
@@ -868,23 +798,6 @@
           "spent_hours": "0"
         }
       ],
-      "board": [
-        {
-          "status_id": 1,
-          "name": "New",
-          "ids": [
-            1,
-            2
-          ]
-        },
-        {
-          "status_id": 2,
-          "name": "In Progress",
-          "ids": [
-            6
-          ]
-        }
-      ],
       "groups": [
         {
           "key": 1,
@@ -908,7 +821,7 @@
         "cf_6": "50",
         "cf_7": "1.5"
       },
-      "display_type": "board",
+      "display_type": "list",
       "columns": [
         "subject",
         "status",
@@ -947,23 +860,6 @@
           "spent_hours": "0"
         }
       ],
-      "board": [
-        {
-          "status_id": 1,
-          "name": "New",
-          "ids": [
-            1,
-            2
-          ]
-        },
-        {
-          "status_id": 2,
-          "name": "In Progress",
-          "ids": [
-            6
-          ]
-        }
-      ],
       "groups": [
         {
           "key": 1,
@@ -987,7 +883,7 @@
         "cf_6": "50",
         "cf_7": "1.5"
       },
-      "display_type": "board",
+      "display_type": "list",
       "columns": [
         "subject",
         "status",
@@ -1010,15 +906,6 @@
           "spent_hours": "3"
         }
       ],
-      "board": [
-        {
-          "status_id": 1,
-          "name": "New",
-          "ids": [
-            5
-          ]
-        }
-      ],
       "groups": [
         {
           "key": 1,
@@ -1034,7 +921,7 @@
         "cf_6": "0",
         "cf_7": "0.5"
       },
-      "display_type": "board",
+      "display_type": "list",
       "columns": [
         "subject",
         "status",
@@ -1047,7 +934,6 @@
       "query_id": 6,
       "ids": [],
       "rows": [],
-      "board": [],
       "groups": [],
       "totals": {
         "estimated_hours": "0",
@@ -1055,7 +941,7 @@
         "cf_6": "0",
         "cf_7": "0"
       },
-      "display_type": "board",
+      "display_type": "list",
       "columns": [
         "subject",
         "status",

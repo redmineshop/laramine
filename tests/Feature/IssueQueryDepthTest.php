@@ -25,6 +25,7 @@ use App\Models\User;
 use App\Models\Version;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Tests\Support\DomainFixture;
 use Tests\TestCase;
@@ -201,6 +202,18 @@ class IssueQueryDepthTest extends TestCase
 
         $open = $this->issue($world, ['subject' => 'Open card', 'status_id' => $world->newStatus->id]);
         $later = $this->issue($world, ['subject' => 'Later card', 'status_id' => $world->inProgress->id]);
+        try {
+            $saved->create($world->user, [
+                'name' => 'Board off',
+                'project_id' => $world->project->id,
+                'options' => ['display_type' => 'board'],
+            ]);
+            $this->fail('Issue board stays off unless the extension flag is set.');
+        } catch (QueryValidationException $exception) {
+            $this->assertSame('Query display type is not available: board.', $exception->getMessage());
+        }
+
+        Config::set('redmine.issue_query_board', true);
         $board = $saved->create($world->user, [
             'name' => 'Board',
             'project_id' => $world->project->id,
@@ -218,6 +231,7 @@ class IssueQueryDepthTest extends TestCase
         $this->assertSame(['New', 'In Progress'], array_map(static fn ($column) => $column->name, $boardView->board));
         $this->assertSame([$open->id], $boardView->board[0]->issueIds);
         $this->assertSame([$issue->id, $later->id], $boardView->board[1]->issueIds);
+        Config::set('redmine.issue_query_board', false);
 
         try {
             $saved->create($world->user, [

@@ -40,4 +40,18 @@ return [
 
     'thumbnails_generation_timeout' => (int) env('REDMINE_THUMBNAILS_TIMEOUT', 10),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Issue status-column board
+    |--------------------------------------------------------------------------
+    |
+    | Laramine extension. Redmine 7.0.1 IssueQuery display type is `list`
+    | only. `board` on that pin is the ProjectQuery card layout, which this
+    | flag does not implement. Default off so the extension stays outside
+    | the queries comparison.
+    |
+    */
+
+    'issue_query_board' => filter_var(env('LARAMINE_ISSUE_QUERY_BOARD', false), FILTER_VALIDATE_BOOL),
+
 ];

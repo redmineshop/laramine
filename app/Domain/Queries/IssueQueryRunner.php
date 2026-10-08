@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
  *
  * Rows stay inside the actor's issue visibility. `execute` returns issue models.
  * `present` projects the available columns and applies `display_type`.
+ * Status columns are built only when the Laramine board extension is on.
  * `totals` sums `options.totalable_names` over that same set.
  * Sort uses position, user name, related names, or a custom-field value.
  */
