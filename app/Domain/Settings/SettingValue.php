@@ -21,6 +21,8 @@ final class SettingValue
 
     public const THUMBNAILS_SIZE = 'thumbnails_size';
 
+    public const REACTIONS_ENABLED = 'reactions_enabled';
+
     public const SELF_REGISTRATION = 'self_registration';
 
     public const LOST_PASSWORD = 'lost_password';
@@ -171,6 +173,15 @@ final class SettingValue
     public function thumbnailsEnabled(): bool
     {
         return $this->boolean(self::THUMBNAILS_ENABLED, true);
+    }
+
+    /**
+     * Redmine `reactions_enabled` defaults to 1 in 7.0.1 settings.yml (lines 378–379).
+     * A missing row uses that default.
+     */
+    public function reactionsEnabled(): bool
+    {
+        return $this->boolean(self::REACTIONS_ENABLED, true);
     }
 
     /**

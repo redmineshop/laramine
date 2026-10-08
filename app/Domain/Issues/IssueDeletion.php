@@ -5,6 +5,7 @@ namespace App\Domain\Issues;
 use App\Domain\Acl\PermissionService;
 use App\Domain\DomainException;
 use App\Domain\PermissionDeniedException;
+use App\Domain\Reactions\ReactionService;
 use App\Domain\Tree\NestedSet;
 use App\Models\Attachment;
 use App\Models\CustomValue;
@@ -60,9 +61,15 @@ final class IssueDeletion
                 ->where('journalized_id', $id)
                 ->pluck('id');
             if ($journalIds->isNotEmpty()) {
+                $ids = [];
+                foreach ($journalIds as $journalId) {
+                    $ids[] = (int) $journalId;
+                }
+                ReactionService::forget('Journal', $ids);
                 JournalDetail::query()->whereIn('journal_id', $journalIds)->delete();
                 Journal::query()->whereIn('id', $journalIds)->delete();
             }
+            ReactionService::forget('Issue', [$id]);
             IssueRelation::query()->where('issue_from_id', $id)->orWhere('issue_to_id', $id)->delete();
             Watcher::query()->where('watchable_type', 'Issue')->where('watchable_id', $id)->delete();
             CustomValue::query()->where('customized_type', 'Issue')->where('customized_id', $id)->delete();

@@ -114,7 +114,7 @@ class RestApiParityTest extends TestCase
         $this->assertMatchesRegularExpression('/^\| Boards and forums HTTP \| VERIFIED \|/m', $checklist);
         $this->assertMatchesRegularExpression('/^\| Wiki and boards visual UX \| NOT VERIFIED \|/m', $checklist);
         $this->assertMatchesRegularExpression('/^\| Webhooks \| NOT VERIFIED \|.*645.*461/m', $checklist);
-        $this->assertMatchesRegularExpression('/^\| Reactions \| NOT VERIFIED \|.*490/m', $checklist);
+        $this->assertMatchesRegularExpression('/^\| Reactions \| VERIFIED \|.*490/m', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/api/writes.json', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/api/xml.json', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/api/modules.json', $checklist);

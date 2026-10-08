@@ -10,6 +10,7 @@ use App\Domain\Attachments\UnboundAttachment;
 use App\Domain\DomainException;
 use App\Domain\Issues\JournalQuoteText;
 use App\Domain\PermissionDeniedException;
+use App\Domain\Reactions\ReactionService;
 use App\Domain\TextFormatting\FormattedText;
 use App\Domain\TextFormatting\FormattingContext;
 use App\Domain\Watchers\WatcherLedger;
@@ -564,5 +565,6 @@ final class MessageService
             $attachment->delete();
         }
         $this->watchers->forget(WatcherLedger::MESSAGE, $messageId);
+        ReactionService::forget('Message', [$messageId]);
     }
 }

@@ -26,6 +26,7 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\ProjectFileController;
 use App\Http\Controllers\ProjectListController;
+use App\Http\Controllers\ReactionController;
 use App\Http\Controllers\WatcherController;
 use App\Http\Controllers\WikiController;
 use App\Http\Controllers\WikiFormatController;
@@ -298,6 +299,8 @@ Route::post('/watchers/watch', [WatcherController::class, 'watch'])->name('watch
 Route::match(['delete', 'post'], '/watchers/unwatch', [WatcherController::class, 'unwatch'])->name('watchers.unwatch');
 Route::post('/watchers', [WatcherController::class, 'store'])->name('watchers.store');
 Route::delete('/watchers', [WatcherController::class, 'destroy'])->name('watchers.destroy');
+Route::post('/reactions', [ReactionController::class, 'store'])->name('reactions.store');
+Route::delete('/reactions/{reaction}', [ReactionController::class, 'destroy'])->whereNumber('reaction')->name('reactions.destroy');
 
 Route::get('/projects/{project}/files', [ProjectFileController::class, 'index'])
     ->whereNumber('project')

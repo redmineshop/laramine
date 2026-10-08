@@ -170,9 +170,9 @@ class IdentityAclParityTest extends TestCase
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/identity-acl/managed-roles.json', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/identity-acl/time-entries.json', $checklist);
         $this->assertMatchesRegularExpression('/^\| Webhooks \| NOT VERIFIED \|.*645.*461/m', $checklist);
-        $this->assertMatchesRegularExpression('/^\| Reactions \| NOT VERIFIED \|.*490/m', $checklist);
+        $this->assertMatchesRegularExpression('/^\| Reactions \| VERIFIED \|.*490/m', $checklist);
         $this->assertDoesNotMatchRegularExpression(
-            '/^\| (?!P0 table and column layout \|)(?!Users and authentication)(?!Identity, membership, and permissions \|)(?!Projects and issue nested sets \|)(?!Workflows \|)(?!Custom fields \|)(?!Queries \|)(?!Journals and private notes \|)(?!Time entries and attachments \|)(?!Activity \|)(?!Activity for news, documents, and files \|)(?!Activity for wiki and messages \|)(?!News, documents, and files \|)(?!Notifications for news, documents, and files \|)(?!Notifications for messages and wiki \|)(?!Wiki \|)(?!Boards and forums \|)(?!Calendar and Gantt \|)(?!Textile and Markdown rendering \|)(?!Wiki HTTP \|)(?!Boards and forums HTTP \|)[^|\n]+\| VERIFIED \|/m',
+            '/^\| (?!P0 table and column layout \|)(?!Users and authentication)(?!Identity, membership, and permissions \|)(?!Projects and issue nested sets \|)(?!Workflows \|)(?!Custom fields \|)(?!Queries \|)(?!Journals and private notes \|)(?!Time entries and attachments \|)(?!Activity \|)(?!Activity for news, documents, and files \|)(?!Activity for wiki and messages \|)(?!News, documents, and files \|)(?!Notifications for news, documents, and files \|)(?!Notifications for messages and wiki \|)(?!Wiki \|)(?!Boards and forums \|)(?!Calendar and Gantt \|)(?!Textile and Markdown rendering \|)(?!Wiki HTTP \|)(?!Boards and forums HTTP \|)(?!Reactions \|)[^|\n]+\| VERIFIED \|/m',
             $checklist,
         );
     }
