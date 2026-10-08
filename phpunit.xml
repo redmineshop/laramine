@@ -47,5 +47,18 @@
         <env name="NIGHTWATCH_ENABLED" value="false" force="true"/>
         <!-- The frontend job compiles the SSR bundle. PHPUnit must not call Node. -->
         <env name="INERTIA_SSR_ENABLED" value="false" force="true"/>
+        <!--
+            Live LDAP comparison. These values match the OpenLDAP service in
+            .github/workflows/ci.yml and tests/Parity/fixtures/redmine-7.0.1/expectations/auth/ldap-live.json.
+        -->
+        <env name="LDAP_HOST" value="127.0.0.1" force="true"/>
+        <env name="LDAP_PORT" value="389" force="true"/>
+        <env name="LDAP_TLS_PORT" value="636" force="true"/>
+        <env name="LDAP_BASE_DN" value="dc=example,dc=test" force="true"/>
+        <env name="LDAP_ADMIN_DN" value="cn=admin,dc=example,dc=test" force="true"/>
+        <env name="LDAP_ADMIN_PASSWORD" value="adminsecret" force="true"/>
+        <env name="LDAP_CONFIG_DN" value="cn=admin,cn=config" force="true"/>
+        <env name="LDAP_CONFIG_PASSWORD" value="adminsecret" force="true"/>
+        <env name="LDAP_PEOPLE_DN" value="ou=people,dc=example,dc=test" force="true"/>
     </php>
 </phpunit>

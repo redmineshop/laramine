@@ -100,7 +100,7 @@ class RestApiParityTest extends TestCase
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/api/resources.json', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/api/errors.json', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/', $checklist);
-        $this->assertMatchesRegularExpression('/^\| Users and authentication — live LDAP \| NOT VERIFIED \|/m', $checklist);
+        $this->assertMatchesRegularExpression('/^\| Users and authentication — live LDAP \| VERIFIED \|/m', $checklist);
         $this->assertMatchesRegularExpression('/^\| Activity for changesets \| NOT VERIFIED \|/m', $checklist);
         $this->assertMatchesRegularExpression('/^\| Wiki HTTP \| VERIFIED \|/m', $checklist);
         $this->assertMatchesRegularExpression('/^\| Boards and forums HTTP \| VERIFIED \|/m', $checklist);

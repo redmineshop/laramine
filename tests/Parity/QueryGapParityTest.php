@@ -159,7 +159,7 @@ class QueryGapParityTest extends TestCase
         $this->assertMatchesRegularExpression('/^\| Users and authentication — OpenID Connect \| N\/A \|/m', $checklist);
         $this->assertMatchesRegularExpression('/^\| Calendar and Gantt \| VERIFIED \|/m', $checklist);
         $this->assertMatchesRegularExpression('/^\| Activity for changesets \| NOT VERIFIED \|/m', $checklist);
-        $this->assertMatchesRegularExpression('/^\| Users and authentication — live LDAP \| NOT VERIFIED \|/m', $checklist);
+        $this->assertMatchesRegularExpression('/^\| Users and authentication — live LDAP \| VERIFIED \|/m', $checklist);
         $this->assertMatchesRegularExpression('/^\| Wiki and boards visual UX \| NOT VERIFIED \|/m', $checklist);
     }
 

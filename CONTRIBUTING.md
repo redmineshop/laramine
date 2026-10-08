@@ -22,6 +22,22 @@ Tests expect a database named `laramine_testing`, user `root`, password `passwor
 
 SQLite is an optional local migrate smoke, already described in the README. It is not the suite CI runs. A SQLite migrate does not replace `composer test`.
 
+The live LDAP comparison needs the PHP `ldap` extension and OpenLDAP on `127.0.0.1:389` (LDAPS on `636`). `phpunit.xml` forces the `LDAP_*` values. CI starts the same image. Locally:
+
+```bash
+docker run -d --name laramine-openldap \
+  -p 389:389 -p 636:636 \
+  -e LDAP_ORGANISATION=Laramine \
+  -e LDAP_DOMAIN=example.test \
+  -e LDAP_ADMIN_PASSWORD=adminsecret \
+  -e LDAP_CONFIG_PASSWORD=adminsecret \
+  -e LDAP_TLS_VERIFY_CLIENT=never \
+  osixia/openldap:1.5.0
+tests/Parity/fixtures/redmine-7.0.1/ldap/seed.sh
+```
+
+`tests/Parity/LiveLdapParityTest.php` loads that LDIF again. A missing directory fails the comparison. It does not skip.
+
 ## Checks before you open a pull request
 
 Run these on MySQL 8. All three are required:
@@ -51,7 +67,7 @@ php artisan test --filter=IssueQuery
 1. `composer install --prefer-dist --no-interaction`
 2. Pint `--test`
 3. PHPStan / Larastan at level 8
-4. Full PHPUnit (Unit, Feature, Parity) against MySQL 8.0 on PHP 8.3
+4. Full PHPUnit (Unit, Feature, Parity) against MySQL 8.0 on PHP 8.3, with the `ldap` extension and the OpenLDAP service seeded from `tests/Parity/fixtures/redmine-7.0.1/ldap/directory.ldif`
 5. Frontend job: `npm ci`, `npm run typecheck`, `npm run build` on Node 22
 
 The frontend job checks the Inertia pages, including the sign-in screen. It does not make the UI ready and it is not a 0.1 tag. See [docs/ux-parity-notes.md](docs/ux-parity-notes.md).

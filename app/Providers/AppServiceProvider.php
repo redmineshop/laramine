@@ -9,6 +9,7 @@ use App\Domain\Attachments\AbsentThumbnailDecoder;
 use App\Domain\Attachments\InterventionThumbnailDecoder;
 use App\Domain\Attachments\ThumbnailDecoder;
 use App\Domain\Auth\CredentialChecker;
+use App\Domain\Auth\Ldap\ExtLdapDirectory;
 use App\Domain\Auth\Ldap\LdapDirectory;
 use App\Domain\Auth\Ldap\MemoryLdapDirectory;
 use App\Models\Document;
@@ -37,7 +38,13 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(PermissionCatalog::class);
-        $this->app->singleton(LdapDirectory::class, MemoryLdapDirectory::class);
+        $this->app->singleton(LdapDirectory::class, function (Application $app): LdapDirectory {
+            if ($app->environment('testing')) {
+                return new MemoryLdapDirectory;
+            }
+
+            return new ExtLdapDirectory;
+        });
         $this->app->bind(ThumbnailDecoder::class, function (Application $app): ThumbnailDecoder {
             if (InterventionThumbnailDecoder::present()) {
                 return $app->make(InterventionThumbnailDecoder::class);

@@ -1,0 +1,299 @@
+# Fixture directory for the live LDAP comparison. Not a copy of upstream fixtures.
+dn: ou=people,dc=example,dc=test
+objectClass: organizationalUnit
+ou: people
+
+dn: uid=gina,ou=people,dc=example,dc=test
+objectClass: inetOrgPerson
+uid: gina
+cn: Gina Directory
+sn: Directory
+givenName: Gina
+displayName: Gina Mapped
+mail: gina@parity.test
+departmentNumber: eng
+userPassword: directory-secret
+
+dn: uid=half,ou=people,dc=example,dc=test
+objectClass: inetOrgPerson
+uid: half
+cn: Half Entry
+sn: Entry
+givenName: Half
+displayName: Half
+departmentNumber: eng
+userPassword: directory-secret
+
+dn: uid=badmail,ou=people,dc=example,dc=test
+objectClass: inetOrgPerson
+uid: badmail
+cn: Bad Mail
+sn: Mail
+givenName: Bad
+displayName: Bad
+mail: not-an-email
+departmentNumber: eng
+userPassword: directory-secret
+
+dn: uid=taken,ou=people,dc=example,dc=test
+objectClass: inetOrgPerson
+uid: taken
+cn: Taken Mail
+sn: Mail
+givenName: Taken
+displayName: Taken
+mail: ada@parity.test
+departmentNumber: eng
+userPassword: directory-secret
+
+dn: uid=longname,ou=people,dc=example,dc=test
+objectClass: inetOrgPerson
+uid: longname
+cn: Long Name
+sn: Long
+givenName: Long
+displayName: NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNN
+mail: longname@parity.test
+departmentNumber: eng
+userPassword: directory-secret
+
+dn: uid=a*b,ou=people,dc=example,dc=test
+objectClass: inetOrgPerson
+uid: a*b
+cn: Star User
+sn: User
+givenName: Star
+displayName: Star
+mail: starb@parity.test
+departmentNumber: eng
+userPassword: directory-secret
+
+dn: uid=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,ou=people,dc=example,dc=test
+objectClass: inetOrgPerson
+uid: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+cn: Long Login
+sn: Login
+givenName: Long
+displayName: Long
+mail: longlogin@parity.test
+departmentNumber: eng
+userPassword: directory-secret
+
+dn: uid=omar,ou=people,dc=example,dc=test
+objectClass: inetOrgPerson
+uid: omar
+cn: Omar Other
+sn: Other
+givenName: Omar
+displayName: Omar
+mail: omar@parity.test
+departmentNumber: ops
+userPassword: directory-secret
+
+dn: uid=nina,ou=people,dc=example,dc=test
+objectClass: inetOrgPerson
+uid: nina
+cn: Nina Secret
+sn: Secret
+givenName: Nina
+displayName: Nina
+mail: nina@parity.test
+departmentNumber: secret
+userPassword: directory-secret
+
+dn: uid=nova,ou=people,dc=example,dc=test
+objectClass: inetOrgPerson
+uid: nova
+cn: Nova Dollar
+sn: Dollar
+givenName: Nova
+displayName: Nova
+mail: nova@parity.test
+departmentNumber: dollar
+userPassword: directory-secret
+
+dn: uid=a\,b,ou=people,dc=example,dc=test
+objectClass: inetOrgPerson
+uid: a,b
+cn: Comma User
+sn: Comma
+givenName: Comma
+displayName: Comma
+mail: comma@parity.test
+departmentNumber: dollar
+userPassword: directory-secret
+
+dn: uid=bea,ou=people,dc=example,dc=test
+objectClass: inetOrgPerson
+uid: bea
+cn: Bea Mapped
+sn: Mapped
+givenName: Bea
+displayName: Bea
+mail: bea-mapped@parity.test
+departmentNumber: eng
+userPassword: directory-secret
+
+dn: uid=lars,ou=people,dc=example,dc=test
+objectClass: inetOrgPerson
+uid: lars
+cn: Lars Held
+sn: Held
+givenName: Lars
+displayName: Lars
+mail: lars@parity.test
+departmentNumber: eng
+userPassword: directory-secret
+
+dn: uid=pending,ou=people,dc=example,dc=test
+objectClass: inetOrgPerson
+uid: pending
+cn: Pending Queued
+sn: Queued
+givenName: Pending
+displayName: Pending
+mail: pending@parity.test
+departmentNumber: eng
+userPassword: directory-secret
+
+dn: uid=idle,ou=people,dc=example,dc=test
+objectClass: inetOrgPerson
+uid: idle
+cn: Idle Paused
+sn: Paused
+givenName: Idle
+displayName: Idle
+mail: idle@parity.test
+departmentNumber: eng
+userPassword: directory-secret
+
+dn: uid=ada,ou=people,dc=example,dc=test
+objectClass: inetOrgPerson
+uid: ada
+cn: Ada Directory
+sn: Directory
+givenName: Ada
+displayName: Ada
+mail: ada-directory@parity.test
+departmentNumber: ops
+userPassword: directory-secret
+
+dn: uid=crowd00,ou=people,dc=example,dc=test
+objectClass: inetOrgPerson
+uid: crowd00
+cn: Crowd 00
+sn: Crowd
+givenName: Crowd
+mail: crowd00@parity.test
+departmentNumber: crowd
+userPassword: directory-secret
+
+dn: uid=crowd01,ou=people,dc=example,dc=test
+objectClass: inetOrgPerson
+uid: crowd01
+cn: Crowd 01
+sn: Crowd
+givenName: Crowd
+mail: crowd01@parity.test
+departmentNumber: crowd
+userPassword: directory-secret
+
+dn: uid=crowd02,ou=people,dc=example,dc=test
+objectClass: inetOrgPerson
+uid: crowd02
+cn: Crowd 02
+sn: Crowd
+givenName: Crowd
+mail: crowd02@parity.test
+departmentNumber: crowd
+userPassword: directory-secret
+
+dn: uid=crowd03,ou=people,dc=example,dc=test
+objectClass: inetOrgPerson
+uid: crowd03
+cn: Crowd 03
+sn: Crowd
+givenName: Crowd
+mail: crowd03@parity.test
+departmentNumber: crowd
+userPassword: directory-secret
+
+dn: uid=crowd04,ou=people,dc=example,dc=test
+objectClass: inetOrgPerson
+uid: crowd04
+cn: Crowd 04
+sn: Crowd
+givenName: Crowd
+mail: crowd04@parity.test
+departmentNumber: crowd
+userPassword: directory-secret
+
+dn: uid=crowd05,ou=people,dc=example,dc=test
+objectClass: inetOrgPerson
+uid: crowd05
+cn: Crowd 05
+sn: Crowd
+givenName: Crowd
+mail: crowd05@parity.test
+departmentNumber: crowd
+userPassword: directory-secret
+
+dn: uid=crowd06,ou=people,dc=example,dc=test
+objectClass: inetOrgPerson
+uid: crowd06
+cn: Crowd 06
+sn: Crowd
+givenName: Crowd
+mail: crowd06@parity.test
+departmentNumber: crowd
+userPassword: directory-secret
+
+dn: uid=crowd07,ou=people,dc=example,dc=test
+objectClass: inetOrgPerson
+uid: crowd07
+cn: Crowd 07
+sn: Crowd
+givenName: Crowd
+mail: crowd07@parity.test
+departmentNumber: crowd
+userPassword: directory-secret
+
+dn: uid=crowd08,ou=people,dc=example,dc=test
+objectClass: inetOrgPerson
+uid: crowd08
+cn: Crowd 08
+sn: Crowd
+givenName: Crowd
+mail: crowd08@parity.test
+departmentNumber: crowd
+userPassword: directory-secret
+
+dn: uid=crowd09,ou=people,dc=example,dc=test
+objectClass: inetOrgPerson
+uid: crowd09
+cn: Crowd 09
+sn: Crowd
+givenName: Crowd
+mail: crowd09@parity.test
+departmentNumber: crowd
+userPassword: directory-secret
+
+dn: uid=crowd10,ou=people,dc=example,dc=test
+objectClass: inetOrgPerson
+uid: crowd10
+cn: Crowd 10
+sn: Crowd
+givenName: Crowd
+mail: crowd10@parity.test
+departmentNumber: crowd
+userPassword: directory-secret
+
+dn: uid=crowd11,ou=people,dc=example,dc=test
+objectClass: inetOrgPerson
+uid: crowd11
+cn: Crowd 11
+sn: Crowd
+givenName: Crowd
+mail: crowd11@parity.test
+departmentNumber: crowd
+userPassword: directory-secret
