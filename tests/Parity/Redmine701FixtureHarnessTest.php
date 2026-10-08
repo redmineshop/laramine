@@ -116,7 +116,7 @@ class Redmine701FixtureHarnessTest extends TestCase
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/', $checklist);
         $this->assertDoesNotMatchRegularExpression(
-            '/^\| (?!P0 table and column layout \|)(?!Users and authentication)(?!Identity, membership, and permissions \|)(?!Projects and issue nested sets \|)(?!Workflows \|)(?!Custom fields \|)(?!Queries \|)(?!Journals and private notes \|)(?!Time entries and attachments \|)(?!Activity \|)(?!Activity for news, documents, and files \|)(?!Activity for wiki and messages \|)(?!News, documents, and files \|)(?!Notifications for news, documents, and files \|)(?!Notifications for messages and wiki \|)(?!Wiki \|)(?!Boards and forums \|)(?!Calendar and Gantt \|)(?!Textile and Markdown rendering \|)[^|\n]+\| VERIFIED \|/m',
+            '/^\| (?!P0 table and column layout \|)(?!Users and authentication)(?!Identity, membership, and permissions \|)(?!Projects and issue nested sets \|)(?!Workflows \|)(?!Custom fields \|)(?!Queries \|)(?!Journals and private notes \|)(?!Time entries and attachments \|)(?!Activity \|)(?!Activity for news, documents, and files \|)(?!Activity for wiki and messages \|)(?!News, documents, and files \|)(?!Notifications for news, documents, and files \|)(?!Notifications for messages and wiki \|)(?!Wiki \|)(?!Boards and forums \|)(?!Calendar and Gantt \|)(?!Textile and Markdown rendering \|)(?!Wiki HTTP \|)(?!Boards and forums HTTP \|)[^|\n]+\| VERIFIED \|/m',
             $checklist,
         );
     }

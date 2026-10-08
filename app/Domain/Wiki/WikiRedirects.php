@@ -29,6 +29,21 @@ final class WikiRedirects
         ]);
     }
 
+    /**
+     * Point older redirects at the new title without storing a hop from the old title.
+     */
+    public function retarget(int $wikiId, string $from, string $to): void
+    {
+        if (strcasecmp($from, $to) === 0) {
+            return;
+        }
+        $this->deleteTitled($wikiId, $to);
+        WikiRedirect::query()
+            ->where('redirects_to_wiki_id', $wikiId)
+            ->whereRaw('LOWER(redirects_to) = LOWER(?)', [$from])
+            ->update(['redirects_to' => $to]);
+    }
+
     public function target(int $wikiId, string $title): ?string
     {
         $redirect = WikiRedirect::query()

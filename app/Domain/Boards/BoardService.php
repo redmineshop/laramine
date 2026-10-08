@@ -98,7 +98,7 @@ final class BoardService
     /**
      * @return list<array{id: int, name: string, description: string|null, parent_id: int|null, position: int|null, topics_count: int, messages_count: int, last_message_id: int|null}>
      */
-    public function index(User $actor, Project $project): array
+    public function index(?User $actor, Project $project): array
     {
         $this->gate->allow($actor, $project, 'boards', 'view_messages');
         $rows = [];

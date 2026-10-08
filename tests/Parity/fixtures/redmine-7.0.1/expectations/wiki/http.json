@@ -1,0 +1,189 @@
+{
+    "routes": [
+        "DELETE projects/{project}/wiki",
+        "DELETE projects/{project}/wiki/{title}",
+        "DELETE projects/{project}/wiki/{title}/{version}",
+        "GET projects/{project}/wiki",
+        "GET projects/{project}/wiki/date_index",
+        "GET projects/{project}/wiki/export",
+        "GET projects/{project}/wiki/export.{format}",
+        "GET projects/{project}/wiki/index",
+        "GET projects/{project}/wiki/new",
+        "GET projects/{project}/wiki/{title}",
+        "GET projects/{project}/wiki/{title}.{format}",
+        "GET projects/{project}/wiki/{title}/annotate",
+        "GET projects/{project}/wiki/{title}/diff",
+        "GET projects/{project}/wiki/{title}/edit",
+        "GET projects/{project}/wiki/{title}/history",
+        "GET projects/{project}/wiki/{title}/rename",
+        "GET projects/{project}/wiki/{title}/{version}",
+        "GET projects/{project}/wiki/{title}/{version}/annotate",
+        "GET projects/{project}/wiki/{title}/{version}/edit",
+        "POST projects/{project}/wiki/new",
+        "POST projects/{project}/wiki/{title}/add_attachment",
+        "POST projects/{project}/wiki/{title}/preview",
+        "POST projects/{project}/wiki/{title}/protect",
+        "POST projects/{project}/wiki/{title}/rename",
+        "PUT projects/{project}/wiki",
+        "PUT|POST projects/{project}/wiki/{title}"
+    ],
+    "guest_html": 302,
+    "guest_location": "/login",
+    "guest_json": 401,
+    "finn_new": 403,
+    "finn_missing": 404,
+    "ada_missing": 302,
+    "ada_missing_location": "/projects/parity-core/wiki/new?title=Missing",
+    "ada_start": 302,
+    "ada_start_location": "/projects/parity-core/wiki/new?title=Wiki",
+    "module_off_admin": 403,
+    "empty_title": 422,
+    "empty_title_message": "Wiki page title is empty.",
+    "created": 302,
+    "created_location": "/projects/parity-core/wiki/Guide",
+    "show_component": "Wiki/Show",
+    "show_title": "Guide",
+    "show_html": "<a href=\"/projects/parity-core/wiki/Guide/edit?section=1\" class=\"wiki-edit-section icon-only icon-edit\" title=\"Edit this section\">Edit</a><h1 id=\"Guide\">Guide<a href=\"#Guide\" class=\"wiki-anchor\">\u00b6</a></h1>\n\n<a href=\"/projects/parity-core/wiki/Guide/edit?section=2\" class=\"wiki-edit-section icon-only icon-edit\" title=\"Edit this section\">Edit</a><h2 id=\"Details\">Details<a href=\"#Details\" class=\"wiki-anchor\">\u00b6</a></h2>\n\n<p><strong>word</strong></p>\n\n<ul class=\"toc left\"><li><a href=\"#Guide\">Guide</a><ul><li><a href=\"#Details\">Details</a></li></ul></li></ul>",
+    "updated": 302,
+    "conflict": 409,
+    "conflict_component": "Wiki/Edit",
+    "conflict_message": "Wiki page was updated by another user.",
+    "stored_version_after_conflict": 2,
+    "old_version_component": "Wiki/Show",
+    "old_version_text": "h1. Guide\n\nh2. Details\n\n*word*\n\n{{toc}}",
+    "old_version_denied": 403,
+    "section_saved": 302,
+    "stale_section": 409,
+    "stale_section_message": "Wiki page was updated by another user.",
+    "after_section_html": "<a href=\"/projects/parity-core/wiki/Guide/edit?section=1\" class=\"wiki-edit-section icon-only icon-edit\" title=\"Edit this section\">Edit</a><h1 id=\"Guide\">Guide<a href=\"#Guide\" class=\"wiki-anchor\">\u00b6</a></h1>\n\n<a href=\"/projects/parity-core/wiki/Guide/edit?section=2\" class=\"wiki-edit-section icon-only icon-edit\" title=\"Edit this section\">Edit</a><h2 id=\"Notes\">Notes<a href=\"#Notes\" class=\"wiki-anchor\">\u00b6</a></h2>\n\n<p>plain</p>",
+    "history_component": "Wiki/History",
+    "history_comments": [
+        "first",
+        "second",
+        "section"
+    ],
+    "history_denied": 403,
+    "diff_ops": [
+        {
+            "op": "equal",
+            "text": "h1. Guide"
+        },
+        {
+            "op": "equal",
+            "text": ""
+        },
+        {
+            "op": "equal",
+            "text": "h2. Details"
+        },
+        {
+            "op": "equal",
+            "text": ""
+        },
+        {
+            "op": "equal",
+            "text": "*word*"
+        },
+        {
+            "op": "equal",
+            "text": ""
+        },
+        {
+            "op": "equal",
+            "text": "{{toc}}"
+        },
+        {
+            "op": "insert",
+            "text": ""
+        },
+        {
+            "op": "insert",
+            "text": "second"
+        }
+    ],
+    "annotate_lines": [
+        {
+            "line": "h1. Guide",
+            "version": 1
+        },
+        {
+            "line": "",
+            "version": 1
+        },
+        {
+            "line": "h2. Notes",
+            "version": 3
+        },
+        {
+            "line": "",
+            "version": 2
+        },
+        {
+            "line": "plain",
+            "version": 3
+        }
+    ],
+    "export_denied": 403,
+    "txt": "h1. Guide\n\nh2. Notes\n\nplain",
+    "html_export": "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><title>Guide</title></head><body><div class=\"wiki\"><a href=\"/projects/parity-core/wiki/Guide/edit?section=1\" class=\"wiki-edit-section icon-only icon-edit\" title=\"Edit this section\">Edit</a><h1 id=\"Guide\">Guide<a href=\"#Guide\" class=\"wiki-anchor\">\u00b6</a></h1>\n\n<a href=\"/projects/parity-core/wiki/Guide/edit?section=2\" class=\"wiki-edit-section icon-only icon-edit\" title=\"Edit this section\">Edit</a><h2 id=\"Notes\">Notes<a href=\"#Notes\" class=\"wiki-anchor\">\u00b6</a></h2>\n\n<p>plain</p></div></body></html>",
+    "pdf_prefix": "%PDF-",
+    "pdf_has_title": true,
+    "png": {
+        "status": 406,
+        "body": "Wiki export format is not available. Core formats without an extra gem are html, txt, and pdf.",
+        "citation": "Core wiki export formats without an extra gem are html, txt, and pdf. PNG is the optional mini_magick gantt export, not a wiki page format."
+    },
+    "wiki_txt_has_guide": true,
+    "wiki_html_has_toc": false,
+    "wiki_pdf_prefix": "%PDF-",
+    "wiki_png_status": 406,
+    "wiki_png_body": "Wiki export format is not available. Core formats without an extra gem are html, txt, and pdf.",
+    "preview_denied": 403,
+    "preview": "<p><strong>word</strong></p>",
+    "attached": 302,
+    "attachment_names": [
+        "note.txt"
+    ],
+    "watched": 302,
+    "added_watcher": 302,
+    "watcher_ids": [
+        1,
+        9
+    ],
+    "watching": true,
+    "finn_watcher_ids": null,
+    "protected": 302,
+    "protected_denied": 403,
+    "renamed": 302,
+    "renamed_location": "/projects/parity-core/wiki/Pantry",
+    "hop": 302,
+    "hop_location": "/projects/parity-core/wiki/Pantry",
+    "renamed_without_redirect": 302,
+    "no_hop": 404,
+    "editable_miss": 302,
+    "editable_miss_location": "/projects/parity-core/wiki/new?title=Pantry",
+    "redirect_titles": [
+        "Cook book"
+    ],
+    "destroy_confirm": 200,
+    "destroy_confirm_component": "Wiki/Destroy",
+    "nullified": 302,
+    "child_parent_after_nullify": null,
+    "destroyed_tree": 302,
+    "leaf_after_destroy": 404,
+    "reassigned": 302,
+    "beta_parent_is_gamma": true,
+    "version_denied": 403,
+    "version_gone": 302,
+    "only_version": 422,
+    "only_version_message": "The only wiki version cannot be deleted.",
+    "start": 302,
+    "start_title": "Shelf",
+    "date_index_mode": "date_index",
+    "closed_read": 200,
+    "closed_write": 403,
+    "archived_admin": 403,
+    "removed_wiki": 302,
+    "disabled_admin": 403,
+    "unsupported_export": "Wiki export format is not available. Core formats without an extra gem are html, txt, and pdf."
+}
