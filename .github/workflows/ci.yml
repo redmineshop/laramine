@@ -39,10 +39,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install thumbnail converters
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ghostscript imagemagick libavif-bin libheif-dev libavif-dev
+
       - uses: shivammathur/setup-php@v2
         with:
           php-version: "8.3"
-          extensions: mbstring, xml, curl, zip, mysql, pdo_mysql, bcmath, intl, gd
+          extensions: mbstring, xml, curl, zip, mysql, pdo_mysql, bcmath, intl, gd, imagick
           coverage: none
 
       - name: Install Composer deps

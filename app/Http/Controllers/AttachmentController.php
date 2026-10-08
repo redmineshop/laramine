@@ -115,10 +115,7 @@ class AttachmentController extends Controller
 
     public function thumbnail(Request $request, Attachment $attachment): BinaryFileResponse|JsonResponse
     {
-        $size = $request->query('size');
-        $requested = is_string($size) && preg_match('/^\d+$/', $size) === 1 ? (int) $size : null;
-
-        return $this->send($this->actor($request), $attachment, $requested, true);
+        return $this->send($this->actor($request), $attachment, $this->requestedEdge($request), true);
     }
 
     public function destroy(Request $request, Attachment $attachment): JsonResponse|Response
@@ -154,6 +151,20 @@ class AttachmentController extends Controller
         $response->setContentDisposition($file->disposition, $file->filename);
 
         return $response;
+    }
+
+    private function requestedEdge(Request $request): ?int
+    {
+        $routeSize = $request->route('size');
+        if (is_string($routeSize) && preg_match('/^\d+$/', $routeSize) === 1) {
+            return (int) $routeSize;
+        }
+        $querySize = $request->query('size');
+        if (is_string($querySize) && preg_match('/^\d+$/', $querySize) === 1) {
+            return (int) $querySize;
+        }
+
+        return null;
     }
 
     private function actor(Request $request): ?User

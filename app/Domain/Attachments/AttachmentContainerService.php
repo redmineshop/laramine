@@ -53,6 +53,7 @@ final class AttachmentContainerService
         private readonly IssueNotifier $notifications,
         private readonly ModuleNotifier $moduleMail,
         private readonly SettingValue $settings,
+        private readonly ThumbnailBinaries $binaries,
     ) {}
 
     /**
@@ -181,13 +182,14 @@ final class AttachmentContainerService
         }
         $this->assertContainerFile($attachment);
         $this->assertCanRead($actor, $attachment);
-        if (! $this->images->isImage((string) $attachment->filename)) {
+        $filename = (string) $attachment->filename;
+        if (! $this->images->canThumbnail($filename, $this->binaries->pdfReady())) {
             throw new DomainException('Attachment is not an image.');
         }
         $edge = $this->thumbnails->edge($requestedSize);
         $path = $this->thumbnails->render($attachment, $edge);
 
-        return new AttachmentDownload($path, (string) $attachment->filename, 'image/png', 'inline');
+        return new AttachmentDownload($path, $filename, $this->thumbnailContentType($attachment), 'attachment');
     }
 
     private function assertActiveUser(User $actor): void
@@ -574,6 +576,44 @@ final class AttachmentContainerService
         $stored = $attachment->content_type;
 
         return is_string($stored) && $stored !== '' ? $stored : 'application/octet-stream';
+    }
+
+    /**
+     * Image thumbnails keep an image content type. A blank or generic stored
+     * type is taken from the filename. PDF and other non-images are PNG.
+     */
+    private function thumbnailContentType(Attachment $attachment): string
+    {
+        $stored = $attachment->content_type;
+        $type = is_string($stored) ? strtolower(trim(explode(';', $stored, 2)[0])) : '';
+        if ($type === '' || $type === 'application/octet-stream') {
+            $detected = $this->filenameImageType((string) $attachment->filename);
+            $type = $detected ?? 'application/octet-stream';
+        }
+        if (! str_starts_with($type, 'image/')) {
+            return 'image/png';
+        }
+
+        return $type;
+    }
+
+    private function filenameImageType(string $filename): ?string
+    {
+        $base = basename(str_replace('\\', '/', $filename));
+        $dot = strrpos($base, '.');
+        if ($dot === false || $dot === strlen($base) - 1) {
+            return null;
+        }
+
+        return match (strtolower(substr($base, $dot + 1))) {
+            'avif' => 'image/avif',
+            'bmp' => 'image/x-ms-bmp',
+            'gif' => 'image/gif',
+            'jpg', 'jpe', 'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'webp' => 'image/webp',
+            default => null,
+        };
     }
 
     private function disposition(string $contentType): string

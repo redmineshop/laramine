@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Domain\Acl\MembershipService;
 use App\Domain\Attachments\AttachmentArchive;
 use App\Domain\Attachments\AttachmentService;
+use App\Domain\Attachments\ThumbnailBinaries;
 use App\Domain\DomainException;
 use App\Domain\Issues\History\IssueHistoryPresenter;
 use App\Domain\Issues\History\JournalActionList;
@@ -45,6 +46,10 @@ class IssueJournalHistoryLeftoversTest extends TestCase
     public function test_thumbnail_only_journal_is_kept_on_notes_when_thumbnails_are_enabled(): void
     {
         $world = DomainFixture::boot('journal-thumbs');
+        config([
+            'redmine.gs_command' => '',
+            'redmine.imagemagick_convert_command' => '',
+        ]);
         $admin = User::factory()->create(['admin' => true, 'login' => 'thumbs-admin']);
         $issues = app(IssueService::class);
         $history = app(IssueHistoryPresenter::class);
@@ -107,6 +112,35 @@ class IssueJournalHistoryLeftoversTest extends TestCase
             $this->assertFalse($disabled->historyEntries[0]->attachments[0]->thumbnailable);
         } finally {
             $this->unlinkAll($paths);
+        }
+    }
+
+    public function test_pdf_journal_is_thumbnailable_when_gs_and_convert_answer(): void
+    {
+        $this->assertTrue(app(ThumbnailBinaries::class)->pdfReady());
+        $world = DomainFixture::boot('journal-pdf-thumbs');
+        $admin = User::factory()->create(['admin' => true, 'login' => 'pdf-thumbs-admin']);
+        $issues = app(IssueService::class);
+        $history = app(IssueHistoryPresenter::class);
+        $files = app(AttachmentService::class);
+        $issue = $issues->create($admin, $world->project, [
+            'tracker_id' => $world->tracker->id,
+            'subject' => 'PDF thumbnail',
+            'status_id' => $world->newStatus->id,
+        ]);
+        $pdf = $this->storeJournal((int) $issue->id, (int) $admin->id, null);
+        $path = $files->absolutePath($files->store($admin, 'notes.pdf', 'PDF', 'application/pdf', null, $pdf));
+
+        try {
+            $this->setting(SettingValue::THUMBNAILS_ENABLED, '1');
+            $show = $history->present($admin, $issue->fresh());
+            $this->assertContains($pdf->id, $this->ids($show->notesEntries));
+            $entry = $show->notesEntries[0];
+            $this->assertTrue($entry->hasThumbnails);
+            $this->assertTrue($entry->attachments[0]->thumbnailable);
+            $this->assertSame('notes.pdf', $entry->attachments[0]->filename);
+        } finally {
+            $this->unlinkAll([$path]);
         }
     }
 
