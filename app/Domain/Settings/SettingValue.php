@@ -71,6 +71,50 @@ final class SettingValue
 
     public const TEXT_FORMATTING = 'text_formatting';
 
+    public const DEFAULT_ISSUE_QUERY = 'default_issue_query';
+
+    public const ISSUE_LIST_DEFAULT_COLUMNS = 'issue_list_default_columns';
+
+    public const ISSUE_LIST_DEFAULT_TOTALS = 'issue_list_default_totals';
+
+    /**
+     * Public IssueQuery id from `default_issue_query`. A missing or non-numeric value is none.
+     */
+    public function defaultIssueQueryId(): ?int
+    {
+        $stored = $this->string(self::DEFAULT_ISSUE_QUERY);
+        if ($stored !== null && preg_match('/^[1-9]\d*$/', $stored) === 1) {
+            return (int) $stored;
+        }
+
+        return null;
+    }
+
+    /**
+     * Column names from `issue_list_default_columns`. A missing row keeps the built-in default.
+     *
+     * @return list<string>|null
+     */
+    public function issueListDefaultColumns(): ?array
+    {
+        $stored = Setting::query()->where('name', self::ISSUE_LIST_DEFAULT_COLUMNS)->value('value');
+        if (! is_string($stored)) {
+            return null;
+        }
+
+        return $this->stringList(self::ISSUE_LIST_DEFAULT_COLUMNS);
+    }
+
+    /**
+     * Total names from `issue_list_default_totals`. A missing row is an empty list.
+     *
+     * @return list<string>
+     */
+    public function issueListDefaultTotals(): array
+    {
+        return $this->stringList(self::ISSUE_LIST_DEFAULT_TOTALS);
+    }
+
     /**
      * `textile`, `common_mark`, or an empty string for plain text.
      *

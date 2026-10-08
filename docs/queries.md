@@ -125,7 +125,9 @@ List-like custom fields (`list`, `enumeration`, `bool`, `user`, and `version`) u
 
 Relations are stored once. The canonical `relation_type` is `relates`, `blocks`, `duplicates`, `precedes`, or `copied_to` on `issue_from_id`. The reverse filter name (`blocked`, `duplicated`, `follows`, `copied_from`) matches that same row from `issue_to_id`. A filter also accepts the reverse type if a row was stored that way. `=` / `!` compare the other issue id. `=p` / `=!p` / `!p` compare the other issue's project. `*o` / `!o` use `issue_statuses.is_closed`. Related issues are not re-checked against issue visibility.
 
-`cf_N.due_date` and `cf_N.status` require an `IssueCustomField` of format `version` with `is_filter`, visible to the actor. The custom value is the version id. `!*` on `cf_N.due_date` matches a missing value and a version whose `effective_date` is null. The same date and status comparisons apply to `fixed_version.due_date` and `fixed_version.status` through `issues.fixed_version_id`. Shipped formats do not define any other `cf_N.*` chain, so those suffixes are rejected.
+`cf_N.due_date` and `cf_N.status` require an `IssueCustomField` of format `version` with `is_filter`, visible to the actor. The custom value is the version id. `!*` on `cf_N.due_date` matches a missing value and a version whose `effective_date` is null. The same date and status comparisons apply to `fixed_version.due_date` and `fixed_version.status` through `issues.fixed_version_id`.
+
+`project.cf_N`, `author.cf_N`, `assigned_to.cf_N`, and `fixed_version.cf_N` filter the custom values of that associated record. The field must be a `ProjectCustomField`, `UserCustomField`, or `VersionCustomField` with `is_filter`, and the actor must be able to see it. User fields also match a value stored on a group. Operators are the target format's filter operators, including `ev`, `!ev`, and `cf` when that format lists them. Those history rows use `journalized_type` Project, User, Group, or Version. `cf_N.cf_M` follows an issue custom field of format `user` or `version` into a filterable field of that user, group, or version. Any other suffix is rejected. `issue_relations` has no custom values in the 7.0.1 pin.
 
 `subproject_id` changes which projects a scoped query reads. With no filter, descendants are included when `display_subprojects_issues` is on (the Redmine default) and omitted when it is `0`. `*` adds every descendant. `!*` is the query project only. `=` adds listed descendants and ignores ids that are not descendants. `!` adds every descendant except the listed ones. The query project itself stays in the set. Issues in a descendant are still dropped when the actor lacks `view_issues` there. On a global query, `*` adds no extra constraint, `!*` keeps projects with a null `parent_id`, and `=` / `!` compare `issues.project_id`.
 
@@ -182,22 +184,28 @@ A public query that names a hidden field can be saved by an admin. Another user 
 
 | Type | Result |
 | --- | --- |
-| `list` | Rows in query order. The view's `board` list is empty. |
-| `board` | The same rows, also grouped into status columns. Columns follow `issue_statuses.position`, then status id. Issues inside a column keep the query order. A status with no issue in the result is omitted. `group_by` still only adds a sort prefix. It does not choose the board axis. |
+| `list` | Rows in query order. The view's `board` list is empty. `groups` lists each `group_by` value when that column is groupable. |
+| `board` | The same rows, also grouped into status columns. Columns follow `issue_statuses.position`, then status id. Issues inside a column keep the query order. A status with no issue in the result is omitted. `group_by` still adds its sort prefix and, when the column is groupable, fills `groups`. It does not choose the board axis. |
 
-Gantt, calendar, swimlanes, and a board grouped by another field are not implemented.
+`IssueQueryGrouping` accepts `tracker`, `status`, `priority`, `author`, `assigned_to`, `category`, `fixed_version`, `project`, `done_ratio`, `start_date`, `due_date`, `created_on`, `updated_on`, `closed_on`, and `is_private` (the last only when the actor can set an issue private). A visible issue custom field groups when its format is list, enumeration, bool, date, user, or version and `multiple` is false. A multiple field is rejected as a group. Several stored values on a single-value field put the issue in each value's group. Blank values are one group. Timestamp columns group by the calendar date in the actor's time zone. Each group carries the issue ids, the count, and the same totals as the query. A stored `group_by` that is only a sort column still sorts and leaves `groups` empty.
+
+Calendar and Gantt accept a saved `query_id` or a `set_filter` filter set. They do not restore the issue-list session and they do not apply `default_issue_query`. Calendar orders issues by the query sort and ignores `group_by`. Gantt keeps project `lft`, then issue id. The Inertia pages are not those Redmine screens.
 
 ## Columns
 
 `IssueQueryRunner::execute` still returns issue models so filters and sort keep using that set. `present` is the projected result. `Query::displayColumns` remains the stored list, or the default when `column_names` is null.
 
-Available built-in names are `id`, `project`, `tracker`, `parent`, `status`, `priority`, `subject`, `author`, `assigned_to`, `updated_on`, `category`, `fixed_version`, `start_date`, `due_date`, `estimated_hours`, `total_estimated_hours`, `spent_hours`, `total_spent_hours`, `estimated_remaining_hours`, `done_ratio`, `created_on`, `closed_on`, `is_private`, and `description`.
+Available built-in names are `id`, `project`, `tracker`, `parent`, `parent.subject`, `status`, `priority`, `subject`, `author`, `assigned_to`, `watcher_users`, `updated_on`, `category`, `fixed_version`, `start_date`, `due_date`, `estimated_hours`, `total_estimated_hours`, `spent_hours`, `total_spent_hours`, `estimated_remaining_hours`, `done_ratio`, `created_on`, `closed_on`, `last_updated_by`, `relations`, `attachments`, `is_private`, `description`, and `last_notes`.
+
+A missing `issue_list_default_columns` setting uses `tracker`, `status`, `priority`, `subject`, `assigned_to`, `updated_on`. A global query prepends `project` unless that name is already first. `description`, `last_notes`, and text custom fields are block columns. The others are inline. `id` is frozen. `estimated_hours`, `estimated_remaining_hours`, and `spent_hours` are totalable, and so are int and float custom fields. `spent_hours` is omitted unless time entries are visible. `is_private` is omitted unless the actor can set an issue private. A new unsaved query sorts by `id` descending and totals `issue_list_default_totals` (an empty list when the setting is missing). Saved `column_names` keep their order.
+
+`IssueQuerySelection` picks the list query. `query_id` loads a visible IssueQuery whose project is global or the current project, then rebinds it to the current project. Otherwise the same project's session is restored. A new filter set replaces that session. When nothing is chosen, `user_preferences.others.default_issue_query` wins, then the project's public `default_issue_query_id`, then the public `default_issue_query` setting. `without_default` skips those defaults. Calendar and Gantt pass `applyDefault` false and do not use the session.
 
 `cf_{id}` is available when it is an `IssueCustomField` the actor can see. `is_filter` is not required. A hidden field is omitted for that actor and is not an error, unlike a hidden sort or total. An admin still sees it. Tracker limits and a per-project custom-field list are not applied, so a visible issue custom field stays available even when the issue has no value.
 
-A null `column_names` uses `tracker`, `status`, `priority`, `subject`, `assigned_to`, `updated_on`. An empty list projects no cells. The row still carries the issue id. Unknown names stay stored and are left out of the projection. Repeated names keep the first.
+A null `column_names` uses the default described above. An empty list projects no cells. The row still carries the issue id. Unknown names stay stored and are left out of the projection. Repeated names keep the first.
 
-Cell values are plain text. Associations use the related name. Author and assignee use firstname, then lastname, then login. A missing association is null. `parent` is the parent issue id. Dates are `YYYY-MM-DD`. Datetimes are `YYYY-MM-DD HH:MM:SS`. `is_private` is `0` or `1`. `estimated_hours` is a plain decimal, or null when the issue has no estimate. `estimated_remaining_hours` is always a plain decimal, including `0` when the estimate is null: `COALESCE(estimated_hours, 0) * (100 - COALESCE(done_ratio, 0)) / 100`. `spent_hours` is the per-issue total described above, including `0`.
+Cell values are plain text. Associations use the related name. Author and assignee use firstname, then lastname, then login. A missing association is null. `parent` is the parent issue id. `parent.subject` is that issue's subject. `last_notes` is the latest visible non-empty note. `last_updated_by` is the author of the latest visible journal. `relations` lists each relation type and the other issue id. `attachments` lists filenames. `watcher_users` lists watcher names when the actor has `view_issue_watchers`. Dates are `YYYY-MM-DD`. Datetimes are `YYYY-MM-DD HH:MM:SS`. `is_private` is `0` or `1`. `estimated_hours` is a plain decimal, or null when the issue has no estimate. `estimated_remaining_hours` is always a plain decimal, including `0` when the estimate is null: `COALESCE(estimated_hours, 0) * (100 - COALESCE(done_ratio, 0)) / 100`. `spent_hours` is the per-issue total described above, including `0`.
 
 Several custom values on one issue are joined with `, ` in `custom_values.id` order. Enumeration, user, and version values use the related name when that row exists, and the stored text otherwise. Attachment values stay the stored id. There is no yes/no label for bool, and no card layout.
 
@@ -211,7 +219,7 @@ These names are rejected. They are not treated as "match everything".
 
 | Field | Why it stays deferred |
 | --- | --- |
-| `cf_N.*` other than `.due_date` and `.status` | Version custom fields define only those two chains. Link, enumeration, attachment, progress bar, and the other shipped formats do not define a chain. |
+| Any `cf_N.*` suffix other than `.due_date`, `.status`, and `.cf_M` | `.due_date` and `.status` are the version-field chains. `.cf_M` is the user or version chain. Link, enumeration, attachment, progress bar, and the other shipped formats do not define a further suffix. |
 
 An unknown operator or an unknown field is rejected.
 
@@ -252,9 +260,9 @@ These are Laramine gaps. They stay outside the pin comparison above. They are no
 
 | Item | Why it stays open |
 | --- | --- |
-| Gantt and calendar screens | The data layer is compared on the calendar and Gantt row. The Inertia pages are not that screen. |
-| Board grouped by a field other than status | Board columns are statuses. `group_by` only sorts. |
-| `cf_N.*` other than `.due_date` and `.status` | Listed under deferred fields. |
-| Column layout | Inline versus block columns, tracker-limited column lists, attachment filenames, and bool labels are not applied. Unknown stored names are omitted. |
+| Gantt and calendar screens | Saved-query filters are compared on the queries row. The Inertia pages are not that screen. |
+| Board axis other than status | N/A. 7.0.1 board columns are `issue_statuses`. `group_by` fills list group headers and does not replace the board axis. |
+| Custom fields on issue relations | N/A. `docs/sources/redmine-7.0.1-schema.rb` lines 258–266 give `issue_relations` no custom-value column. |
+| Tracker-limited column lists and bool yes/no labels | A visible issue custom field stays available. Bool cells stay `1` and `0`. |
 | `UserQuery` and `TimeEntryQuery` | They run, and they stay on the users and authentication row and the time entries row. |
 | Changeset activity on `last_activity_date` | N/A with repository, git, and SCM. The pin excludes `repositories`, `changesets`, `changes`, `changeset_parents`, and `changesets_issues`. |

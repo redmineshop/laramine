@@ -1,0 +1,1226 @@
+{
+    "calendar": {
+        "query_6": [
+            {
+                "date": "2026-09-01",
+                "events": [
+                    {
+                        "kind": "issue",
+                        "id": 4
+                    },
+                    {
+                        "kind": "issue",
+                        "id": 6
+                    }
+                ]
+            },
+            {
+                "date": "2026-09-02",
+                "events": [
+                    {
+                        "kind": "issue",
+                        "id": 1
+                    }
+                ]
+            },
+            {
+                "date": "2026-09-10",
+                "events": [
+                    {
+                        "kind": "issue",
+                        "id": 4
+                    }
+                ]
+            }
+        ],
+        "query_3": [],
+        "tracker_bug": [
+            {
+                "date": "2026-09-01",
+                "events": [
+                    {
+                        "kind": "issue",
+                        "id": 4
+                    }
+                ]
+            },
+            {
+                "date": "2026-09-02",
+                "events": [
+                    {
+                        "kind": "issue",
+                        "id": 1
+                    }
+                ]
+            },
+            {
+                "date": "2026-09-10",
+                "events": [
+                    {
+                        "kind": "issue",
+                        "id": 4
+                    }
+                ]
+            }
+        ],
+        "group_ignored": [
+            {
+                "date": "2026-09-01",
+                "events": [
+                    {
+                        "kind": "issue",
+                        "id": 6
+                    },
+                    {
+                        "kind": "issue",
+                        "id": 4
+                    }
+                ]
+            },
+            {
+                "date": "2026-09-02",
+                "events": [
+                    {
+                        "kind": "issue",
+                        "id": 1
+                    }
+                ]
+            },
+            {
+                "date": "2026-09-10",
+                "events": [
+                    {
+                        "kind": "issue",
+                        "id": 4
+                    }
+                ]
+            }
+        ]
+    },
+    "gantt": {
+        "query_6": [
+            2,
+            4,
+            1,
+            6,
+            5
+        ],
+        "query_3": [
+            3
+        ],
+        "tracker_bug": [
+            4,
+            1,
+            5
+        ]
+    },
+    "groups": {
+        "tracker": [
+            {
+                "key": "Bug",
+                "value": "1",
+                "count": 3,
+                "ids": [
+                    1,
+                    4,
+                    5
+                ],
+                "totals": {
+                    "estimated_hours": "4.25"
+                }
+            },
+            {
+                "key": "Feature",
+                "value": "2",
+                "count": 3,
+                "ids": [
+                    2,
+                    3,
+                    6
+                ],
+                "totals": {
+                    "estimated_hours": "4"
+                }
+            }
+        ],
+        "status": [
+            {
+                "key": "New",
+                "value": "1",
+                "count": 3,
+                "ids": [
+                    1,
+                    2,
+                    5
+                ],
+                "totals": {
+                    "estimated_hours": "3"
+                }
+            },
+            {
+                "key": "In Progress",
+                "value": "2",
+                "count": 2,
+                "ids": [
+                    4,
+                    6
+                ],
+                "totals": {
+                    "estimated_hours": "1.25"
+                }
+            },
+            {
+                "key": "Closed",
+                "value": "4",
+                "count": 1,
+                "ids": [
+                    3
+                ],
+                "totals": {
+                    "estimated_hours": "4"
+                }
+            }
+        ],
+        "priority": [
+            {
+                "key": "Normal",
+                "value": "1",
+                "count": 3,
+                "ids": [
+                    1,
+                    4,
+                    5
+                ],
+                "totals": []
+            },
+            {
+                "key": "High",
+                "value": "2",
+                "count": 3,
+                "ids": [
+                    2,
+                    3,
+                    6
+                ],
+                "totals": []
+            }
+        ],
+        "author": [
+            {
+                "key": "Ada Lovelace",
+                "value": "1",
+                "count": 2,
+                "ids": [
+                    1,
+                    2
+                ],
+                "totals": []
+            },
+            {
+                "key": "Bea Manager",
+                "value": "4",
+                "count": 2,
+                "ids": [
+                    3,
+                    4
+                ],
+                "totals": []
+            },
+            {
+                "key": "Dora Child",
+                "value": "7",
+                "count": 1,
+                "ids": [
+                    5
+                ],
+                "totals": []
+            },
+            {
+                "key": "Pin Admin",
+                "value": "2",
+                "count": 1,
+                "ids": [
+                    6
+                ],
+                "totals": []
+            }
+        ],
+        "assigned_to": [
+            {
+                "key": null,
+                "value": null,
+                "count": 1,
+                "ids": [
+                    5
+                ],
+                "totals": []
+            },
+            {
+                "key": "Platform",
+                "value": "3",
+                "count": 1,
+                "ids": [
+                    6
+                ],
+                "totals": []
+            },
+            {
+                "key": "Ada Lovelace",
+                "value": "1",
+                "count": 2,
+                "ids": [
+                    1,
+                    2
+                ],
+                "totals": []
+            },
+            {
+                "key": "Bea Manager",
+                "value": "4",
+                "count": 2,
+                "ids": [
+                    3,
+                    4
+                ],
+                "totals": []
+            }
+        ],
+        "category": [
+            {
+                "key": null,
+                "value": null,
+                "count": 4,
+                "ids": [
+                    2,
+                    3,
+                    4,
+                    5
+                ],
+                "totals": []
+            },
+            {
+                "key": "Backend",
+                "value": "1",
+                "count": 2,
+                "ids": [
+                    1,
+                    6
+                ],
+                "totals": []
+            }
+        ],
+        "fixed_version": [
+            {
+                "key": null,
+                "value": null,
+                "count": 4,
+                "ids": [
+                    2,
+                    3,
+                    4,
+                    5
+                ],
+                "totals": []
+            },
+            {
+                "key": "1.0",
+                "value": "1",
+                "count": 2,
+                "ids": [
+                    1,
+                    6
+                ],
+                "totals": []
+            }
+        ],
+        "project": [
+            {
+                "key": "Parity Child",
+                "value": "2",
+                "count": 1,
+                "ids": [
+                    5
+                ],
+                "totals": []
+            },
+            {
+                "key": "Parity Core",
+                "value": "1",
+                "count": 5,
+                "ids": [
+                    1,
+                    2,
+                    3,
+                    4,
+                    6
+                ],
+                "totals": []
+            }
+        ],
+        "done_ratio": [
+            {
+                "key": "0",
+                "value": "0",
+                "count": 5,
+                "ids": [
+                    1,
+                    2,
+                    4,
+                    5,
+                    6
+                ],
+                "totals": {
+                    "estimated_hours": "4.25"
+                }
+            },
+            {
+                "key": "100",
+                "value": "100",
+                "count": 1,
+                "ids": [
+                    3
+                ],
+                "totals": {
+                    "estimated_hours": "4"
+                }
+            }
+        ],
+        "start_date": [
+            {
+                "key": "2026-07-01",
+                "value": "2026-07-01",
+                "count": 1,
+                "ids": [
+                    3
+                ],
+                "totals": []
+            },
+            {
+                "key": "2026-08-20",
+                "value": "2026-08-20",
+                "count": 1,
+                "ids": [
+                    5
+                ],
+                "totals": []
+            },
+            {
+                "key": "2026-08-26",
+                "value": "2026-08-26",
+                "count": 2,
+                "ids": [
+                    1,
+                    2
+                ],
+                "totals": []
+            },
+            {
+                "key": "2026-09-01",
+                "value": "2026-09-01",
+                "count": 2,
+                "ids": [
+                    4,
+                    6
+                ],
+                "totals": []
+            }
+        ],
+        "due_date": [
+            {
+                "key": null,
+                "value": null,
+                "count": 3,
+                "ids": [
+                    2,
+                    5,
+                    6
+                ],
+                "totals": []
+            },
+            {
+                "key": "2026-07-15",
+                "value": "2026-07-15",
+                "count": 1,
+                "ids": [
+                    3
+                ],
+                "totals": []
+            },
+            {
+                "key": "2026-09-02",
+                "value": "2026-09-02",
+                "count": 1,
+                "ids": [
+                    1
+                ],
+                "totals": []
+            },
+            {
+                "key": "2026-09-10",
+                "value": "2026-09-10",
+                "count": 1,
+                "ids": [
+                    4
+                ],
+                "totals": []
+            }
+        ],
+        "created_on": [
+            {
+                "key": "2026-07-15",
+                "value": "2026-07-15",
+                "count": 1,
+                "ids": [
+                    3
+                ],
+                "totals": []
+            },
+            {
+                "key": "2026-08-01",
+                "value": "2026-08-01",
+                "count": 1,
+                "ids": [
+                    6
+                ],
+                "totals": []
+            },
+            {
+                "key": "2026-08-20",
+                "value": "2026-08-20",
+                "count": 1,
+                "ids": [
+                    5
+                ],
+                "totals": []
+            },
+            {
+                "key": "2026-08-26",
+                "value": "2026-08-26",
+                "count": 2,
+                "ids": [
+                    1,
+                    2
+                ],
+                "totals": []
+            },
+            {
+                "key": "2026-09-01",
+                "value": "2026-09-01",
+                "count": 1,
+                "ids": [
+                    4
+                ],
+                "totals": []
+            }
+        ],
+        "updated_on": [
+            {
+                "key": "2026-07-15",
+                "value": "2026-07-15",
+                "count": 1,
+                "ids": [
+                    3
+                ],
+                "totals": []
+            },
+            {
+                "key": "2026-08-10",
+                "value": "2026-08-10",
+                "count": 1,
+                "ids": [
+                    6
+                ],
+                "totals": []
+            },
+            {
+                "key": "2026-08-20",
+                "value": "2026-08-20",
+                "count": 1,
+                "ids": [
+                    5
+                ],
+                "totals": []
+            },
+            {
+                "key": "2026-08-26",
+                "value": "2026-08-26",
+                "count": 2,
+                "ids": [
+                    1,
+                    2
+                ],
+                "totals": []
+            },
+            {
+                "key": "2026-09-01",
+                "value": "2026-09-01",
+                "count": 1,
+                "ids": [
+                    4
+                ],
+                "totals": []
+            }
+        ],
+        "closed_on": [
+            {
+                "key": null,
+                "value": null,
+                "count": 5,
+                "ids": [
+                    1,
+                    2,
+                    4,
+                    5,
+                    6
+                ],
+                "totals": []
+            },
+            {
+                "key": "2026-07-15",
+                "value": "2026-07-15",
+                "count": 1,
+                "ids": [
+                    3
+                ],
+                "totals": []
+            }
+        ],
+        "is_private": [
+            {
+                "key": "0",
+                "value": "0",
+                "count": 5,
+                "ids": [
+                    1,
+                    2,
+                    3,
+                    5,
+                    6
+                ],
+                "totals": []
+            },
+            {
+                "key": "1",
+                "value": "1",
+                "count": 1,
+                "ids": [
+                    4
+                ],
+                "totals": []
+            }
+        ],
+        "list": [
+            {
+                "key": null,
+                "value": null,
+                "count": 5,
+                "ids": [
+                    2,
+                    3,
+                    4,
+                    5,
+                    6
+                ],
+                "totals": {
+                    "estimated_hours": "5.75"
+                }
+            },
+            {
+                "key": "alpha",
+                "value": "alpha",
+                "count": 1,
+                "ids": [
+                    1
+                ],
+                "totals": {
+                    "estimated_hours": "2.5"
+                }
+            },
+            {
+                "key": "beta",
+                "value": "beta",
+                "count": 1,
+                "ids": [
+                    1
+                ],
+                "totals": {
+                    "estimated_hours": "2.5"
+                }
+            }
+        ],
+        "bool": [
+            {
+                "key": null,
+                "value": null,
+                "count": 4,
+                "ids": [
+                    3,
+                    4,
+                    5,
+                    6
+                ],
+                "totals": []
+            },
+            {
+                "key": "0",
+                "value": "0",
+                "count": 1,
+                "ids": [
+                    2
+                ],
+                "totals": []
+            },
+            {
+                "key": "1",
+                "value": "1",
+                "count": 1,
+                "ids": [
+                    1
+                ],
+                "totals": []
+            }
+        ],
+        "date": [
+            {
+                "key": null,
+                "value": null,
+                "count": 5,
+                "ids": [
+                    1,
+                    2,
+                    3,
+                    5,
+                    6
+                ],
+                "totals": []
+            },
+            {
+                "key": "2026-09-01",
+                "value": "2026-09-01",
+                "count": 1,
+                "ids": [
+                    4
+                ],
+                "totals": []
+            }
+        ],
+        "user": [
+            {
+                "key": null,
+                "value": null,
+                "count": 5,
+                "ids": [
+                    2,
+                    3,
+                    4,
+                    5,
+                    6
+                ],
+                "totals": []
+            },
+            {
+                "key": "Ada Lovelace",
+                "value": "1",
+                "count": 1,
+                "ids": [
+                    1
+                ],
+                "totals": []
+            }
+        ],
+        "version": [
+            {
+                "key": null,
+                "value": null,
+                "count": 4,
+                "ids": [
+                    2,
+                    3,
+                    4,
+                    5
+                ],
+                "totals": []
+            },
+            {
+                "key": "1.0",
+                "value": "1",
+                "count": 2,
+                "ids": [
+                    1,
+                    6
+                ],
+                "totals": []
+            }
+        ],
+        "enumeration": [
+            {
+                "key": null,
+                "value": null,
+                "count": 5,
+                "ids": [
+                    1,
+                    2,
+                    4,
+                    5,
+                    6
+                ],
+                "totals": []
+            },
+            {
+                "key": "Gold",
+                "value": "100",
+                "count": 1,
+                "ids": [
+                    3
+                ],
+                "totals": []
+            }
+        ],
+        "multiple": "Custom field cannot be grouped: cf_31.",
+        "ada_private": "Query group is not available: is_private.",
+        "subject_sort_only": []
+    },
+    "board": {
+        "display_type": "board",
+        "board": [
+            {
+                "status_id": 1,
+                "name": "New",
+                "issue_ids": [
+                    1,
+                    5,
+                    2
+                ]
+            },
+            {
+                "status_id": 2,
+                "name": "In Progress",
+                "issue_ids": [
+                    4,
+                    6
+                ]
+            }
+        ],
+        "groups": [
+            {
+                "key": "Bug",
+                "value": "1",
+                "ids": [
+                    1,
+                    4,
+                    5
+                ]
+            },
+            {
+                "key": "Feature",
+                "value": "2",
+                "ids": [
+                    2,
+                    6
+                ]
+            }
+        ]
+    },
+    "filters": {
+        "project_core": [
+            1,
+            2,
+            3,
+            4,
+            6
+        ],
+        "project_child": [
+            5
+        ],
+        "project_not_core": [
+            5
+        ],
+        "project_blank": [],
+        "project_budget": [
+            1,
+            2,
+            3,
+            4,
+            6
+        ],
+        "project_lane": [
+            1,
+            2,
+            3,
+            4,
+            6
+        ],
+        "project_lane_ever": [
+            1,
+            2,
+            3,
+            4,
+            6
+        ],
+        "project_seats": "Custom field is not a filter: project.cf_25.",
+        "project_secret_finn": "Custom field is not visible: project.cf_24.",
+        "author_lead": [
+            1,
+            2
+        ],
+        "author_not_lead": [
+            3,
+            4,
+            5,
+            6
+        ],
+        "assignee_crew": [
+            6
+        ],
+        "assignee_blank": [
+            3,
+            4,
+            5
+        ],
+        "version_gold": [
+            1,
+            6
+        ],
+        "user_chain": [
+            1
+        ],
+        "version_chain": [
+            1,
+            6
+        ],
+        "bad_suffix": "Chained custom field filters require a version field: cf_28.due_date."
+    },
+    "columns": {
+        "inline": [
+            "subject",
+            "parent.subject",
+            "relations",
+            "attachments",
+            "watcher_users"
+        ],
+        "block": [
+            "description",
+            "last_notes",
+            "cf_34"
+        ],
+        "cells": {
+            "subject": "Parity pin parent",
+            "description": "Synthetic parent issue for the parity pin.",
+            "last_notes": "Manager left a remark.",
+            "cf_34": "long body",
+            "parent.subject": null,
+            "relations": "relates #2",
+            "attachments": "before.pdf, after.pdf",
+            "watcher_users": "Pin Admin"
+        },
+        "global_default": [
+            "project",
+            "tracker",
+            "status",
+            "priority",
+            "subject",
+            "assigned_to",
+            "updated_on"
+        ],
+        "project_default": [
+            "tracker",
+            "status",
+            "priority",
+            "subject",
+            "assigned_to",
+            "updated_on"
+        ],
+        "after_setting": {
+            "global": [
+                "project",
+                "subject",
+                "id"
+            ],
+            "project": [
+                "subject",
+                "id"
+            ]
+        },
+        "saved_order": [
+            "due_date",
+            "subject",
+            "id"
+        ],
+        "presented_order": [
+            "due_date",
+            "subject",
+            "id"
+        ],
+        "flags": {
+            "tracker": {
+                "inline": true,
+                "groupable": true,
+                "totalable": false,
+                "frozen": false
+            },
+            "subject": {
+                "inline": true,
+                "groupable": false,
+                "totalable": false,
+                "frozen": false
+            },
+            "estimated_hours": {
+                "inline": true,
+                "groupable": false,
+                "totalable": true,
+                "frozen": false
+            },
+            "is_private": {
+                "inline": true,
+                "groupable": true,
+                "totalable": false,
+                "frozen": false
+            },
+            "description": {
+                "inline": false,
+                "groupable": false,
+                "totalable": false,
+                "frozen": false
+            },
+            "last_notes": {
+                "inline": false,
+                "groupable": false,
+                "totalable": false,
+                "frozen": false
+            },
+            "cf_31": {
+                "inline": true,
+                "groupable": false,
+                "totalable": false,
+                "frozen": false
+            },
+            "cf_32": {
+                "inline": true,
+                "groupable": true,
+                "totalable": false,
+                "frozen": false
+            },
+            "cf_34": {
+                "inline": false,
+                "groupable": false,
+                "totalable": false,
+                "frozen": false
+            }
+        },
+        "ada_private": false,
+        "admin_private": true
+    },
+    "selection": {
+        "plain": {
+            "source": "params",
+            "query_id": null,
+            "filters": {
+                "status_id": {
+                    "operator": "o",
+                    "values": []
+                }
+            },
+            "column_names": null,
+            "sort": [
+                [
+                    "id",
+                    "desc"
+                ]
+            ],
+            "group_by": null,
+            "totalable_names": []
+        },
+        "preference": {
+            "source": "query_id",
+            "query_id": 3,
+            "filters": {
+                "status_id": {
+                    "operator": "c",
+                    "values": []
+                }
+            },
+            "column_names": [
+                "subject"
+            ],
+            "sort": [
+                [
+                    "id",
+                    "asc"
+                ]
+            ],
+            "group_by": null,
+            "totalable_names": []
+        },
+        "without_default": {
+            "source": "params",
+            "query_id": null,
+            "filters": {
+                "status_id": {
+                    "operator": "o",
+                    "values": []
+                }
+            },
+            "column_names": null,
+            "sort": [
+                [
+                    "id",
+                    "desc"
+                ]
+            ],
+            "group_by": null,
+            "totalable_names": []
+        },
+        "project_default": {
+            "source": "query_id",
+            "query_id": 6,
+            "filters": {
+                "status_id": {
+                    "operator": "o",
+                    "values": []
+                }
+            },
+            "column_names": [
+                "subject",
+                "status",
+                "tracker",
+                "spent_hours"
+            ],
+            "sort": [
+                [
+                    "id",
+                    "asc"
+                ]
+            ],
+            "group_by": "tracker",
+            "totalable_names": [
+                "estimated_hours",
+                "spent_hours",
+                "cf_6",
+                "cf_7"
+            ]
+        },
+        "private_setting": {
+            "source": "params",
+            "query_id": null,
+            "filters": {
+                "status_id": {
+                    "operator": "o",
+                    "values": []
+                }
+            },
+            "column_names": null,
+            "sort": [
+                [
+                    "id",
+                    "desc"
+                ]
+            ],
+            "group_by": null,
+            "totalable_names": []
+        },
+        "public_setting": {
+            "source": "query_id",
+            "query_id": 3,
+            "filters": {
+                "status_id": {
+                    "operator": "c",
+                    "values": []
+                }
+            },
+            "column_names": [
+                "subject"
+            ],
+            "sort": [
+                [
+                    "id",
+                    "asc"
+                ]
+            ],
+            "group_by": null,
+            "totalable_names": []
+        },
+        "session": {
+            "source": "session",
+            "query_id": null,
+            "filters": {
+                "status_id": {
+                    "operator": "=",
+                    "values": [
+                        "1"
+                    ]
+                }
+            },
+            "column_names": [
+                "subject",
+                "id"
+            ],
+            "sort": [
+                [
+                    "id",
+                    "asc"
+                ]
+            ],
+            "group_by": "tracker",
+            "totalable_names": [
+                "estimated_hours"
+            ]
+        },
+        "other_project": {
+            "source": "params",
+            "query_id": null,
+            "filters": {
+                "status_id": {
+                    "operator": "o",
+                    "values": []
+                }
+            },
+            "column_names": null,
+            "sort": [
+                [
+                    "id",
+                    "desc"
+                ]
+            ],
+            "group_by": null,
+            "totalable_names": []
+        },
+        "owner": {
+            "source": "query_id",
+            "query_id": 1,
+            "filters": {
+                "status_id": {
+                    "operator": "o",
+                    "values": []
+                }
+            },
+            "column_names": [
+                "subject",
+                "status",
+                "tracker"
+            ],
+            "sort": [
+                [
+                    "id",
+                    "desc"
+                ]
+            ],
+            "group_by": null,
+            "totalable_names": [
+                "estimated_hours"
+            ]
+        },
+        "hidden": "Saved query is not visible."
+    },
+    "sort": [
+        2,
+        3,
+        6,
+        1,
+        4,
+        5
+    ],
+    "na": {
+        "relation_custom_fields": "docs/sources/redmine-7.0.1-schema.rb lines 258-266",
+        "board_axis": "issue_statuses"
+    }
+}

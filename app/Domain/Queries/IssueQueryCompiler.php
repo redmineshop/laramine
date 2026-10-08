@@ -21,6 +21,7 @@ final class IssueQueryCompiler
         private readonly HistoryFilterSql $history,
         private readonly RelationFilterSql $relations,
         private readonly AssociationFilterSql $associations,
+        private readonly AssociationCustomFieldSql $associationFields,
         private readonly SubprojectScope $subprojects,
     ) {}
 
@@ -42,6 +43,13 @@ final class IssueQueryCompiler
     {
         if (preg_match('/^cf_\d+\.(?:due_date|status)$/', $filter->field) === 1) {
             $this->customFields->applyChained($query, $filter, $actor, $project, $dates);
+
+            return;
+        }
+
+        if (preg_match('/^(?:project|author|assigned_to|fixed_version)\.cf_\d+$/', $filter->field) === 1
+            || preg_match('/^cf_\d+\.cf_\d+$/', $filter->field) === 1) {
+            $this->associationFields->apply($query, $filter, $actor, $project, $dates);
 
             return;
         }

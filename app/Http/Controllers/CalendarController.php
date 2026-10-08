@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Domain\Calendar\CalendarService;
+use App\Domain\DomainException;
 use App\Domain\PermissionDeniedException;
 use App\Models\Project;
 use App\Models\User;
@@ -29,15 +30,19 @@ class CalendarController extends Controller
 
     private function page(Request $request, ?Project $project): Response
     {
+        $actor = $this->actor($request);
+        $year = $this->optionalInt($request, 'year');
+        $month = $this->optionalInt($request, 'month');
+        $params = $this->queryParams($request);
+
         try {
-            $grid = $this->calendar->month(
-                $this->actor($request),
-                $project,
-                $this->optionalInt($request, 'year'),
-                $this->optionalInt($request, 'month'),
-            );
+            $grid = $params === null
+                ? $this->calendar->month($actor, $project, $year, $month)
+                : $this->calendar->monthForQuery($actor, $project, $year, $month, $params);
         } catch (PermissionDeniedException) {
             abort(403);
+        } catch (DomainException) {
+            abort(404);
         }
 
         return Inertia::render('Calendar/Show', [
@@ -54,6 +59,28 @@ class CalendarController extends Controller
         $user = $request->user();
 
         return $user instanceof User ? $user : null;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function queryParams(Request $request): ?array
+    {
+        $params = [];
+        $queryId = $request->query('query_id');
+        if (is_string($queryId) && $queryId !== '') {
+            $params['query_id'] = $queryId;
+        }
+        if ($request->query('set_filter') === '1') {
+            $params['set_filter'] = '1';
+        }
+        $filters = $request->query('filters');
+        if (is_array($filters)) {
+            $params['filters'] = $filters;
+            $params['set_filter'] = '1';
+        }
+
+        return $params === [] ? null : $params;
     }
 
     private function optionalInt(Request $request, string $key): ?int

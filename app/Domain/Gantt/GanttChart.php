@@ -8,6 +8,7 @@ use App\Domain\Auth\PreferenceCodec;
 use App\Domain\PermissionDeniedException;
 use App\Domain\Projects\VersionAvailability;
 use App\Domain\Queries\IssueQueryRunner;
+use App\Domain\Queries\IssueQuerySelection;
 use App\Domain\Queries\IssueTreeHours;
 use App\Domain\Settings\SettingValue;
 use App\Models\Issue;
@@ -38,6 +39,7 @@ final class GanttChart
     public function __construct(
         private readonly PermissionService $permissions,
         private readonly IssueQueryRunner $issues,
+        private readonly IssueQuerySelection $selection,
         private readonly IssueVisibility $issueVisibility,
         private readonly IssueTreeHours $treeHours,
         private readonly SettingValue $settings,
@@ -83,6 +85,24 @@ final class GanttChart
             'relations' => $relations,
             'pdf' => $this->pdf->render($window['from'].' '.$window['to'], $labels),
         ];
+    }
+
+    /**
+     * Chart for a saved query or an explicit filter set.
+     *
+     * Gantt does not restore a session and does not apply the default issue
+     * query. Row order stays project `lft`, then issue id. `group_by` is ignored.
+     *
+     * @param  array{year?: int|null, month?: int|null, months?: int|null, zoom?: int|null, max_rows?: int|null}  $input
+     * @param  array<string, mixed>  $params
+     * @param  array<string, mixed>|null  $options
+     * @return array<string, mixed>
+     */
+    public function showForQuery(?User $actor, ?Project $project, array $input, array $params, ?array $options, ?DateTimeImmutable $today = null): array
+    {
+        $selected = $this->selection->select($actor, $project, $params, null, false, false);
+
+        return $this->show($actor, $project, $input, $selected['filters'], $options, $today);
     }
 
     private function authorize(?User $actor, ?Project $project): void

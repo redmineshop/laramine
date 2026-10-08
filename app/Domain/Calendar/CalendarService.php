@@ -5,6 +5,7 @@ namespace App\Domain\Calendar;
 use App\Domain\Acl\PermissionService;
 use App\Domain\PermissionDeniedException;
 use App\Domain\Queries\IssueQueryRunner;
+use App\Domain\Queries\IssueQuerySelection;
 use App\Domain\Queries\QueryFilter;
 use App\Domain\Queries\SubprojectScope;
 use App\Domain\Settings\SettingValue;
@@ -32,12 +33,14 @@ final class CalendarService
     public function __construct(
         private readonly PermissionService $permissions,
         private readonly IssueQueryRunner $issues,
+        private readonly IssueQuerySelection $selection,
         private readonly SettingValue $settings,
         private readonly SubprojectScope $subprojects,
     ) {}
 
     /**
      * @param  array<string, array{operator: string, values: list<string>}>|null  $filters
+     * @param  list<array{0: string, 1: string}>|null  $issueSort
      * @return array{
      *     year: int,
      *     month: int,
@@ -47,7 +50,7 @@ final class CalendarService
      *     days: list<array{date: string, in_month: bool, non_working: bool, week: int, events: list<array{kind: string, id: int}>}>
      * }
      */
-    public function month(?User $actor, ?Project $project, ?int $year, ?int $month, ?array $filters = null, ?DateTimeImmutable $today = null): array
+    public function month(?User $actor, ?Project $project, ?int $year, ?int $month, ?array $filters = null, ?DateTimeImmutable $today = null, ?array $issueSort = null): array
     {
         $this->authorize($actor, $project);
         $today ??= new DateTimeImmutable('today');
@@ -59,7 +62,7 @@ final class CalendarService
 
         $firstWday = $this->settings->startOfWeek();
         $window = $this->window($resolvedYear, $resolvedMonth, $firstWday);
-        $events = $this->events($actor, $project, $filters ?? ['status_id' => ['operator' => 'o', 'values' => []]], $window['start'], $window['end']);
+        $events = $this->events($actor, $project, $filters ?? ['status_id' => ['operator' => 'o', 'values' => []]], $window['start'], $window['end'], $issueSort);
         $nonWorking = array_fill_keys($this->settings->nonWorkingWeekDays(), true);
         $days = [];
         $cursor = $window['start_date'];
@@ -110,6 +113,29 @@ final class CalendarService
     }
 
     /**
+     * Month grid for a saved query or an explicit filter set.
+     *
+     * Calendar does not restore a session and does not apply the default
+     * issue query. `group_by` is ignored. Issue order follows the query sort.
+     *
+     * @param  array<string, mixed>  $params
+     * @return array{
+     *     year: int,
+     *     month: int,
+     *     start: string,
+     *     end: string,
+     *     first_wday: int,
+     *     days: list<array{date: string, in_month: bool, non_working: bool, week: int, events: list<array{kind: string, id: int}>}>
+     * }
+     */
+    public function monthForQuery(?User $actor, ?Project $project, ?int $year, ?int $month, array $params, ?DateTimeImmutable $today = null): array
+    {
+        $selected = $this->selection->select($actor, $project, $params, null, false, false);
+
+        return $this->month($actor, $project, $year, $month, $selected['filters'], $today, $selected['sort']);
+    }
+
+    /**
      * @return array{start: string, end: string, start_date: DateTimeImmutable, end_date: DateTimeImmutable}
      */
     private function window(int $year, int $month, int $firstWday): array
@@ -130,13 +156,18 @@ final class CalendarService
 
     /**
      * @param  array<string, array{operator: string, values: list<string>}>  $filters
+     * @param  list<array{0: string, 1: string}>|null  $issueSort
      * @return array<string, list<array{kind: string, id: int}>>
      */
-    private function events(?User $actor, ?Project $project, array $filters, string $start, string $end): array
+    private function events(?User $actor, ?Project $project, array $filters, string $start, string $end, ?array $issueSort = null): array
     {
-        $issues = $this->issues->matching($actor, $project, $filters)
-            ->orderByDesc('issues.id')
-            ->get();
+        if ($issueSort === null) {
+            $issues = $this->issues->matching($actor, $project, $filters)
+                ->orderByDesc('issues.id')
+                ->get();
+        } else {
+            $issues = $this->issues->preview($actor, $project, $filters, $issueSort)->get();
+        }
         $rows = [];
         foreach ($issues as $issue) {
             if ($this->inWindow($this->day($issue->start_date), $start, $end) || $this->inWindow($this->day($issue->due_date), $start, $end)) {

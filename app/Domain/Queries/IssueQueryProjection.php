@@ -2,19 +2,24 @@
 
 namespace App\Domain\Queries;
 
+use App\Domain\Acl\PermissionService;
 use App\Domain\CustomFields\CustomFieldVisibility;
 use App\Domain\CustomFields\FieldFormatKey;
+use App\Models\Attachment;
 use App\Models\CustomField;
 use App\Models\CustomFieldEnumeration;
 use App\Models\CustomValue;
 use App\Models\Enumeration;
 use App\Models\Issue;
 use App\Models\IssueCategory;
+use App\Models\IssueRelation;
 use App\Models\IssueStatus;
+use App\Models\Journal;
 use App\Models\Project;
 use App\Models\Tracker;
 use App\Models\User;
 use App\Models\Version;
+use App\Models\Watcher;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -30,6 +35,8 @@ final class IssueQueryProjection
         private readonly CustomFieldVisibility $visibility,
         private readonly SpentHoursQuery $spentHours,
         private readonly IssueTreeHours $treeHours,
+        private readonly IssueQueryLayout $layout,
+        private readonly PermissionService $permissions,
     ) {}
 
     /**
@@ -38,7 +45,7 @@ final class IssueQueryProjection
      */
     public function names(?User $actor, ?Project $project, ?array $stored): array
     {
-        $requested = $stored ?? IssueQueryColumns::DEFAULT;
+        $requested = $stored ?? $this->layout->defaultNames($project);
         $builtin = array_fill_keys(IssueQueryColumns::AVAILABLE, true);
         $names = [];
         $seen = [];
@@ -128,7 +135,13 @@ final class IssueQueryProjection
      *     spent: array<int, string>,
      *     estimated_total: array<int, string>,
      *     spent_total: array<int, string>,
-     *     custom: array<int, array<string, string|null>>
+     *     custom: array<int, array<string, string|null>>,
+     *     parents: array<int, string>,
+     *     notes: array<int, string|null>,
+     *     updated_by: array<int, string|null>,
+     *     relations: array<int, string|null>,
+     *     attachments: array<int, string|null>,
+     *     watchers: array<int, string|null>
      * }
      */
     private function context(?User $actor, array $issues, array $need, array $columns): array
@@ -163,6 +176,12 @@ final class IssueQueryProjection
             'estimated_total' => $estimatedTotal,
             'spent_total' => $spentTotal,
             'custom' => $this->customCells($issues, $columns),
+            'parents' => isset($need['parent.subject']) ? $this->parentSubjects($issues) : [],
+            'notes' => isset($need['last_notes']) ? $this->latestJournal($actor, $issues, true) : [],
+            'updated_by' => isset($need['last_updated_by']) ? $this->latestJournal($actor, $issues, false) : [],
+            'relations' => isset($need['relations']) ? $this->relationText($issues) : [],
+            'attachments' => isset($need['attachments']) ? $this->attachmentText($issues) : [],
+            'watchers' => isset($need['watcher_users']) ? $this->watcherText($actor, $issues) : [],
         ];
     }
 
@@ -178,7 +197,13 @@ final class IssueQueryProjection
      *     spent: array<int, string>,
      *     estimated_total: array<int, string>,
      *     spent_total: array<int, string>,
-     *     custom: array<int, array<string, string|null>>
+     *     custom: array<int, array<string, string|null>>,
+     *     parents: array<int, string>,
+     *     notes: array<int, string|null>,
+     *     updated_by: array<int, string|null>,
+     *     relations: array<int, string|null>,
+     *     attachments: array<int, string|null>,
+     *     watchers: array<int, string|null>
      * }  $context
      */
     private function cell(Issue $issue, string $column, array $context): ?string
@@ -192,11 +217,13 @@ final class IssueQueryProjection
             'project' => $context['projects'][(int) $issue->project_id] ?? null,
             'tracker' => $context['trackers'][(int) $issue->tracker_id] ?? null,
             'parent' => $issue->parent_id === null ? null : (string) $issue->parent_id,
+            'parent.subject' => $issue->parent_id === null ? null : ($context['parents'][(int) $issue->parent_id] ?? null),
             'status' => $context['statuses'][(int) $issue->status_id] ?? null,
             'priority' => $context['priorities'][(int) $issue->priority_id] ?? null,
             'subject' => (string) $issue->subject,
             'author' => $context['users'][(int) $issue->author_id] ?? null,
             'assigned_to' => $issue->assigned_to_id === null ? null : ($context['users'][(int) $issue->assigned_to_id] ?? null),
+            'watcher_users' => $context['watchers'][(int) $issue->id] ?? null,
             'updated_on' => $this->clock($issue, 'updated_on', 19),
             'category' => $issue->category_id === null ? null : ($context['categories'][(int) $issue->category_id] ?? null),
             'fixed_version' => $issue->fixed_version_id === null ? null : ($context['versions'][(int) $issue->fixed_version_id] ?? null),
@@ -210,8 +237,12 @@ final class IssueQueryProjection
             'done_ratio' => $this->whole($issue, 'done_ratio'),
             'created_on' => $this->clock($issue, 'created_on', 19),
             'closed_on' => $this->clock($issue, 'closed_on', 19),
+            'last_updated_by' => $context['updated_by'][(int) $issue->id] ?? null,
+            'relations' => $context['relations'][(int) $issue->id] ?? null,
+            'attachments' => $context['attachments'][(int) $issue->id] ?? null,
             'is_private' => $this->flag($issue),
             'description' => $this->text($issue->getAttribute('description')),
+            'last_notes' => $context['notes'][(int) $issue->id] ?? null,
             default => null,
         };
     }
@@ -486,5 +517,240 @@ final class IssueQueryProjection
         }
 
         return null;
+    }
+
+    /**
+     * @param  list<Issue>  $issues
+     * @return array<int, string>
+     */
+    private function parentSubjects(array $issues): array
+    {
+        $ids = [];
+        foreach ($issues as $issue) {
+            if (is_numeric($issue->parent_id)) {
+                $ids[] = (int) $issue->parent_id;
+            }
+        }
+        if ($ids === []) {
+            return [];
+        }
+
+        $map = [];
+        foreach (Issue::query()->whereIn('id', array_values(array_unique($ids)))->get() as $parent) {
+            $map[(int) $parent->id] = (string) $parent->subject;
+        }
+
+        return $map;
+    }
+
+    /**
+     * @param  list<Issue>  $issues
+     * @return array<int, string|null>
+     */
+    private function latestJournal(?User $actor, array $issues, bool $notesOnly): array
+    {
+        $ids = [];
+        $projects = [];
+        foreach ($issues as $issue) {
+            $ids[] = (int) $issue->id;
+            $projects[(int) $issue->id] = (int) $issue->project_id;
+        }
+        $result = [];
+        foreach ($ids as $id) {
+            $result[$id] = null;
+        }
+        if ($ids === []) {
+            return $result;
+        }
+
+        $names = [];
+        $journals = Journal::query()
+            ->where('journalized_type', 'Issue')
+            ->whereIn('journalized_id', $ids)
+            ->orderByDesc('id')
+            ->get();
+        foreach ($journals as $journal) {
+            $issueId = (int) $journal->journalized_id;
+            if ($result[$issueId] !== null) {
+                continue;
+            }
+            if (! $this->journalVisible($actor, $projects[$issueId] ?? 0, (bool) $journal->private_notes)) {
+                continue;
+            }
+            if ($notesOnly) {
+                $notes = $this->text($journal->getAttribute('notes'));
+                if ($notes === null || $notes === '') {
+                    continue;
+                }
+                $result[$issueId] = $notes;
+
+                continue;
+            }
+            $userId = (int) $journal->user_id;
+            if (! array_key_exists($userId, $names)) {
+                $user = User::query()->find($userId);
+                $names[$userId] = $user instanceof User ? $this->personName($user) : null;
+            }
+            $result[$issueId] = $names[$userId];
+        }
+
+        return $result;
+    }
+
+    private function journalVisible(?User $actor, int $projectId, bool $private): bool
+    {
+        if (! $private) {
+            return true;
+        }
+        if ($actor !== null && $actor->admin && $actor->isActive()) {
+            return true;
+        }
+        $project = Project::query()->find($projectId);
+
+        return $project instanceof Project && $this->permissions->allowed($actor, 'view_private_notes', $project);
+    }
+
+    /**
+     * @param  list<Issue>  $issues
+     * @return array<int, string|null>
+     */
+    private function relationText(array $issues): array
+    {
+        $ids = [];
+        foreach ($issues as $issue) {
+            $ids[] = (int) $issue->id;
+        }
+        $lines = [];
+        foreach ($ids as $id) {
+            $lines[$id] = [];
+        }
+        if ($ids === []) {
+            return [];
+        }
+
+        $relations = IssueRelation::query()
+            ->where(function ($query) use ($ids): void {
+                $query->whereIn('issue_from_id', $ids)->orWhereIn('issue_to_id', $ids);
+            })
+            ->orderBy('id')
+            ->get();
+        foreach ($relations as $relation) {
+            $type = (string) $relation->relation_type;
+            $from = (int) $relation->issue_from_id;
+            $to = (int) $relation->issue_to_id;
+            if (isset($lines[$from])) {
+                $lines[$from][] = $type.' #'.$to;
+            }
+            if (isset($lines[$to])) {
+                $lines[$to][] = $this->reverseRelation($type).' #'.$from;
+            }
+        }
+
+        $text = [];
+        foreach ($lines as $id => $parts) {
+            $text[$id] = $parts === [] ? null : implode(', ', $parts);
+        }
+
+        return $text;
+    }
+
+    private function reverseRelation(string $type): string
+    {
+        return match ($type) {
+            'relates' => 'relates',
+            'blocks' => 'blocked',
+            'blocked' => 'blocks',
+            'duplicates' => 'duplicated',
+            'duplicated' => 'duplicates',
+            'precedes' => 'follows',
+            'follows' => 'precedes',
+            'copied_to' => 'copied_from',
+            'copied_from' => 'copied_to',
+            default => $type,
+        };
+    }
+
+    /**
+     * @param  list<Issue>  $issues
+     * @return array<int, string|null>
+     */
+    private function attachmentText(array $issues): array
+    {
+        $ids = [];
+        foreach ($issues as $issue) {
+            $ids[] = (int) $issue->id;
+        }
+        $names = [];
+        foreach ($ids as $id) {
+            $names[$id] = [];
+        }
+        if ($ids === []) {
+            return [];
+        }
+
+        $rows = Attachment::query()
+            ->where('container_type', 'Issue')
+            ->whereIn('container_id', $ids)
+            ->orderBy('id')
+            ->get();
+        foreach ($rows as $row) {
+            $names[(int) $row->container_id][] = (string) $row->filename;
+        }
+
+        $text = [];
+        foreach ($names as $id => $parts) {
+            $text[$id] = $parts === [] ? null : implode(', ', $parts);
+        }
+
+        return $text;
+    }
+
+    /**
+     * @param  list<Issue>  $issues
+     * @return array<int, string|null>
+     */
+    private function watcherText(?User $actor, array $issues): array
+    {
+        $allowed = [];
+        foreach ($issues as $issue) {
+            $project = $issue->project;
+            if (! $project instanceof Project) {
+                $project = Project::query()->find($issue->project_id);
+            }
+            if ($project instanceof Project && $this->permissions->allowed($actor, 'view_issue_watchers', $project)) {
+                $allowed[] = (int) $issue->id;
+            }
+        }
+
+        $names = [];
+        foreach ($issues as $issue) {
+            $names[(int) $issue->id] = null;
+        }
+        if ($allowed === []) {
+            return $names;
+        }
+
+        $watchers = Watcher::query()
+            ->where('watchable_type', 'Issue')
+            ->whereIn('watchable_id', $allowed)
+            ->orderBy('id')
+            ->get();
+        $userIds = [];
+        foreach ($watchers as $watcher) {
+            $userIds[] = (int) $watcher->user_id;
+        }
+        $users = $this->userNames($userIds);
+        $parts = [];
+        foreach ($watchers as $watcher) {
+            $label = $users[(int) $watcher->user_id] ?? null;
+            if ($label !== null) {
+                $parts[(int) $watcher->watchable_id][] = $label;
+            }
+        }
+        foreach ($parts as $id => $labels) {
+            $names[$id] = implode(', ', $labels);
+        }
+
+        return $names;
     }
 }

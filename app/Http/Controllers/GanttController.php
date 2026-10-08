@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Domain\DomainException;
 use App\Domain\Gantt\GanttChart;
 use App\Domain\PermissionDeniedException;
 use App\Models\Project;
@@ -91,21 +92,24 @@ class GanttController extends Controller
             $options['draw_relations'] = $draw;
         }
 
+        $params = $this->queryParams($request);
+
         try {
-            return $this->gantt->show(
-                $this->actor($request),
-                $project,
-                [
-                    'year' => $this->optionalInt($request, 'year'),
-                    'month' => $this->optionalInt($request, 'month'),
-                    'months' => $this->optionalInt($request, 'months'),
-                    'zoom' => $this->optionalInt($request, 'zoom'),
-                ],
-                null,
-                $options === [] ? null : $options,
-            );
+            $input = [
+                'year' => $this->optionalInt($request, 'year'),
+                'month' => $this->optionalInt($request, 'month'),
+                'months' => $this->optionalInt($request, 'months'),
+                'zoom' => $this->optionalInt($request, 'zoom'),
+            ];
+            $drawn = $options === [] ? null : $options;
+
+            return $params === null
+                ? $this->gantt->show($this->actor($request), $project, $input, null, $drawn)
+                : $this->gantt->showForQuery($this->actor($request), $project, $input, $params, $drawn);
         } catch (PermissionDeniedException) {
             abort(403);
+        } catch (DomainException) {
+            abort(404);
         }
     }
 
@@ -114,6 +118,28 @@ class GanttController extends Controller
         $user = $request->user();
 
         return $user instanceof User ? $user : null;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function queryParams(Request $request): ?array
+    {
+        $params = [];
+        $queryId = $request->query('query_id');
+        if (is_string($queryId) && $queryId !== '') {
+            $params['query_id'] = $queryId;
+        }
+        if ($request->query('set_filter') === '1') {
+            $params['set_filter'] = '1';
+        }
+        $filters = $request->query('filters');
+        if (is_array($filters)) {
+            $params['filters'] = $filters;
+            $params['set_filter'] = '1';
+        }
+
+        return $params === [] ? null : $params;
     }
 
     private function optionalInt(Request $request, string $key): ?int
