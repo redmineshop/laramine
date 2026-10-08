@@ -3,6 +3,7 @@
 namespace App\Domain\Api;
 
 use App\Domain\Acl\PermissionList;
+use App\Domain\Auth\OauthScope;
 use App\Domain\CustomFields\CustomFieldTypes;
 use App\Domain\Queries\QueryVisibility;
 use App\Domain\Queries\SavedQueryService;
@@ -28,6 +29,7 @@ final class CatalogApi
         private readonly ApiCall $calls,
         private readonly ApiValues $values,
         private readonly SavedQueryService $queries,
+        private readonly OauthScope $oauthScope,
     ) {}
 
     public function trackers(Request $request): ApiResult
@@ -104,7 +106,7 @@ final class CatalogApi
     public function customFields(User $actor, Request $request): ApiResult
     {
         return $this->calls->run(function () use ($actor, $request): ApiResult {
-            if (! $actor->admin || ! $actor->isActive()) {
+            if (! $actor->admin || ! $actor->isActive() || ! $this->oauthScope->permits('admin')) {
                 return ApiResult::fail(403, 'You are not authorized to access this page.');
             }
             $page = ApiPage::from($request);
@@ -122,7 +124,7 @@ final class CatalogApi
     public function showCustomField(User $actor, int $id): ApiResult
     {
         return $this->calls->run(function () use ($actor, $id): ApiResult {
-            if (! $actor->admin || ! $actor->isActive()) {
+            if (! $actor->admin || ! $actor->isActive() || ! $this->oauthScope->permits('admin')) {
                 return ApiResult::fail(403, 'You are not authorized to access this page.');
             }
             $field = CustomField::query()->find($id);

@@ -606,6 +606,8 @@ class UsersAuthGapParityTest extends TestCase
         $this->assertMatchesRegularExpression('/^\| Users and authentication — OpenID Connect \| N\/A \|/m', $checklist);
         $this->assertMatchesRegularExpression('/^\| Users and authentication — full REST API \| VERIFIED \|/m', $checklist);
         $this->assertMatchesRegularExpression('/^\| Users and authentication — live LDAP \| VERIFIED \|/m', $checklist);
+        $this->assertMatchesRegularExpression('/^\| Webhooks \| NOT VERIFIED \|.*645.*461/m', $checklist);
+        $this->assertMatchesRegularExpression('/^\| Reactions \| NOT VERIFIED \|.*490/m', $checklist);
         $this->assertStringContainsString($evidence, $checklist);
         $this->assertStringContainsString($expectation, $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/', $checklist);

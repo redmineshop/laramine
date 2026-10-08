@@ -16,6 +16,8 @@ Route::get('/issues/{issue}/relations.{format}', [RestController::class, 'relati
 Route::post('/issues/{issue}/relations.{format}', [RestController::class, 'storeRelation'])->whereNumber('issue')->where('format', $format);
 Route::get('/issues/{issue}/time_entries.{format}', [RestController::class, 'issueTimeEntries'])->whereNumber('issue')->where('format', $format);
 Route::get('/issues/{issue}/journals.{format}', [RestController::class, 'journals'])->whereNumber('issue')->where('format', $format);
+Route::post('/issues/{issue}/watchers.{format}', [RestController::class, 'addWatcher'])->whereNumber('issue')->where('format', $format);
+Route::delete('/issues/{issue}/watchers/{user}.{format}', [RestController::class, 'removeWatcher'])->whereNumber('issue')->whereNumber('user')->where('format', $format);
 
 Route::get('/relations/{relation}.{format}', [RestController::class, 'showRelation'])->whereNumber('relation')->where('format', $format);
 Route::delete('/relations/{relation}.{format}', [RestController::class, 'destroyRelation'])->whereNumber('relation')->where('format', $format);
@@ -25,6 +27,10 @@ Route::post('/projects.{format}', [RestController::class, 'storeProject'])->wher
 Route::get('/projects/{project}.{format}', [RestController::class, 'showProject'])->where('project', $project)->where('format', $format);
 Route::put('/projects/{project}.{format}', [RestController::class, 'updateProject'])->where('project', $project)->where('format', $format);
 Route::delete('/projects/{project}.{format}', [RestController::class, 'destroyProject'])->where('project', $project)->where('format', $format);
+Route::put('/projects/{project}/archive.{format}', [RestController::class, 'archiveProject'])->where('project', $project)->where('format', $format);
+Route::put('/projects/{project}/unarchive.{format}', [RestController::class, 'unarchiveProject'])->where('project', $project)->where('format', $format);
+Route::put('/projects/{project}/close.{format}', [RestController::class, 'closeProject'])->where('project', $project)->where('format', $format);
+Route::put('/projects/{project}/reopen.{format}', [RestController::class, 'reopenProject'])->where('project', $project)->where('format', $format);
 
 Route::get('/projects/{project}/memberships.{format}', [RestController::class, 'memberships'])->where('project', $project)->where('format', $format);
 Route::post('/projects/{project}/memberships.{format}', [RestController::class, 'storeMembership'])->where('project', $project)->where('format', $format);
@@ -39,6 +45,8 @@ Route::delete('/projects/{project}/wiki/{title}.{format}', [RestController::clas
 Route::get('/projects/{project}/boards.{format}', [RestController::class, 'boards'])->where('project', $project)->where('format', $format);
 Route::get('/projects/{project}/files.{format}', [RestController::class, 'files'])->where('project', $project)->where('format', $format);
 Route::post('/projects/{project}/files.{format}', [RestController::class, 'storeFile'])->where('project', $project)->where('format', $format);
+Route::get('/projects/{project}/documents.{format}', [RestController::class, 'documents'])->where('project', $project)->where('format', $format);
+Route::post('/projects/{project}/documents.{format}', [RestController::class, 'storeDocument'])->where('project', $project)->where('format', $format);
 Route::get('/projects/{project}/time_entries.{format}', [RestController::class, 'projectTimeEntries'])->where('project', $project)->where('format', $format);
 
 Route::get('/memberships/{membership}.{format}', [RestController::class, 'showMembership'])->whereNumber('membership')->where('format', $format);
@@ -52,6 +60,10 @@ Route::delete('/versions/{version}.{format}', [RestController::class, 'destroyVe
 Route::get('/issue_categories/{category}.{format}', [RestController::class, 'showCategory'])->whereNumber('category')->where('format', $format);
 Route::put('/issue_categories/{category}.{format}', [RestController::class, 'updateCategory'])->whereNumber('category')->where('format', $format);
 Route::delete('/issue_categories/{category}.{format}', [RestController::class, 'destroyCategory'])->whereNumber('category')->where('format', $format);
+
+Route::get('/documents/{document}.{format}', [RestController::class, 'showDocument'])->whereNumber('document')->where('format', $format);
+Route::put('/documents/{document}.{format}', [RestController::class, 'updateDocument'])->whereNumber('document')->where('format', $format);
+Route::delete('/documents/{document}.{format}', [RestController::class, 'destroyDocument'])->whereNumber('document')->where('format', $format);
 
 Route::get('/news.{format}', [RestController::class, 'news'])->where('format', $format);
 Route::get('/news/{news}.{format}', [RestController::class, 'showNews'])->whereNumber('news')->where('format', $format);

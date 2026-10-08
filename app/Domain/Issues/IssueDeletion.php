@@ -74,6 +74,12 @@ final class IssueDeletion
 
             $scope = $locked->root_id === null ? [] : ['root_id' => (int) $locked->root_id];
             (new NestedSet('issues'))->closeGap((int) $locked->rgt, 2, $scope);
+            // A root issue stores its own id in root_id. Clear that self-reference
+            // before the row delete so the issues.root_id foreign key can release it.
+            if ((int) $locked->root_id === $id) {
+                $locked->root_id = null;
+                $locked->save();
+            }
             $locked->delete();
         });
     }

@@ -16,6 +16,7 @@ final class ApiResult
     public function __construct(
         public readonly int $status,
         public readonly ?array $body,
+        public readonly ?string $location = null,
     ) {}
 
     /**
@@ -29,9 +30,9 @@ final class ApiResult
     /**
      * @param  array<string, mixed>  $body
      */
-    public static function created(array $body): self
+    public static function created(array $body, ?string $location = null): self
     {
-        return new self(201, $body);
+        return new self(201, $body, $location);
     }
 
     public static function noContent(): self

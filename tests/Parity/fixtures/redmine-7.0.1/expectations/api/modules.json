@@ -1,0 +1,476 @@
+{
+    "wiki_created": {
+        "status": 201,
+        "location": "/projects/parity-core/wiki/RestGuide.json",
+        "body": {
+            "wiki_page": {
+                "title": "RestGuide",
+                "parent": null,
+                "text": "first page",
+                "version": 1,
+                "author": {
+                    "id": 2,
+                    "name": "Restadmin Admin"
+                },
+                "comments": "created",
+                "created_on": "pinned-stamp",
+                "updated_on": "pinned-stamp"
+            }
+        }
+    },
+    "wiki_updated": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "wiki_conflict": {
+        "status": 409,
+        "location": null,
+        "body": {
+            "errors": [
+                "Wiki page was updated by another user."
+            ]
+        }
+    },
+    "wiki_shown": {
+        "status": 200,
+        "location": null,
+        "body": {
+            "wiki_page": {
+                "title": "RestGuide",
+                "parent": null,
+                "text": "second page",
+                "version": 2,
+                "author": {
+                    "id": 2,
+                    "name": "Restadmin Admin"
+                },
+                "comments": "updated",
+                "created_on": "pinned-stamp",
+                "updated_on": "pinned-stamp"
+            }
+        }
+    },
+    "wiki_xml": {
+        "status": 200,
+        "location": null,
+        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<wiki_page><title>RestGuide</title><parent nil=\"true\"/><text>second page</text><version>2</version><author><id>2</id><name>Restadmin Admin</name></author><comments>updated</comments><created_on>pinned-stamp</created_on><updated_on>pinned-stamp</updated_on></wiki_page>"
+    },
+    "news_created": {
+        "status": 201,
+        "location": "/news/news-1.json",
+        "body": {
+            "news": {
+                "id": "news-1",
+                "project": {
+                    "id": 1,
+                    "name": "Parity Core"
+                },
+                "author": {
+                    "id": 2,
+                    "name": "Restadmin Admin"
+                },
+                "title": "REST note",
+                "summary": "short",
+                "description": "body",
+                "created_on": "pinned-stamp"
+            }
+        }
+    },
+    "news_updated": {
+        "status": 200,
+        "location": null,
+        "body": {
+            "news": {
+                "id": "news-1",
+                "project": {
+                    "id": 1,
+                    "name": "Parity Core"
+                },
+                "author": {
+                    "id": 2,
+                    "name": "Restadmin Admin"
+                },
+                "title": "REST note renamed",
+                "summary": "short",
+                "description": "body",
+                "created_on": "pinned-stamp"
+            }
+        }
+    },
+    "news_shown": {
+        "status": 200,
+        "location": null,
+        "body": {
+            "news": {
+                "id": "news-1",
+                "project": {
+                    "id": 1,
+                    "name": "Parity Core"
+                },
+                "author": {
+                    "id": 2,
+                    "name": "Restadmin Admin"
+                },
+                "title": "REST note renamed",
+                "summary": "short",
+                "description": "body",
+                "created_on": "pinned-stamp"
+            }
+        }
+    },
+    "news_xml": {
+        "status": 200,
+        "location": null,
+        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<news><id>news-1</id><project><id>1</id><name>Parity Core</name></project><author><id>2</id><name>Restadmin Admin</name></author><title>REST note renamed</title><summary>short</summary><description>body</description><created_on>pinned-stamp</created_on></news>"
+    },
+    "files": {
+        "status": 200,
+        "location": null,
+        "body": {
+            "files": [
+                {
+                    "id": "attachments-3",
+                    "filename": "readme.txt",
+                    "filesize": 10,
+                    "content_type": "text/plain",
+                    "description": "pin file",
+                    "content_url": "/attachments/attachments-3",
+                    "author": {
+                        "id": 2,
+                        "name": "Restadmin Admin"
+                    },
+                    "created_on": "pinned-stamp"
+                }
+            ]
+        }
+    },
+    "files_xml": {
+        "status": 200,
+        "location": null,
+        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<files type=\"array\"><file><id>attachments-3</id><filename>readme.txt</filename><filesize>10</filesize><content_type>text/plain</content_type><description>pin file</description><content_url>/attachments/attachments-3</content_url><author><id>2</id><name>Restadmin Admin</name></author><created_on>pinned-stamp</created_on></file></files>"
+    },
+    "file_created": {
+        "status": 201,
+        "location": "/attachments/attachments-3.json",
+        "body": {
+            "file": {
+                "id": "attachments-3",
+                "filename": "readme.txt",
+                "filesize": 10,
+                "content_type": "text/plain",
+                "description": "pin file",
+                "content_url": "/attachments/attachments-3",
+                "author": {
+                    "id": 2,
+                    "name": "Restadmin Admin"
+                },
+                "created_on": "pinned-stamp"
+            }
+        }
+    },
+    "boards": {
+        "status": 200,
+        "location": null,
+        "body": {
+            "boards": [
+                {
+                    "id": "boards-1",
+                    "name": "REST",
+                    "description": "Parity board",
+                    "parent_id": null,
+                    "position": 1,
+                    "topics_count": 0,
+                    "messages_count": 0,
+                    "last_message_id": null
+                }
+            ]
+        }
+    },
+    "topic": {
+        "status": 201,
+        "location": "/messages/messages-1.json",
+        "body": {
+            "message": {
+                "id": "messages-1",
+                "board_id": "boards-1",
+                "parent_id": null,
+                "subject": "Admin topic",
+                "content": "from admin",
+                "author": {
+                    "id": 2,
+                    "name": "Restadmin Admin"
+                },
+                "sticky": 0,
+                "locked": false,
+                "replies_count": 0,
+                "created_on": "pinned-stamp",
+                "updated_on": "pinned-stamp"
+            }
+        }
+    },
+    "reply": {
+        "status": 201,
+        "location": "/messages/messages-2.json",
+        "body": {
+            "message": {
+                "id": "messages-2",
+                "board_id": "boards-1",
+                "parent_id": "messages-1",
+                "subject": "Re: Admin topic",
+                "content": "a reply",
+                "author": {
+                    "id": 2,
+                    "name": "Restadmin Admin"
+                },
+                "sticky": 0,
+                "locked": false,
+                "replies_count": 0,
+                "created_on": "pinned-stamp",
+                "updated_on": "pinned-stamp"
+            }
+        }
+    },
+    "message_shown": {
+        "status": 200,
+        "location": null,
+        "body": {
+            "message": {
+                "id": "messages-1",
+                "board_id": "boards-1",
+                "parent_id": null,
+                "subject": "Admin topic",
+                "content": "from admin",
+                "author": {
+                    "id": 2,
+                    "name": "Restadmin Admin"
+                },
+                "sticky": 0,
+                "locked": false,
+                "replies_count": 1,
+                "created_on": "pinned-stamp",
+                "updated_on": "pinned-stamp"
+            }
+        }
+    },
+    "message_xml": {
+        "status": 200,
+        "location": null,
+        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<message><id>messages-1</id><board_id>boards-1</board_id><parent_id nil=\"true\"/><subject>Admin topic</subject><content>from admin</content><author><id>2</id><name>Restadmin Admin</name></author><sticky>0</sticky><locked>false</locked><replies_count>1</replies_count><created_on>pinned-stamp</created_on><updated_on>pinned-stamp</updated_on></message>"
+    },
+    "document_created": {
+        "status": 201,
+        "location": "/documents/documents-1.json",
+        "body": {
+            "document": {
+                "id": "documents-1",
+                "project": {
+                    "id": 1,
+                    "name": "Parity Core"
+                },
+                "category": {
+                    "id": 4,
+                    "name": "User guide"
+                },
+                "title": "REST guide",
+                "description": "pin document",
+                "created_on": "pinned-stamp"
+            }
+        }
+    },
+    "document_updated": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "documents": {
+        "status": 200,
+        "location": null,
+        "body": {
+            "documents": [
+                {
+                    "id": "documents-1",
+                    "project": {
+                        "id": 1,
+                        "name": "Parity Core"
+                    },
+                    "category": {
+                        "id": 4,
+                        "name": "User guide"
+                    },
+                    "title": "REST guide renamed",
+                    "description": "pin document",
+                    "created_on": "pinned-stamp"
+                }
+            ]
+        }
+    },
+    "document_xml": {
+        "status": 200,
+        "location": null,
+        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<document><id>documents-1</id><project><id>1</id><name>Parity Core</name></project><category><id>4</id><name>User guide</name></category><title>REST guide renamed</title><description>pin document</description><created_on>pinned-stamp</created_on></document>"
+    },
+    "edit_own_denied": {
+        "status": 403,
+        "location": null,
+        "body": {
+            "errors": [
+                "You are not authorized to access this page."
+            ]
+        }
+    },
+    "delete_own_denied": {
+        "status": 403,
+        "location": null,
+        "body": {
+            "errors": [
+                "You are not authorized to access this page."
+            ]
+        }
+    },
+    "edit_own_allowed": {
+        "status": 200,
+        "location": null,
+        "body": {
+            "message": {
+                "id": "messages-3",
+                "board_id": "boards-1",
+                "parent_id": null,
+                "subject": "Own topic edited",
+                "content": "from ada",
+                "author": {
+                    "id": 1,
+                    "name": "Ada Lovelace"
+                },
+                "sticky": 0,
+                "locked": false,
+                "replies_count": 0,
+                "created_on": "pinned-stamp",
+                "updated_on": "pinned-stamp"
+            }
+        }
+    },
+    "delete_own_allowed": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "closed_read": {
+        "status": 200,
+        "location": null,
+        "body": {
+            "wiki_page": {
+                "title": "RestGuide",
+                "parent": null,
+                "text": "second page",
+                "version": 2,
+                "author": {
+                    "id": 2,
+                    "name": "Restadmin Admin"
+                },
+                "comments": "updated",
+                "created_on": "pinned-stamp",
+                "updated_on": "pinned-stamp"
+            }
+        }
+    },
+    "closed_wiki_write": {
+        "status": 403,
+        "location": null,
+        "body": {
+            "errors": [
+                "You are not authorized to access this page."
+            ]
+        }
+    },
+    "closed_news_write": {
+        "status": 403,
+        "location": null,
+        "body": {
+            "errors": [
+                "You are not authorized to access this page."
+            ]
+        }
+    },
+    "closed_document_write": {
+        "status": 403,
+        "location": null,
+        "body": {
+            "errors": [
+                "You are not authorized to access this page."
+            ]
+        }
+    },
+    "module_disabled": {
+        "wiki": {
+            "status": 403,
+            "location": null,
+            "body": {
+                "errors": [
+                    "You are not authorized to access this page."
+                ]
+            }
+        },
+        "news": {
+            "status": 403,
+            "location": null,
+            "body": {
+                "errors": [
+                    "You are not authorized to access this page."
+                ]
+            }
+        },
+        "files": {
+            "status": 403,
+            "location": null,
+            "body": {
+                "errors": [
+                    "You are not authorized to access this page."
+                ]
+            }
+        },
+        "boards": {
+            "status": 403,
+            "location": null,
+            "body": {
+                "errors": [
+                    "You are not authorized to access this page."
+                ]
+            }
+        },
+        "documents": {
+            "status": 403,
+            "location": null,
+            "body": {
+                "errors": [
+                    "You are not authorized to access this page."
+                ]
+            }
+        }
+    },
+    "wiki_deleted": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "news_deleted": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "reply_deleted": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "topic_deleted": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "document_deleted": {
+        "status": 204,
+        "location": null,
+        "body": null
+    }
+}

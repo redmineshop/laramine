@@ -12,6 +12,7 @@ use App\Domain\Auth\CredentialChecker;
 use App\Domain\Auth\Ldap\ExtLdapDirectory;
 use App\Domain\Auth\Ldap\LdapDirectory;
 use App\Domain\Auth\Ldap\MemoryLdapDirectory;
+use App\Domain\Auth\OauthScope;
 use App\Models\Document;
 use App\Models\Issue;
 use App\Models\News;
@@ -38,6 +39,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(PermissionCatalog::class);
+        $this->app->singleton(OauthScope::class);
         $this->app->singleton(LdapDirectory::class, function (Application $app): LdapDirectory {
             if ($app->environment('testing')) {
                 return new MemoryLdapDirectory;
