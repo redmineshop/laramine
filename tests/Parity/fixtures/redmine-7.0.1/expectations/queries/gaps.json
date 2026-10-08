@@ -778,48 +778,121 @@
         ],
         "multiple": "Custom field cannot be grouped: cf_31.",
         "ada_private": "Query group is not available: is_private.",
-        "subject_sort_only": []
-    },
-    "board": {
-        "display_type": "board",
-        "board": [
+        "subject_sort_only": [],
+        "int": [
             {
-                "status_id": 1,
-                "name": "New",
-                "issue_ids": [
-                    1,
-                    5,
-                    2
-                ]
-            },
-            {
-                "status_id": 2,
-                "name": "In Progress",
-                "issue_ids": [
-                    4,
-                    6
-                ]
-            }
-        ],
-        "groups": [
-            {
-                "key": "Bug",
-                "value": "1",
-                "ids": [
-                    1,
-                    4,
-                    5
-                ]
-            },
-            {
-                "key": "Feature",
-                "value": "2",
+                "key": null,
+                "value": null,
+                "count": 3,
                 "ids": [
                     2,
+                    4,
                     6
-                ]
+                ],
+                "totals": {
+                    "estimated_hours": "1.25"
+                }
+            },
+            {
+                "key": "-4",
+                "value": "-4",
+                "count": 1,
+                "ids": [
+                    5
+                ],
+                "totals": {
+                    "estimated_hours": "0.5"
+                }
+            },
+            {
+                "key": "0",
+                "value": "0",
+                "count": 1,
+                "ids": [
+                    3
+                ],
+                "totals": {
+                    "estimated_hours": "4"
+                }
+            },
+            {
+                "key": "2",
+                "value": "2",
+                "count": 1,
+                "ids": [
+                    1
+                ],
+                "totals": {
+                    "estimated_hours": "2.5"
+                }
+            },
+            {
+                "key": "10",
+                "value": "10",
+                "count": 1,
+                "ids": [
+                    1
+                ],
+                "totals": {
+                    "estimated_hours": "2.5"
+                }
             }
-        ]
+        ],
+        "progressbar": [
+            {
+                "key": null,
+                "value": null,
+                "count": 3,
+                "ids": [
+                    2,
+                    3,
+                    5
+                ],
+                "totals": {
+                    "estimated_hours": "4.5"
+                }
+            },
+            {
+                "key": "10",
+                "value": "10",
+                "count": 1,
+                "ids": [
+                    6
+                ],
+                "totals": {
+                    "estimated_hours": "0"
+                }
+            },
+            {
+                "key": "20",
+                "value": "20",
+                "count": 2,
+                "ids": [
+                    1,
+                    4
+                ],
+                "totals": {
+                    "estimated_hours": "3.75"
+                }
+            },
+            {
+                "key": "80",
+                "value": "80",
+                "count": 1,
+                "ids": [
+                    1
+                ],
+                "totals": {
+                    "estimated_hours": "2.5"
+                }
+            }
+        ],
+        "int_multiple": "Custom field cannot be grouped: cf_39.",
+        "float": "Custom field cannot be grouped: cf_40.",
+        "string": "Custom field cannot be grouped: cf_41.",
+        "text": "Custom field cannot be grouped: cf_34.",
+        "link": "Custom field cannot be grouped: cf_42.",
+        "attachment": "Custom field cannot be grouped: cf_43."
     },
     "filters": {
         "project_core": [
@@ -1220,7 +1293,13 @@
         5
     ],
     "na": {
-        "relation_custom_fields": "docs/sources/redmine-7.0.1-schema.rb lines 258-266",
-        "board_axis": "issue_statuses"
+        "relation_custom_fields": "no IssueRelationCustomField",
+        "issue_query_display": "list",
+        "project_query_board": "NOT VERIFIED"
+    },
+    "notes": {
+        "custom_field_group": "7.0.1 CustomField group_statement is nil when multiple is true. Single-value int and progressbar formats group by the numeric value. The blank group is first under ascending order and the other groups follow that integer. Float, string, text, link, and attachment formats do not group. Several stored values on a single-value field count the issue in each value group. Group totals sum the query totalable columns for the issues in the group.",
+        "issue_display": "7.0.1 IssueQuery display type is list. board is a ProjectQuery display of project cards, not an issue status board. Laramine status columns stay behind redmine.issue_query_board and are not compared here.",
+        "relation_custom_fields": "7.0.1 CustomField subclasses are IssueCustomField, ProjectCustomField, UserCustomField, GroupCustomField, TimeEntryCustomField, VersionCustomField, DocumentCustomField, IssuePriorityCustomField, TimeEntryActivityCustomField, and DocumentCategoryCustomField. There is no IssueRelationCustomField. custom_values.customized_type and customized_id are polymorphic (docs/sources/redmine-7.0.1-schema.rb lines 175-182; custom_fields.type is lines 135-152), so a missing column on issue_relations is not the reason."
     }
 }

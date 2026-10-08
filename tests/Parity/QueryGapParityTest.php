@@ -3,6 +3,7 @@
 namespace Tests\Parity;
 
 use App\Domain\Calendar\CalendarService;
+use App\Domain\CustomFields\CustomFieldTypes;
 use App\Domain\DomainException;
 use App\Domain\Gantt\GanttChart;
 use App\Domain\Queries\IssueQueryGrouping;
@@ -29,8 +30,9 @@ use Tests\TestCase;
  * Compares the query gaps that sat outside the earlier pin: saved-query
  * calendar and gantt, group headers, association custom fields, and column layout.
  *
- * Issue-relation custom fields and a board axis other than status are N/A
- * with the 7.0.1 schema. The REST issue and project lists stay on their row.
+ * Issue-relation custom fields are N/A because 7.0.1 has no
+ * IssueRelationCustomField. Issue status columns are a Laramine extension
+ * and are not compared. The REST issue and project lists stay on their row.
  */
 class QueryGapParityTest extends TestCase
 {
@@ -108,8 +110,15 @@ class QueryGapParityTest extends TestCase
                 'multiple' => $this->message(fn () => $grouping->assertGroupable('cf_31', $admin, null)),
                 'ada_private' => $this->message(fn () => $grouping->assertGroupable('is_private', $ada, $project)),
                 'subject_sort_only' => $this->grouped($runner, $admin, 'subject', false),
+                'int' => $this->grouped($runner, $admin, 'cf_37', true),
+                'progressbar' => $this->grouped($runner, $admin, 'cf_38', true),
+                'int_multiple' => $this->message(fn () => $grouping->assertGroupable('cf_39', $admin, null)),
+                'float' => $this->message(fn () => $grouping->assertGroupable('cf_40', $admin, null)),
+                'string' => $this->message(fn () => $grouping->assertGroupable('cf_41', $admin, null)),
+                'text' => $this->message(fn () => $grouping->assertGroupable('cf_34', $admin, null)),
+                'link' => $this->message(fn () => $grouping->assertGroupable('cf_42', $admin, null)),
+                'attachment' => $this->message(fn () => $grouping->assertGroupable('cf_43', $admin, null)),
             ],
-            'board' => $this->board($runner, $admin),
             'filters' => [
                 'project_core' => $this->ids($runner, $admin, ['project.cf_22' => ['operator' => '=', 'values' => ['core']]]),
                 'project_child' => $this->ids($runner, $admin, ['project.cf_22' => ['operator' => '=', 'values' => ['child']]]),
@@ -133,15 +142,34 @@ class QueryGapParityTest extends TestCase
             'selection' => $this->selection($selection, $admin, $ada, $finn, $project),
             'sort' => $this->ids($runner, $admin, ['status_id' => ['operator' => '*', 'values' => []]], [['priority', 'desc'], ['id', 'asc']]),
             'na' => [
-                'relation_custom_fields' => 'docs/sources/redmine-7.0.1-schema.rb lines 258-266',
-                'board_axis' => 'issue_statuses',
+                'relation_custom_fields' => 'no IssueRelationCustomField',
+                'issue_query_display' => 'list',
+                'project_query_board' => 'NOT VERIFIED',
+            ],
+            'notes' => [
+                'custom_field_group' => '7.0.1 CustomField group_statement is nil when multiple is true. Single-value int and progressbar formats group by the numeric value. The blank group is first under ascending order and the other groups follow that integer. Float, string, text, link, and attachment formats do not group. Several stored values on a single-value field count the issue in each value group. Group totals sum the query totalable columns for the issues in the group.',
+                'issue_display' => '7.0.1 IssueQuery display type is list. board is a ProjectQuery display of project cards, not an issue status board. Laramine status columns stay behind redmine.issue_query_board and are not compared here.',
+                'relation_custom_fields' => '7.0.1 CustomField subclasses are IssueCustomField, ProjectCustomField, UserCustomField, GroupCustomField, TimeEntryCustomField, VersionCustomField, DocumentCustomField, IssuePriorityCustomField, TimeEntryActivityCustomField, and DocumentCategoryCustomField. There is no IssueRelationCustomField. custom_values.customized_type and customized_id are polymorphic (docs/sources/redmine-7.0.1-schema.rb lines 175-182; custom_fields.type is lines 135-152), so a missing column on issue_relations is not the reason.',
             ],
         ];
 
+        $this->assertSame([
+            'IssueCustomField',
+            'ProjectCustomField',
+            'UserCustomField',
+            'GroupCustomField',
+            'TimeEntryCustomField',
+            'VersionCustomField',
+            'DocumentCustomField',
+            'IssuePriorityCustomField',
+            'TimeEntryActivityCustomField',
+            'DocumentCategoryCustomField',
+        ], array_keys(CustomFieldTypes::SUPPORTED));
+        $this->assertArrayNotHasKey('IssueRelationCustomField', CustomFieldTypes::SUPPORTED);
         $schema = file_get_contents(base_path('docs/sources/redmine-7.0.1-schema.rb'));
         $this->assertIsString($schema);
-        $this->assertStringContainsString('create_table "issue_relations"', $schema);
-        $this->assertStringNotContainsString('custom_field', substr($schema, (int) strpos($schema, 'create_table "issue_relations"'), 700));
+        $this->assertStringContainsString('t.string "customized_type", limit: 30, default: "", null: false', $schema);
+        $this->assertStringContainsString('t.string "type", limit: 30, default: "", null: false', $schema);
 
         $this->assertPinned('tests/Parity/fixtures/redmine-7.0.1/expectations/queries/gaps.json', $actual);
     }
@@ -155,6 +183,13 @@ class QueryGapParityTest extends TestCase
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/queries/gaps.json', $checklist);
         $this->assertStringContainsString('tests/Parity/IssueQueryParityTest.php', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/queries/remainder.json', $checklist);
+        $this->assertStringNotContainsString('`list`/`board` display', $checklist);
+        $this->assertStringContainsString('single-value list, bool, date, user, version, enumeration, int, and progressbar', $checklist);
+        $this->assertStringContainsString('no `IssueRelationCustomField`', $checklist);
+        $this->assertMatchesRegularExpression('/^\| Project query board \| NOT VERIFIED \|/m', $checklist);
+        $this->assertStringContainsString('## Extensions outside the 7.0.1 pin', $checklist);
+        $this->assertStringContainsString('AVIF is required', $checklist);
+        $this->assertStringContainsString('PDF thumbnails require both programs', $checklist);
         $this->assertMatchesRegularExpression('/^\| Users and authentication — full REST API \| VERIFIED \|/m', $checklist);
         $this->assertMatchesRegularExpression('/^\| Users and authentication — OpenID Connect \| N\/A \|/m', $checklist);
         $this->assertMatchesRegularExpression('/^\| Calendar and Gantt \| VERIFIED \|/m', $checklist);
@@ -176,6 +211,13 @@ class QueryGapParityTest extends TestCase
             $this->field(34, 'IssueCustomField', 'text', 'Body', false);
             $this->field(35, 'IssueCustomField', 'date', 'When', false);
             $this->field(36, 'IssueCustomField', 'enumeration', 'Rank', false);
+            $this->field(37, 'IssueCustomField', 'int', 'Score', false);
+            $this->field(38, 'IssueCustomField', 'progressbar', 'Ratio', false);
+            $this->field(39, 'IssueCustomField', 'int', 'Scores', true);
+            $this->field(40, 'IssueCustomField', 'float', 'Weight', false);
+            $this->field(41, 'IssueCustomField', 'string', 'Label', false);
+            $this->field(42, 'IssueCustomField', 'link', 'Url', false);
+            $this->field(43, 'IssueCustomField', 'attachment', 'File', false);
         });
         CustomFieldEnumeration::unguarded(function (): void {
             CustomFieldEnumeration::query()->create([
@@ -200,6 +242,15 @@ class QueryGapParityTest extends TestCase
         $this->value(34, 'Issue', 1, 'long body');
         $this->value(35, 'Issue', 4, '2026-09-01');
         $this->value(36, 'Issue', 3, '100');
+        $this->value(37, 'Issue', 1, '10');
+        $this->value(37, 'Issue', 1, '2');
+        $this->value(37, 'Issue', 3, '0');
+        $this->value(37, 'Issue', 5, '-4');
+        $this->value(37, 'Issue', 6, '');
+        $this->value(38, 'Issue', 1, '80');
+        $this->value(38, 'Issue', 1, '20');
+        $this->value(38, 'Issue', 4, '20');
+        $this->value(38, 'Issue', 6, '10');
     }
 
     private function field(int $id, string $type, string $format, string $name, bool $multiple): void
@@ -264,36 +315,6 @@ class QueryGapParityTest extends TestCase
         }
 
         return $rows;
-    }
-
-    /**
-     * @return array{display_type: string, board: list<array{status_id: int, name: string, issue_ids: list<int>}>, groups: list<array{key: string|null, value: string|null, ids: list<int>}>}
-     */
-    private function board(IssueQueryRunner $runner, User $actor): array
-    {
-        $view = $runner->present($actor, $this->saved(6));
-        $board = [];
-        foreach ($view->board as $column) {
-            $board[] = [
-                'status_id' => $column->statusId,
-                'name' => $column->name,
-                'issue_ids' => $column->issueIds,
-            ];
-        }
-        $groups = [];
-        foreach ($view->groups as $group) {
-            $groups[] = [
-                'key' => $group['key'],
-                'value' => $group['value'],
-                'ids' => $group['ids'],
-            ];
-        }
-
-        return [
-            'display_type' => $view->displayType,
-            'board' => $board,
-            'groups' => $groups,
-        ];
     }
 
     /**
@@ -499,14 +520,6 @@ class QueryGapParityTest extends TestCase
         }
 
         return $ids;
-    }
-
-    private function saved(int $id): Query
-    {
-        $query = Query::query()->find($id);
-        $this->assertInstanceOf(Query::class, $query);
-
-        return $query;
     }
 
     private function project(int $id): Project

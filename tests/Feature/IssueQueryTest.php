@@ -516,10 +516,10 @@ class IssueQueryTest extends TestCase
         $untotaled = $saved->create($world->user, [
             'name' => 'No totals',
             'project_id' => $world->project->id,
-            'options' => ['display_type' => 'board'],
+            'options' => ['display_type' => 'list'],
         ]);
         $this->assertSame([], $runner->totals($world->user, $untotaled));
-        $this->assertSame(['display_type' => 'board'], $untotaled->options);
+        $this->assertSame(['display_type' => 'list'], $untotaled->options);
 
         $yamlId = DB::table('queries')->insertGetId([
             'name' => 'Legacy totals',

@@ -7,6 +7,9 @@ use App\Models\IssueStatus;
 
 /**
  * Groups an already sorted issue list into status columns.
+ *
+ * Laramine extension, not a 7.0.1 IssueQuery display. Callers build these
+ * columns only when `redmine.issue_query_board` is true.
  */
 final class IssueQueryBoard
 {

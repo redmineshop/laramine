@@ -3,7 +3,6 @@
 namespace Tests\Parity;
 
 use App\Domain\DomainException;
-use App\Domain\Queries\IssueQueryBoardColumn;
 use App\Domain\Queries\IssueQueryRow;
 use App\Domain\Queries\IssueQueryRunner;
 use App\Domain\Queries\QueryType;
@@ -22,7 +21,7 @@ use Tests\TestCase;
  * Compares IssueQuery results to the shared pin.
  *
  * Saved and ad-hoc queries are checked per actor: ids and order, column
- * cells, list and board display, group counts, totals, private/role/public
+ * cells, list display, group counts, totals, private/role/public
  * visibility, custom-field filters, `cf` journal details on history
  * operators and on `updated_by` / `last_updated_by`, and spent hours under
  * time_entries_visibility. Gantt, other query types, journal presentation
@@ -147,9 +146,6 @@ class IssueQueryParityTest extends TestCase
         if (array_key_exists('rows', $expected)) {
             $this->assertSame($this->rows($expected, 'rows'), $this->actualRows($view->rows), $label);
         }
-        if (array_key_exists('board', $expected)) {
-            $this->assertSame($this->board($expected), $this->actualBoard($view->board), $label);
-        }
         if (array_key_exists('groups', $expected)) {
             $stored = $expected['groups'];
             if ($stored === null) {
@@ -247,24 +243,6 @@ class IssueQueryParityTest extends TestCase
         }
 
         return $actual;
-    }
-
-    /**
-     * @param  list<IssueQueryBoardColumn>  $columns
-     * @return list<array{status_id: int, name: string, ids: list<int>}>
-     */
-    private function actualBoard(array $columns): array
-    {
-        $board = [];
-        foreach ($columns as $column) {
-            $board[] = [
-                'status_id' => $column->statusId,
-                'name' => $column->name,
-                'ids' => $column->issueIds,
-            ];
-        }
-
-        return $board;
     }
 
     /**
@@ -433,27 +411,6 @@ class IssueQueryParityTest extends TestCase
         }
 
         return $rows;
-    }
-
-    /**
-     * @param  array<mixed>  $row
-     * @return list<array{status_id: int, name: string, ids: list<int>}>
-     */
-    private function board(array $row): array
-    {
-        $value = $row['board'] ?? null;
-        $this->assertIsArray($value);
-        $board = [];
-        foreach ($value as $column) {
-            $this->assertIsArray($column);
-            $board[] = [
-                'status_id' => $this->intField($column, 'status_id'),
-                'name' => $this->stringField($column, 'name'),
-                'ids' => $this->intList($column, 'ids'),
-            ];
-        }
-
-        return $board;
     }
 
     /**

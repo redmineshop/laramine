@@ -3,9 +3,11 @@
 namespace App\Domain\Queries;
 
 /**
- * One status column of a board display.
+ * One status column of the Laramine issue-board extension.
  *
- * Issue ids keep the query sort. Statuses with no matching issue are omitted.
+ * 7.0.1 IssueQuery does not have this display. ProjectQuery `board` is a
+ * separate card layout and is not this column. Issue ids keep the query
+ * sort. Statuses with no matching issue are omitted.
  */
 final readonly class IssueQueryBoardColumn
 {

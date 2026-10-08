@@ -37,7 +37,7 @@ An in-memory list is also accepted at the service edge and stored back as the ma
 
 Filters are AND-ed. There is no OR group.
 
-`column_names` null means the display default listed under Columns. `options.display_type` is `list` or `board` (see Display). `options.totalable_names` is summed over the issue set (see Totals).
+`column_names` null means the display default listed under Columns. `options.display_type` is `list` (see Display). `options.totalable_names` is summed over the issue set (see Totals).
 
 ## Visibility
 
@@ -127,7 +127,7 @@ Relations are stored once. The canonical `relation_type` is `relates`, `blocks`,
 
 `cf_N.due_date` and `cf_N.status` require an `IssueCustomField` of format `version` with `is_filter`, visible to the actor. The custom value is the version id. `!*` on `cf_N.due_date` matches a missing value and a version whose `effective_date` is null. The same date and status comparisons apply to `fixed_version.due_date` and `fixed_version.status` through `issues.fixed_version_id`.
 
-`project.cf_N`, `author.cf_N`, `assigned_to.cf_N`, and `fixed_version.cf_N` filter the custom values of that associated record. The field must be a `ProjectCustomField`, `UserCustomField`, or `VersionCustomField` with `is_filter`, and the actor must be able to see it. User fields also match a value stored on a group. Operators are the target format's filter operators, including `ev`, `!ev`, and `cf` when that format lists them. Those history rows use `journalized_type` Project, User, Group, or Version. `cf_N.cf_M` follows an issue custom field of format `user` or `version` into a filterable field of that user, group, or version. Any other suffix is rejected. `issue_relations` has no custom values in the 7.0.1 pin.
+`project.cf_N`, `author.cf_N`, `assigned_to.cf_N`, and `fixed_version.cf_N` filter the custom values of that associated record. The field must be a `ProjectCustomField`, `UserCustomField`, or `VersionCustomField` with `is_filter`, and the actor must be able to see it. User fields also match a value stored on a group. Operators are the target format's filter operators, including `ev`, `!ev`, and `cf` when that format lists them. Those history rows use `journalized_type` Project, User, Group, or Version. `cf_N.cf_M` follows an issue custom field of format `user` or `version` into a filterable field of that user, group, or version. Any other suffix is rejected. 7.0.1 has no `IssueRelationCustomField`. Custom values stay on the polymorphic `custom_values` rows (`customized_type`, `customized_id`).
 
 `subproject_id` changes which projects a scoped query reads. With no filter, descendants are included when `display_subprojects_issues` is on (the Redmine default) and omitted when it is `0`. `*` adds every descendant. `!*` is the query project only. `=` adds listed descendants and ignores ids that are not descendants. `!` adds every descendant except the listed ones. The query project itself stays in the set. Issues in a descendant are still dropped when the actor lacks `view_issues` there. On a global query, `*` adds no extra constraint, `!*` keeps projects with a null `parent_id`, and `=` / `!` compare `issues.project_id`.
 
@@ -180,14 +180,14 @@ A public query that names a hidden field can be saved by an admin. Another user 
 
 ## Display
 
-`options.display_type` selects how `IssueQueryRunner::present` lays out the same filtered issue set. A missing or null value is `list`. `list` and `board` are the only accepted values. Any other value is rejected when an IssueQuery is saved or run, including `execute` and `totals`. `ProjectQuery` and `ProjectAdminQuery` run and do not read `display_type`. `UserQuery` does not check it.
+`options.display_type` selects how `IssueQueryRunner::present` lays out the same filtered issue set. A missing or null value is `list`. `list` is the display type a 7.0.1 IssueQuery accepts. Any other value is rejected when an IssueQuery is saved or run, including `execute` and `totals`, and including `board` while the extension below is off. `ProjectQuery` and `ProjectAdminQuery` run and do not read `display_type`. `UserQuery` does not check it. ProjectQuery `board` (project cards) is not implemented here and stays **NOT VERIFIED** on the checklist.
 
 | Type | Result |
 | --- | --- |
 | `list` | Rows in query order. The view's `board` list is empty. `groups` lists each `group_by` value when that column is groupable. |
-| `board` | The same rows, also grouped into status columns. Columns follow `issue_statuses.position`, then status id. Issues inside a column keep the query order. A status with no issue in the result is omitted. `group_by` still adds its sort prefix and, when the column is groupable, fills `groups`. It does not choose the board axis. |
+| `board` | Laramine extension, off unless `config('redmine.issue_query_board')` is true (`LARAMINE_ISSUE_QUERY_BOARD`). The same rows, also grouped into status columns. Columns follow `issue_statuses.position`, then status id. Issues inside a column keep the query order. A status with no issue in the result is omitted. `group_by` still adds its sort prefix and, when the column is groupable, fills `groups`. It does not choose the board axis. This is not a 7.0.1 IssueQuery display. |
 
-`IssueQueryGrouping` accepts `tracker`, `status`, `priority`, `author`, `assigned_to`, `category`, `fixed_version`, `project`, `done_ratio`, `start_date`, `due_date`, `created_on`, `updated_on`, `closed_on`, and `is_private` (the last only when the actor can set an issue private). A visible issue custom field groups when its format is list, enumeration, bool, date, user, or version and `multiple` is false. A multiple field is rejected as a group. Several stored values on a single-value field put the issue in each value's group. Blank values are one group. Timestamp columns group by the calendar date in the actor's time zone. Each group carries the issue ids, the count, and the same totals as the query. A stored `group_by` that is only a sort column still sorts and leaves `groups` empty.
+`IssueQueryGrouping` accepts `tracker`, `status`, `priority`, `author`, `assigned_to`, `category`, `fixed_version`, `project`, `done_ratio`, `start_date`, `due_date`, `created_on`, `updated_on`, `closed_on`, and `is_private` (the last only when the actor can set an issue private). A visible issue custom field groups when its format is list, enumeration, bool, date, user, version, int, or progressbar and `multiple` is false. Float, string, text, link, and attachment do not group. A multiple field is rejected as a group, including a multiple int field. Several stored values on a single-value field put the issue in each value's group. Blank values are one group. Int and progressbar groups follow the integer value, blank group first, and the ids inside a group follow issue id. Timestamp columns group by the calendar date in the actor's time zone. Each group carries the issue ids, the count, and the same totals as the query. A stored `group_by` that is only a sort column still sorts and leaves `groups` empty.
 
 Calendar and Gantt accept a saved `query_id` or a `set_filter` filter set. They do not restore the issue-list session and they do not apply `default_issue_query`. Calendar orders issues by the query sort and ignores `group_by`. Gantt keeps project `lft`, then issue id. The Inertia pages are not those Redmine screens.
 
@@ -238,7 +238,7 @@ An unknown operator or an unknown field is rejected.
 - `issues_visibility = all` includes other people's private issues. `default` hides them unless the user is the author or assignee.
 - Active admins can read private saved queries.
 - `execute` returns full issue rows. `present` projects the available columns. `totalable_names` is summed even when those names are absent from `column_names`.
-- `display_type` accepts `list` and `board` only. Board columns are statuses. `group_by` does not pick the board axis.
+- IssueQuery `display_type` is `list`. Status-column `board` is accepted only when `redmine.issue_query_board` is true. That extension is outside the 7.0.1 pin. `group_by` does not pick the board axis.
 - `spent_hours` totals, the projected column, and the `spent_time` filter count time entries on the issue's own project after `time_entries_visibility`. They do not roll descendant time into a parent that is outside the result. A stored visibility other than `all` or `own` contributes nothing.
 - `total_estimated_hours` sums `estimated_hours` for the issue and the visible descendants in its nested set. A missing sum is `0`. `total_spent_hours` sums visible time entries on that nested set, including a descendant issue the actor cannot see. The spent column is omitted unless the actor can view time entries on the query project, or on any project when the query is global.
 - `estimated_remaining_hours` uses the issue's own estimate and done ratio. A null estimate displays as `0`. The total rounds the sum to 2 decimal places. It is not rolled into descendants and it is not a filter.
@@ -261,8 +261,9 @@ These are Laramine gaps. They stay outside the pin comparison above. They are no
 | Item | Why it stays open |
 | --- | --- |
 | Gantt and calendar screens | Saved-query filters are compared on the queries row. The Inertia pages are not that screen. |
-| Board axis other than status | N/A. 7.0.1 board columns are `issue_statuses`. `group_by` fills list group headers and does not replace the board axis. |
-| Custom fields on issue relations | N/A. `docs/sources/redmine-7.0.1-schema.rb` lines 258–266 give `issue_relations` no custom-value column. |
+| Issue status-column board | Laramine extension. Off unless `redmine.issue_query_board` is true. 7.0.1 IssueQuery display type is `list`. |
+| ProjectQuery `board` | **NOT VERIFIED**. 7.0.1 ProjectQuery `board` is project cards. This runner does not read `display_type`. |
+| Custom fields on issue relations | N/A. 7.0.1 has no `IssueRelationCustomField`. The subclasses are `IssueCustomField`, `ProjectCustomField`, `UserCustomField`, `GroupCustomField`, `TimeEntryCustomField`, `VersionCustomField`, `DocumentCustomField`, `IssuePriorityCustomField`, `TimeEntryActivityCustomField`, and `DocumentCategoryCustomField`. `custom_values.customized_type` and `customized_id` are polymorphic (`docs/sources/redmine-7.0.1-schema.rb` lines 175–182). |
 | Tracker-limited column lists and bool yes/no labels | A visible issue custom field stays available. Bool cells stay `1` and `0`. |
 | `UserQuery` and `TimeEntryQuery` | They run, and they stay on the users and authentication row and the time entries row. |
 | Changeset activity on `last_activity_date` | N/A with repository, git, and SCM. The pin excludes `repositories`, `changesets`, `changes`, `changeset_parents`, and `changesets_issues`. |

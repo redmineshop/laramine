@@ -27,6 +27,8 @@ use Illuminate\Database\Eloquent\Model;
  * visible issue custom field whose format groups and that is not multiple.
  * Several stored values put the issue in each value's group. A multiple
  * field has no group statement, so it is rejected. Blank values are one group.
+ * Int and progressbar groups follow the integer value, blank first.
+ * Float, string, text, link, and attachment formats do not group.
  * Timestamp columns group by the calendar date in the actor's time zone.
  */
 final class IssueQueryGrouping
@@ -75,6 +77,8 @@ final class IssueQueryGrouping
         FieldFormatKey::Date,
         FieldFormatKey::User,
         FieldFormatKey::Version,
+        FieldFormatKey::Int,
+        FieldFormatKey::Progressbar,
     ];
 
     public function __construct(
@@ -171,7 +175,53 @@ final class IssueQueryGrouping
             $groups[] = $this->groupRow($header['key'], $header['value'], $ids, $totals);
         }
 
+        if ($column['field'] instanceof CustomField && $this->numericGroup($column['field'])) {
+            return $this->orderByIntegerValue($groups);
+        }
+
         return $groups;
+    }
+
+    private function numericGroup(CustomField $field): bool
+    {
+        $format = FieldFormatKey::tryFrom((string) $field->field_format);
+
+        return $format === FieldFormatKey::Int || $format === FieldFormatKey::Progressbar;
+    }
+
+    /**
+     * Blank values sort first, then the integer value. Ids inside a group
+     * follow issue id, which is the secondary sort of an ascending group.
+     *
+     * @param  list<array{key: string|null, value: string|null, count: int, ids: list<int>, totals: array<string, string>}>  $groups
+     * @return list<array{key: string|null, value: string|null, count: int, ids: list<int>, totals: array<string, string>}>
+     */
+    private function orderByIntegerValue(array $groups): array
+    {
+        foreach ($groups as $index => $group) {
+            $ids = $group['ids'];
+            sort($ids, SORT_NUMERIC);
+            $groups[$index]['ids'] = $ids;
+        }
+
+        usort($groups, $this->compareIntegerGroups(...));
+
+        return $groups;
+    }
+
+    /**
+     * @param  array{key: string|null, value: string|null, count: int, ids: list<int>, totals: array<string, string>}  $left
+     * @param  array{key: string|null, value: string|null, count: int, ids: list<int>, totals: array<string, string>}  $right
+     */
+    private function compareIntegerGroups(array $left, array $right): int
+    {
+        $leftValue = $left['value'];
+        $rightValue = $right['value'];
+        if ($leftValue === null || $rightValue === null) {
+            return ($leftValue === null ? 0 : 1) <=> ($rightValue === null ? 0 : 1);
+        }
+
+        return (int) $leftValue <=> (int) $rightValue;
     }
 
     /**

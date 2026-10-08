@@ -5,9 +5,9 @@ namespace App\Domain\Queries;
 /**
  * Projected IssueQuery result.
  *
- * `rows` is the filtered set in query order. `board` is empty for `list`
- * and status columns for `board`. `inlineColumns` and `blockColumns` split
- * that same column list. `groups` is empty when `group_by` is blank.
+ * `rows` is the filtered set in query order. `board` is empty unless the
+ * Laramine status-column extension is on. `inlineColumns` and `blockColumns`
+ * split that same column list. `groups` is empty when `group_by` is blank.
  */
 final readonly class IssueQueryView
 {
