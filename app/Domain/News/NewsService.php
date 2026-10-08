@@ -6,6 +6,7 @@ use App\Domain\Acl\PermissionService;
 use App\Domain\DomainException;
 use App\Domain\Notifications\ModuleNotifier;
 use App\Domain\PermissionDeniedException;
+use App\Domain\Reactions\ReactionService;
 use App\Domain\TextFormatting\FormattedText;
 use App\Models\Comment;
 use App\Models\News;
@@ -97,6 +98,9 @@ final class NewsService
                 ->where('watchable_type', 'News')
                 ->where('watchable_id', (int) $news->id)
                 ->delete();
+            // Comments are removed without their own cleanup, as on the pin, so
+            // reactions on those comments stay in the table.
+            ReactionService::forget('News', [(int) $news->id]);
             $news->delete();
         });
     }
@@ -147,6 +151,7 @@ final class NewsService
         $this->assertComment($news, $comment);
 
         DB::transaction(function () use ($news, $comment): void {
+            ReactionService::forget('Comment', [(int) $comment->id]);
             $comment->delete();
             if ((int) $news->comments_count > 0) {
                 $news->decrement('comments_count');

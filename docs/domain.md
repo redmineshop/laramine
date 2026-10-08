@@ -112,6 +112,21 @@ Tracked details use `journal_details.property = attr` and `prop_key` set to the 
 
 A private journal is omitted for an actor without `view_private_notes`, including the author. An active admin sees it. Query filters use the same rule; see [queries.md](queries.md). The journals checklist row is **VERIFIED** only by `tests/Parity/JournalParityTest.php`. HTTP download, PNG thumbnails, and attachment or relation-removal journal writes are compared on the time entries row. SCM history stays open in [journals-parity-gate.md](journals-parity-gate.md). This is not a 0.1 tag.
 
+## Reactions
+
+`ReactionService` stores one thumbs-up per user on an issue, an issue journal, news, a news comment, or a forum message. The `reactions_enabled` setting turns the feature on; a missing settings row is on, as in the 7.0.1 settings defaults. Any other `reactable_type` is refused.
+
+- A viewer sees reactions on a record when the setting is on and the record is visible: an issue by issue visibility, a journal by its issue (a private note on a visible issue is not hidden here), news and its comments by `view_news`, and a message by `view_messages` on the board's project.
+- Adding or removing needs a signed-in user, a visible record, and an active project. A closed or archived project is read-only, also for an active admin.
+- A second add keeps the first row. Remove deletes only the actor's own reaction with that id on that record; any other id is ignored.
+- The count and the names only include users the viewer can see (`users_visibility`). Names use first name, a space, then last name, newest reaction first. The tooltip lists ten names, then `1 other` or `N others`, joined as an English sentence (`a and b`, `a, b, and c`). There is no tooltip at zero.
+- The control is `reacted` (filled icon, the viewer's reaction id), `not_reacted`, or `readonly` when the viewer can see but not change it. Its DOM id is `reaction_{type}_{id}` with the type in snake case.
+- Deleting an issue removes reactions on the issue and its journals. Deleting a journal, a news comment, a message (with its replies), or a board (with its messages) removes theirs. Deleting news removes the news reactions and, as on the pin, leaves the reactions on its comments. Deleting a user removes that user's reactions.
+
+HTTP is `POST /reactions` and `DELETE /reactions/{id}` with `object_type` and `object_id`. Checks run in this order: sign-in (guest HTML 302 to `/login`, guest JSON 401), the setting (403), the type name (403), the record (404), then visibility and an active project (403). Only a script request (XHR or JSON) gets a body, the refreshed control as JSON; a plain browser request is 404.
+
+**Intentional differences:** the pin answers with JavaScript that swaps the button. Laramine answers with the control state as JSON. The issue, news, and message pages do not render the control yet (FE/UX gap). The reactions checklist row is **VERIFIED** only by `tests/Parity/ReactionParityTest.php`. This is not a 0.1 tag.
+
 ## Time entries
 
 `TimeEntryService` creates, updates, and deletes `time_entries`. It is not an HTTP time log and it does not sign anyone in. Web sign-in is in [users-auth-spec.md](users-auth-spec.md). The time entries and attachments checklist row is **VERIFIED** by `tests/Parity/TimeEntryParityTest.php` and `tests/Parity/AttachmentParityTest.php`. That comparison is not a 0.1 tag.

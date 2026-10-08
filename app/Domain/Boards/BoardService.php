@@ -5,6 +5,7 @@ namespace App\Domain\Boards;
 use App\Domain\Acl\ModuleGate;
 use App\Domain\Attachments\AttachmentService;
 use App\Domain\DomainException;
+use App\Domain\Reactions\ReactionService;
 use App\Domain\Watchers\WatcherLedger;
 use App\Models\Attachment;
 use App\Models\Board;
@@ -222,5 +223,6 @@ final class BoardService
             $attachment->delete();
         }
         $this->watchers->forget(WatcherLedger::MESSAGE, $messageId);
+        ReactionService::forget('Message', [$messageId]);
     }
 }
