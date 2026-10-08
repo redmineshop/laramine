@@ -3,9 +3,12 @@
 namespace App\Domain\Wiki;
 
 /**
- * Line diff and annotate for stored wiki text.
+ * Line diff, annotate, and section spans for stored wiki text.
  *
  * The text is the raw column value. Diff and export do not render Textile or Markdown.
+ * A section is one source heading and the lines that follow it until the next
+ * heading of the same or higher level. Textile headings are `hn.` lines.
+ * CommonMark headings are ATX lines. Plain text has no sections.
  */
 final class WikiText
 {
@@ -135,5 +138,78 @@ final class WikiText
         }
 
         return $lines;
+    }
+
+    public static function section(string $text, int $section, string $format): ?string
+    {
+        $bounds = self::sectionBounds($text, $section, $format);
+        if ($bounds === null) {
+            return null;
+        }
+        $lines = explode("\n", self::normalize($text));
+        $slice = array_slice($lines, $bounds['start'], $bounds['end'] - $bounds['start']);
+
+        return implode("\n", $slice);
+    }
+
+    public static function replaceSection(string $text, int $section, string $replacement, string $format): ?string
+    {
+        $normalized = self::normalize($text);
+        $bounds = self::sectionBounds($normalized, $section, $format);
+        if ($bounds === null) {
+            return null;
+        }
+        $lines = explode("\n", $normalized);
+        $before = array_slice($lines, 0, $bounds['start']);
+        $after = array_slice($lines, $bounds['end']);
+        $prefix = $before === [] ? '' : implode("\n", $before)."\n";
+        $body = rtrim(self::normalize($replacement), "\n");
+        $suffix = $after === [] ? '' : "\n".implode("\n", $after);
+
+        return $prefix.$body.$suffix;
+    }
+
+    /**
+     * @return array{start: int, end: int}|null
+     */
+    private static function sectionBounds(string $text, int $section, string $format): ?array
+    {
+        if ($section < 1) {
+            return null;
+        }
+        $lines = explode("\n", self::normalize($text));
+        $headings = [];
+        foreach ($lines as $index => $line) {
+            $level = self::headingLevel($line, $format);
+            if ($level !== null) {
+                $headings[] = ['index' => $index, 'level' => $level];
+            }
+        }
+        if (! isset($headings[$section - 1])) {
+            return null;
+        }
+        $start = $headings[$section - 1];
+        $end = count($lines);
+        $later = array_slice($headings, $section);
+        foreach ($later as $heading) {
+            if ($heading['level'] <= $start['level']) {
+                $end = $heading['index'];
+                break;
+            }
+        }
+
+        return ['start' => $start['index'], 'end' => $end];
+    }
+
+    private static function headingLevel(string $line, string $format): ?int
+    {
+        if ($format === 'textile' && preg_match('/^h([1-6])\.\s+\S/u', $line, $match) === 1) {
+            return (int) $match[1];
+        }
+        if ($format === 'common_mark' && preg_match('/^(#{1,6})\s+\S/u', $line, $match) === 1) {
+            return strlen($match[1]);
+        }
+
+        return null;
     }
 }

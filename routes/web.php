@@ -13,6 +13,7 @@ use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\Auth\TwoFactorController;
 use App\Http\Controllers\Auth\UserAdminController;
 use App\Http\Controllers\Auth\UserDirectoryController;
+use App\Http\Controllers\BoardController;
 use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\CustomFieldAssetController;
 use App\Http\Controllers\CustomFieldHostController;
@@ -20,9 +21,12 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\FrontendSmokeController;
 use App\Http\Controllers\GanttController;
 use App\Http\Controllers\IssueFeedController;
+use App\Http\Controllers\MessageController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\ProjectFileController;
 use App\Http\Controllers\ProjectListController;
+use App\Http\Controllers\WatcherController;
+use App\Http\Controllers\WikiController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', FrontendSmokeController::class);
@@ -135,6 +139,157 @@ Route::delete('/projects/{project}/documents/{document}', [DocumentController::c
     ->whereNumber('project')
     ->whereNumber('document')
     ->name('projects.documents.destroy');
+
+$projectKey = '[A-Za-z0-9_\-]+';
+$wikiTitle = '[^/]+';
+
+Route::get('/projects/{project}/wiki', [WikiController::class, 'show'])
+    ->where('project', $projectKey)
+    ->name('projects.wiki.show');
+Route::get('/projects/{project}/wiki/index', [WikiController::class, 'index'])
+    ->where('project', $projectKey)
+    ->name('projects.wiki.index');
+Route::get('/projects/{project}/wiki/date_index', [WikiController::class, 'dateIndex'])
+    ->where('project', $projectKey)
+    ->name('projects.wiki.date-index');
+Route::get('/projects/{project}/wiki/export', [WikiController::class, 'exportWiki'])
+    ->where('project', $projectKey)
+    ->name('projects.wiki.export');
+Route::get('/projects/{project}/wiki/export.{format}', [WikiController::class, 'exportWiki'])
+    ->where(['project' => $projectKey, 'format' => 'html|txt|pdf|png'])
+    ->name('projects.wiki.export.format');
+Route::put('/projects/{project}/wiki', [WikiController::class, 'updateSettings'])
+    ->where('project', $projectKey)
+    ->name('projects.wiki.settings');
+Route::delete('/projects/{project}/wiki', [WikiController::class, 'destroyWiki'])
+    ->where('project', $projectKey)
+    ->name('projects.wiki.destroy');
+Route::get('/projects/{project}/wiki/new', [WikiController::class, 'create'])
+    ->where('project', $projectKey)
+    ->name('projects.wiki.new');
+Route::post('/projects/{project}/wiki/new', [WikiController::class, 'store'])
+    ->where('project', $projectKey)
+    ->name('projects.wiki.store');
+Route::post('/projects/{project}/wiki/{title}/preview', [WikiController::class, 'preview'])
+    ->where(['project' => $projectKey, 'title' => $wikiTitle])
+    ->name('projects.wiki.preview');
+Route::post('/projects/{project}/wiki/{title}/protect', [WikiController::class, 'protect'])
+    ->where(['project' => $projectKey, 'title' => $wikiTitle])
+    ->name('projects.wiki.protect');
+Route::post('/projects/{project}/wiki/{title}/add_attachment', [WikiController::class, 'addAttachment'])
+    ->where(['project' => $projectKey, 'title' => $wikiTitle])
+    ->name('projects.wiki.attachment');
+Route::get('/projects/{project}/wiki/{title}/edit', [WikiController::class, 'edit'])
+    ->where(['project' => $projectKey, 'title' => $wikiTitle])
+    ->name('projects.wiki.edit');
+Route::match(['put', 'post'], '/projects/{project}/wiki/{title}', [WikiController::class, 'update'])
+    ->where(['project' => $projectKey, 'title' => $wikiTitle])
+    ->name('projects.wiki.update');
+Route::get('/projects/{project}/wiki/{title}/rename', [WikiController::class, 'rename'])
+    ->where(['project' => $projectKey, 'title' => $wikiTitle])
+    ->name('projects.wiki.rename');
+Route::post('/projects/{project}/wiki/{title}/rename', [WikiController::class, 'rename'])
+    ->where(['project' => $projectKey, 'title' => $wikiTitle]);
+Route::get('/projects/{project}/wiki/{title}/history', [WikiController::class, 'history'])
+    ->where(['project' => $projectKey, 'title' => $wikiTitle])
+    ->name('projects.wiki.history');
+Route::get('/projects/{project}/wiki/{title}/diff', [WikiController::class, 'diff'])
+    ->where(['project' => $projectKey, 'title' => $wikiTitle])
+    ->name('projects.wiki.diff');
+Route::get('/projects/{project}/wiki/{title}/annotate', [WikiController::class, 'annotate'])
+    ->where(['project' => $projectKey, 'title' => $wikiTitle])
+    ->name('projects.wiki.annotate');
+Route::delete('/projects/{project}/wiki/{title}', [WikiController::class, 'destroy'])
+    ->where(['project' => $projectKey, 'title' => $wikiTitle])
+    ->name('projects.wiki.page.destroy');
+Route::get('/projects/{project}/wiki/{title}.{format}', [WikiController::class, 'exportPage'])
+    ->where(['project' => $projectKey, 'title' => $wikiTitle, 'format' => 'html|txt|pdf|png'])
+    ->name('projects.wiki.page.export');
+Route::get('/projects/{project}/wiki/{title}/{version}/edit', [WikiController::class, 'editVersion'])
+    ->where(['project' => $projectKey, 'title' => $wikiTitle, 'version' => '[0-9]+'])
+    ->name('projects.wiki.version.edit');
+Route::get('/projects/{project}/wiki/{title}/{version}/annotate', [WikiController::class, 'annotate'])
+    ->where(['project' => $projectKey, 'title' => $wikiTitle, 'version' => '[0-9]+'])
+    ->name('projects.wiki.version.annotate');
+Route::delete('/projects/{project}/wiki/{title}/{version}', [WikiController::class, 'destroyVersion'])
+    ->where(['project' => $projectKey, 'title' => $wikiTitle, 'version' => '[0-9]+'])
+    ->name('projects.wiki.version.destroy');
+Route::get('/projects/{project}/wiki/{title}/{version}', [WikiController::class, 'showVersion'])
+    ->where(['project' => $projectKey, 'title' => $wikiTitle, 'version' => '[0-9]+'])
+    ->name('projects.wiki.version');
+Route::get('/projects/{project}/wiki/{title}', [WikiController::class, 'show'])
+    ->where(['project' => $projectKey, 'title' => $wikiTitle])
+    ->name('projects.wiki.page');
+
+Route::get('/projects/{project}/boards', [BoardController::class, 'index'])
+    ->where('project', $projectKey)
+    ->name('projects.boards.index');
+Route::get('/projects/{project}/boards/new', [BoardController::class, 'create'])
+    ->where('project', $projectKey)
+    ->name('projects.boards.new');
+Route::post('/projects/{project}/boards', [BoardController::class, 'store'])
+    ->where('project', $projectKey)
+    ->name('projects.boards.store');
+Route::get('/projects/{project}/boards/{board}', [BoardController::class, 'show'])
+    ->where(['project' => $projectKey])
+    ->whereNumber('board')
+    ->name('projects.boards.show');
+Route::get('/projects/{project}/boards/{board}/edit', [BoardController::class, 'edit'])
+    ->whereNumber('board')
+    ->name('projects.boards.edit');
+Route::put('/projects/{project}/boards/{board}', [BoardController::class, 'update'])
+    ->whereNumber('board')
+    ->name('projects.boards.update');
+Route::delete('/projects/{project}/boards/{board}', [BoardController::class, 'destroy'])
+    ->whereNumber('board')
+    ->name('projects.boards.destroy');
+
+Route::get('/boards/{board}/topics/new', [MessageController::class, 'create'])
+    ->whereNumber('board')
+    ->name('boards.topics.new');
+Route::post('/boards/{board}/topics/preview', [MessageController::class, 'preview'])
+    ->whereNumber('board')
+    ->name('boards.topics.preview');
+Route::post('/boards/{board}/topics', [MessageController::class, 'store'])
+    ->whereNumber('board')
+    ->name('boards.topics.store');
+Route::get('/boards/{board}/topics/{message}', [MessageController::class, 'show'])
+    ->whereNumber('board')
+    ->whereNumber('message')
+    ->name('boards.topics.show');
+Route::get('/boards/{board}/topics/{message}/edit', [MessageController::class, 'edit'])
+    ->whereNumber('board')
+    ->whereNumber('message')
+    ->name('boards.topics.edit');
+Route::put('/boards/{board}/topics/{message}', [MessageController::class, 'update'])
+    ->whereNumber('board')
+    ->whereNumber('message')
+    ->name('boards.topics.update');
+Route::post('/boards/{board}/topics/{message}/replies', [MessageController::class, 'reply'])
+    ->whereNumber('board')
+    ->whereNumber('message')
+    ->name('boards.topics.reply');
+Route::post('/boards/{board}/topics/{message}/preview', [MessageController::class, 'preview'])
+    ->whereNumber('board')
+    ->whereNumber('message')
+    ->name('boards.topics.message.preview');
+Route::post('/boards/{board}/topics/{message}/attachments', [MessageController::class, 'attach'])
+    ->whereNumber('board')
+    ->whereNumber('message')
+    ->name('boards.topics.attachments');
+Route::get('/boards/{board}/topics/{message}/quote', [MessageController::class, 'quote'])
+    ->whereNumber('board')
+    ->whereNumber('message')
+    ->name('boards.topics.quote');
+Route::delete('/boards/{board}/topics/{message}', [MessageController::class, 'destroy'])
+    ->whereNumber('board')
+    ->whereNumber('message')
+    ->name('boards.topics.destroy');
+
+Route::post('/watchers/watch', [WatcherController::class, 'watch'])->name('watchers.watch');
+Route::match(['delete', 'post'], '/watchers/unwatch', [WatcherController::class, 'unwatch'])->name('watchers.unwatch');
+Route::post('/watchers', [WatcherController::class, 'store'])->name('watchers.store');
+Route::delete('/watchers', [WatcherController::class, 'destroy'])->name('watchers.destroy');
 
 Route::get('/projects/{project}/files', [ProjectFileController::class, 'index'])
     ->whereNumber('project')

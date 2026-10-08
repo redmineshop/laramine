@@ -8,8 +8,10 @@ use App\Domain\Attachments\AttachmentService;
 use App\Domain\Attachments\AttachmentThumbnailRenderer;
 use App\Domain\Attachments\UnboundAttachment;
 use App\Domain\DomainException;
+use App\Domain\Issues\JournalQuoteText;
 use App\Domain\PermissionDeniedException;
 use App\Domain\TextFormatting\FormattedText;
+use App\Domain\TextFormatting\FormattingContext;
 use App\Domain\Watchers\WatcherLedger;
 use App\Models\Attachment;
 use App\Models\Board;
@@ -37,6 +39,7 @@ final class MessageService
         private readonly WatcherLedger $watchers,
         private readonly MessageNotifier $notifications,
         private readonly FormattedText $formatted,
+        private readonly JournalQuoteText $quotes,
     ) {}
 
     public function html(?User $actor, Message $message): string
@@ -199,7 +202,7 @@ final class MessageService
     /**
      * @return list<array{id: int, subject: string, author_id: int|null, sticky: int, locked: bool, replies_count: int, last_reply_id: int|null, created_on: string, updated_on: string}>
      */
-    public function topics(User $actor, Board $board): array
+    public function topics(?User $actor, Board $board): array
     {
         $this->gate->allow($actor, $this->projectOf($board), 'boards', 'view_messages');
         $rows = [];
@@ -221,7 +224,7 @@ final class MessageService
     /**
      * @return list<array{id: int, subject: string, author_id: int|null, content: string|null, created_on: string}>
      */
-    public function replies(User $actor, Message $topic): array
+    public function replies(?User $actor, Message $topic): array
     {
         $root = $this->root($topic);
         $this->gate->allow($actor, $this->projectOf($this->boardOf($root)), 'boards', 'view_messages');
@@ -283,11 +286,93 @@ final class MessageService
         });
     }
 
+    public function quote(User $actor, Message $message): string
+    {
+        $root = $this->root($message);
+        $project = $this->projectOf($this->boardOf($root));
+        $this->gate->allow($actor, $project, 'boards', 'add_messages');
+        if ((bool) $root->locked && ! $this->permissions->allowed($actor, 'edit_messages', $project)) {
+            throw new PermissionDeniedException('edit_messages');
+        }
+        if (! $project->isModuleEnabled('boards')) {
+            throw new PermissionDeniedException('add_messages');
+        }
+        $author = User::query()->find($message->author_id);
+        $name = 'User';
+        if ($author instanceof User) {
+            $name = $this->quotes->authorName($author->firstname, $author->lastname, $author->login);
+        }
+        $content = is_string($message->content) ? $message->content : '';
+
+        return $this->quotes->render($name, $content);
+    }
+
+    public function preview(User $actor, Board $board, string $text): string
+    {
+        $project = $this->projectOf($board);
+        $this->gate->allow($actor, $project, 'boards', 'add_messages');
+
+        return $this->formatted->html($text, new FormattingContext($project, $board, false, false, $actor));
+    }
+
+    public function canEdit(User $actor, Message $message): bool
+    {
+        try {
+            $this->assertCanEdit($actor, $this->projectOf($this->boardOf($message)), $message, null, null);
+
+            return true;
+        } catch (DomainException) {
+            return false;
+        }
+    }
+
+    public function canDelete(User $actor, Message $message): bool
+    {
+        try {
+            $this->assertCanDelete($actor, $this->projectOf($this->boardOf($message)), $message);
+
+            return true;
+        } catch (DomainException) {
+            return false;
+        }
+    }
+
+    public function canReply(User $actor, Message $message): bool
+    {
+        try {
+            $root = $this->root($message);
+            $project = $this->projectOf($this->boardOf($root));
+            $this->gate->allow($actor, $project, 'boards', 'add_messages');
+            if ((bool) $root->locked && ! $this->permissions->allowed($actor, 'edit_messages', $project)) {
+                return false;
+            }
+
+            return $project->isModuleEnabled('boards');
+        } catch (DomainException) {
+            return false;
+        }
+    }
+
+    public function isWatching(User $actor, Message $message): bool
+    {
+        $root = $this->root($message);
+        $this->gate->allow($actor, $this->projectOf($this->boardOf($root)), 'boards', 'view_messages');
+
+        return in_array((int) $actor->id, $this->watchers->userIds(WatcherLedger::MESSAGE, (int) $root->id), true);
+    }
+
     public function watch(User $actor, Message $message): void
     {
         $root = $this->root($message);
         $this->gate->allow($actor, $this->projectOf($this->boardOf($root)), 'boards', 'view_messages');
         $this->watchers->add($actor, WatcherLedger::MESSAGE, (int) $root->id);
+    }
+
+    public function unwatch(User $actor, Message $message): void
+    {
+        $root = $this->root($message);
+        $this->gate->allow($actor, $this->projectOf($this->boardOf($root)), 'boards', 'view_messages');
+        $this->watchers->remove($actor, WatcherLedger::MESSAGE, (int) $root->id);
     }
 
     public function addWatcher(User $actor, Message $message, User $target): void

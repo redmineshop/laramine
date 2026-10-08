@@ -1,0 +1,105 @@
+{
+    "routes": [
+        "DELETE boards/{board}/topics/{message}",
+        "DELETE projects/{project}/boards/{board}",
+        "DELETE watchers",
+        "DELETE|POST watchers/unwatch",
+        "GET boards/{board}/topics/new",
+        "GET boards/{board}/topics/{message}",
+        "GET boards/{board}/topics/{message}/edit",
+        "GET boards/{board}/topics/{message}/quote",
+        "GET projects/{project}/boards",
+        "GET projects/{project}/boards/new",
+        "GET projects/{project}/boards/{board}",
+        "GET projects/{project}/boards/{board}/edit",
+        "POST boards/{board}/topics",
+        "POST boards/{board}/topics/preview",
+        "POST boards/{board}/topics/{message}/attachments",
+        "POST boards/{board}/topics/{message}/preview",
+        "POST boards/{board}/topics/{message}/replies",
+        "POST projects/{project}/boards",
+        "POST watchers",
+        "POST watchers/watch",
+        "PUT boards/{board}/topics/{message}",
+        "PUT projects/{project}/boards/{board}"
+    ],
+    "guest_html": 302,
+    "guest_location": "/login",
+    "guest_json": 401,
+    "ada_new_board": 403,
+    "finn_post_board": 403,
+    "module_off_admin": 403,
+    "empty_name": 422,
+    "empty_name_message": "Board name is empty.",
+    "created": 302,
+    "created_location_matches_board": true,
+    "child": 302,
+    "index_component": "Boards/Index",
+    "index_names": [
+        "Discussion",
+        "Help"
+    ],
+    "index_depths": [
+        0,
+        1
+    ],
+    "edited": 302,
+    "cycle": 422,
+    "cycle_message": "Parent board would create a cycle.",
+    "show_component": "Boards/Show",
+    "apple": 302,
+    "zebra": 302,
+    "sticky_denied": 403,
+    "secret_sticky_exists": false,
+    "mango": 302,
+    "sorted_subjects": [
+        "Apple",
+        "Mango"
+    ],
+    "sorted_page": 1,
+    "sorted_pages": 2,
+    "page_two_subjects": [
+        "Zebra"
+    ],
+    "default_subjects": [
+        "Mango",
+        "Zebra",
+        "Apple"
+    ],
+    "topic_component": "Messages/Show",
+    "topic_html": "<p><strong>word</strong></p>",
+    "reply": 302,
+    "locked_reply": 403,
+    "moderator_reply": 302,
+    "reply_subjects": [
+        "Re: Apple"
+    ],
+    "reply_html_has_answer": true,
+    "own_edit": 302,
+    "others_edit": 403,
+    "moderator_edit": 302,
+    "quote_component": "Messages/Edit",
+    "quote_content": "Ada Lovelace wrote:\n> *word*",
+    "preview": "<p><strong>word</strong></p>",
+    "preview_denied": 403,
+    "attached": 302,
+    "attachment_names": [
+        "note.txt"
+    ],
+    "watched": 302,
+    "watcher_ids": [
+        1
+    ],
+    "watching": true,
+    "finn_watcher_ids": null,
+    "own_delete": 302,
+    "other_delete": 403,
+    "moderator_delete": 302,
+    "mango_exists": false,
+    "closed_read": 200,
+    "closed_write": 403,
+    "archived_admin": 403,
+    "removed_child": 302,
+    "help_exists": false,
+    "disabled_admin": 403
+}

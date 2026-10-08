@@ -140,9 +140,11 @@ Removing a relation journals both issues. The other issue stores the reverse typ
 
 Each save writes `wiki_contents` and a `wiki_content_versions` row. The version payload is `gzcompress` at level 9 and the `compression` column is `gzip`. Unchanged text and comments do not write a version. Version 1 queues `wiki_content_added`. A later version queues `wiki_content_updated`. Parent, protect, and rename do not. Deleting the current version copies the previous snapshot back into `wiki_contents` and does not send mail. Deleting an older snapshot removes that row. The only remaining version cannot be deleted. History and annotate need `view_wiki_edits`. Diff and annotate walk the remaining snapshots with a line LCS that prefers a deletion when the scores tie. Export needs `view_wiki_pages` and `export_wiki_pages` and returns the stored text.
 
-A protected page needs `protect_wiki_pages` to edit, attach, or change the flag. Renaming a protected page also needs `rename_wiki_pages`. Deleting the page needs `delete_wiki_pages`. Deleting an attachment needs `delete_wiki_pages_attachments`. Parents stay in the same wiki and cannot cycle. Deleting a page clears its children's `parent_id`. A disabled `wiki` module denies every user, including an active administrator. Watchers use `watchable_type` `WikiPage`.
+A protected page needs `protect_wiki_pages` to edit, attach, or change the flag. Renaming a protected page also needs `rename_wiki_pages`. Deleting the page needs `delete_wiki_pages`. Deleting an attachment needs `delete_wiki_pages_attachments`. Parents stay in the same wiki and cannot cycle. Deleting a page with no `todo` and with descendants renders the confirm screen and does not delete. `todo=nullify` clears direct children's `parent_id`. `todo=destroy` deletes descendants. `todo=reassign` moves direct children to `reassign_to_id`, which cannot be the page or a descendant. A disabled `wiki` module denies every user, including an active administrator. Watchers use `watchable_type` `WikiPage`.
 
-The wiki checklist row is **VERIFIED** only by `tests/Parity/WikiParityTest.php`. Export text stays raw. Rendered wiki HTML is the Textile and Markdown row. This is not a 0.1 tag.
+HTTP routes live under `/projects/{identifier}/wiki`. A guest without permission is redirected to `/login`. A guest request that expects JSON is 401. A signed-in denial is 403. A missing title is 404 without `edit_wiki_pages` and redirects to the new-page form with that permission. A renamed title with a redirect is one 302 to the canonical slug. `redirect=0` retargets older redirects and does not store a hop from the old title. An optional `version` or section hash that does not match the current row is 409 and does not save. Section bounds follow textile `h1.`–`h6.` and CommonMark `#` headings. Page and whole-wiki export are html, txt, and a one-page text PDF of the title and stored lines. PNG and any other format are 406. Preview, attachments, protect, history, diff, annotate, destroy version, and watchers are the same permissions as the service. A closed project allows read and denies writes. An archived project and a disabled module deny everyone, including an administrator.
+
+The wiki checklist row is **VERIFIED** only by `tests/Parity/WikiParityTest.php`. The wiki HTTP row is **VERIFIED** only by `tests/Parity/WikiHttpParityTest.php`. Export text on the service row stays raw. Rendered wiki HTML is the Textile and Markdown row. The HTTP pages are not a Redmine screen. This is not a 0.1 tag.
 
 ## Text formatting
 
@@ -164,7 +166,9 @@ The Textile and Markdown checklist row is **VERIFIED** only by `tests/Parity/Mar
 
 A disabled `boards` module denies every user, including an active administrator.
 
-The boards and forums checklist row is **VERIFIED** only by `tests/Parity/BoardsParityTest.php`. This is not a 0.1 tag.
+HTTP board routes live under `/projects/{identifier}/boards`. Topic routes live under `/boards/{id}/topics`. Guest HTML is 302 to `/login` and guest JSON is 401. A signed-in denial is 403. Topic sort is `column` or `column:asc` / `column:desc`, comma-separated, defaulting to sticky, `updated_on`, and id descending. Page size defaults to 25 and stops at 100. Replies stay in `created_on` / id order and are sliced. Quote text is the author name, `wrote:`, and `> ` lines. Sticky, locked, and a reply on a locked topic need `edit_messages`. A closed project allows read and denies writes.
+
+The boards and forums checklist row is **VERIFIED** only by `tests/Parity/BoardsParityTest.php`. The boards and forums HTTP row is **VERIFIED** only by `tests/Parity/BoardsHttpParityTest.php`. The HTTP pages are not a Redmine screen. This is not a 0.1 tag.
 
 ## Notifications
 

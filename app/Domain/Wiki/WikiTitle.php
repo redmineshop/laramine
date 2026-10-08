@@ -26,6 +26,11 @@ final class WikiTitle
         return mb_strtoupper($first).$rest;
     }
 
+    public static function slug(string $title): string
+    {
+        return str_replace(' ', '_', trim($title));
+    }
+
     public static function require(string $title): string
     {
         $stored = self::titleize($title);
