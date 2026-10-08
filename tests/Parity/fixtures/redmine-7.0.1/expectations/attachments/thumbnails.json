@@ -18,9 +18,8 @@
     "cache_pattern": "{digest}_{filesize}_{size}.thumb",
     "path": "/attachments/thumbnail/{id}/{size}",
     "ok_status": 200,
-    "missing_status": 404,
-    "unreadable_message": "Thumbnail image could not be read.",
-    "not_image_message": "Attachment is not an image.",
+    "not_found_status": 404,
+    "not_found_body": "",
     "required": ["gif", "jpeg", "bmp", "webp", "avif"],
     "formats": [
         {"kind": "gif", "filename": "anim.gif", "content_type": "image/gif"},
@@ -44,7 +43,8 @@
         "postscript_body": "%!PS-Adobe-3.0\n",
         "raster_flag": "-sDEVICE=png16m",
         "missing_gs": "/no/such/gs",
-        "missing_convert": "/no/such/convert"
+        "missing_convert": "/no/such/convert",
+        "image_without_convert": "kept.png"
     },
     "cache_poison": "POISON"
 }

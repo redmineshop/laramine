@@ -165,12 +165,12 @@ final class SettingValue
     }
 
     /**
-     * Redmine `thumbnails_enabled` defaults to on in 7.0.1 settings.yml (lines 350–351).
-     * A missing row here stays off.
+     * Redmine `thumbnails_enabled` defaults to 1 in 7.0.1 settings.yml (lines 350–351).
+     * A missing row uses that default.
      */
     public function thumbnailsEnabled(): bool
     {
-        return $this->boolean(self::THUMBNAILS_ENABLED, false);
+        return $this->boolean(self::THUMBNAILS_ENABLED, true);
     }
 
     /**

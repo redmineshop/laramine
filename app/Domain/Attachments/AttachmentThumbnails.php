@@ -5,8 +5,8 @@ namespace App\Domain\Attachments;
 /**
  * Filenames that can be shown as thumbnails.
  *
- * Images are decided from the extension. A PDF or Illustrator file is included
- * only when the caller already knows Ghostscript and ImageMagick are available.
+ * Every thumbnail requires ImageMagick convert. An image is then decided from
+ * the extension. A PDF or Illustrator file also requires Ghostscript.
  */
 final class AttachmentThumbnails
 {
@@ -27,13 +27,16 @@ final class AttachmentThumbnails
         return $extension === 'pdf' || $extension === 'ai';
     }
 
-    public function canThumbnail(string $filename, bool $pdfToolsReady): bool
+    public function canThumbnail(string $filename, bool $convertAvailable, bool $gsAvailable): bool
     {
+        if (! $convertAvailable) {
+            return false;
+        }
         if ($this->isImage($filename)) {
             return true;
         }
 
-        return $pdfToolsReady && $this->isPdfLike($filename);
+        return $gsAvailable && $this->isPdfLike($filename);
     }
 
     private function extension(string $filename): string

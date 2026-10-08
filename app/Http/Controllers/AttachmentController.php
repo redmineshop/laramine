@@ -89,7 +89,7 @@ class AttachmentController extends Controller
 
     public function download(Request $request, Attachment $attachment): BinaryFileResponse|JsonResponse
     {
-        return $this->send($this->actor($request), $attachment, null, false);
+        return $this->send($this->actor($request), $attachment);
     }
 
     public function downloadAll(Request $request, string $objectType, int $objectId): Response|JsonResponse
@@ -113,9 +113,20 @@ class AttachmentController extends Controller
         return $response;
     }
 
-    public function thumbnail(Request $request, Attachment $attachment): BinaryFileResponse|JsonResponse
+    public function thumbnail(Request $request, Attachment $attachment): BinaryFileResponse|JsonResponse|Response
     {
-        return $this->send($this->actor($request), $attachment, $this->requestedEdge($request), true);
+        try {
+            $file = $this->attachments->thumbnail($this->actor($request), $attachment, $this->requestedEdge($request));
+        } catch (PermissionDeniedException $denied) {
+            return $this->denied($denied);
+        } catch (DomainException) {
+            return response('', 404);
+        }
+
+        $response = response()->file($file->absolutePath, ['Content-Type' => $file->contentType]);
+        $response->setContentDisposition($file->disposition, $file->filename);
+
+        return $response;
     }
 
     public function destroy(Request $request, Attachment $attachment): JsonResponse|Response
@@ -135,12 +146,10 @@ class AttachmentController extends Controller
         return response()->noContent();
     }
 
-    private function send(?User $actor, Attachment $attachment, ?int $size, bool $thumbnail): BinaryFileResponse|JsonResponse
+    private function send(?User $actor, Attachment $attachment): BinaryFileResponse|JsonResponse
     {
         try {
-            $file = $thumbnail
-                ? $this->attachments->thumbnail($actor, $attachment, $size)
-                : $this->attachments->download($actor, $attachment);
+            $file = $this->attachments->download($actor, $attachment);
         } catch (PermissionDeniedException $denied) {
             return $this->denied($denied);
         } catch (DomainException $exception) {

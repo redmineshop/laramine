@@ -8,9 +8,10 @@ use Throwable;
 /**
  * Probes the optional thumbnail programs.
  *
- * PDF thumbnails need both ImageMagick `convert` and Ghostscript to answer
- * `-version`. An empty command string is not configured. A program that
- * cannot be started, or that exits with an error, is treated as missing.
+ * Every thumbnail needs ImageMagick `convert` to answer `-version`.
+ * A PDF thumbnail also needs Ghostscript to answer `-version`. An empty
+ * command string is not configured. A program that cannot be started, or
+ * that exits with an error, is treated as missing.
  */
 final class ThumbnailBinaries
 {
