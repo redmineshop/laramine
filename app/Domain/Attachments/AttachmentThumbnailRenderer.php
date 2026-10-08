@@ -129,14 +129,6 @@ final class AttachmentThumbnailRenderer
 
     private function fileSize(Attachment $attachment): int
     {
-        $size = $attachment->filesize;
-        if (is_int($size)) {
-            return $size;
-        }
-        if (is_string($size) && preg_match('/^\d+$/', $size) === 1) {
-            return (int) $size;
-        }
-
-        return 0;
+        return $attachment->filesize;
     }
 }

@@ -155,15 +155,13 @@ class AttachmentController extends Controller
 
     private function requestedEdge(Request $request): ?int
     {
-        $size = $request->route('size');
-        if ($size === null || $size === '') {
-            $size = $request->query('size');
+        $routeSize = $request->route('size');
+        if (is_string($routeSize) && preg_match('/^\d+$/', $routeSize) === 1) {
+            return (int) $routeSize;
         }
-        if (is_int($size)) {
-            return $size;
-        }
-        if (is_string($size) && preg_match('/^\d+$/', $size) === 1) {
-            return (int) $size;
+        $querySize = $request->query('size');
+        if (is_string($querySize) && preg_match('/^\d+$/', $querySize) === 1) {
+            return (int) $querySize;
         }
 
         return null;
