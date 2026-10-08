@@ -42,7 +42,7 @@ use Tests\TestCase;
 /**
  * Compares the remaining users and authentication phases to the shared pin.
  *
- * OpenID Connect, a live LDAP directory, and the rest of the REST API stay
+ * OpenID Connect is N/A. A live LDAP directory stays open. The full REST API is
  * outside this comparison. Outbound mail and activity are separate rows.
  */
 class UsersAuthGapParityTest extends TestCase
@@ -603,13 +603,9 @@ class UsersAuthGapParityTest extends TestCase
         ] as $row) {
             $this->assertMatchesRegularExpression('/^\| '.preg_quote($row, '/').' \| VERIFIED \|/m', $checklist);
         }
-        foreach ([
-            'Users and authentication — OpenID Connect',
-            'Users and authentication — live LDAP',
-            'Users and authentication — full REST API',
-        ] as $row) {
-            $this->assertMatchesRegularExpression('/^\| '.preg_quote($row, '/').' \| NOT VERIFIED \|/m', $checklist);
-        }
+        $this->assertMatchesRegularExpression('/^\| Users and authentication — OpenID Connect \| N\/A \|/m', $checklist);
+        $this->assertMatchesRegularExpression('/^\| Users and authentication — full REST API \| VERIFIED \|/m', $checklist);
+        $this->assertMatchesRegularExpression('/^\| Users and authentication — live LDAP \| NOT VERIFIED \|/m', $checklist);
         $this->assertStringContainsString($evidence, $checklist);
         $this->assertStringContainsString($expectation, $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/', $checklist);

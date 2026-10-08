@@ -1,0 +1,3452 @@
+{
+    "issues": {
+        "status": 200,
+        "body": {
+            "issues": [
+                {
+                    "id": 6,
+                    "project": {
+                        "id": 1,
+                        "name": "Parity Core"
+                    },
+                    "tracker": {
+                        "id": 2,
+                        "name": "Feature"
+                    },
+                    "status": {
+                        "id": 2,
+                        "name": "In Progress",
+                        "is_closed": false
+                    },
+                    "priority": {
+                        "id": 2,
+                        "name": "High"
+                    },
+                    "author": {
+                        "id": 2,
+                        "name": "Pin Admin"
+                    },
+                    "assigned_to": {
+                        "id": 3,
+                        "name": "Platform"
+                    },
+                    "category": {
+                        "id": 1,
+                        "name": "Backend"
+                    },
+                    "fixed_version": {
+                        "id": 1,
+                        "name": "1.0"
+                    },
+                    "subject": "Grouped assignee",
+                    "description": "Open feature assigned to a group.",
+                    "start_date": "2026-09-01",
+                    "due_date": null,
+                    "done_ratio": 0,
+                    "is_private": false,
+                    "estimated_hours": null,
+                    "total_estimated_hours": 0,
+                    "spent_hours": 0.5,
+                    "total_spent_hours": 0.5,
+                    "custom_fields": [],
+                    "created_on": "2026-08-01T10:00:00Z",
+                    "updated_on": "2026-08-10T10:00:00Z",
+                    "closed_on": null
+                },
+                {
+                    "id": 4,
+                    "project": {
+                        "id": 1,
+                        "name": "Parity Core"
+                    },
+                    "tracker": {
+                        "id": 1,
+                        "name": "Bug"
+                    },
+                    "status": {
+                        "id": 2,
+                        "name": "In Progress",
+                        "is_closed": false
+                    },
+                    "priority": {
+                        "id": 1,
+                        "name": "Normal"
+                    },
+                    "author": {
+                        "id": 4,
+                        "name": "Bea Manager"
+                    },
+                    "assigned_to": {
+                        "id": 4,
+                        "name": "Bea Manager"
+                    },
+                    "subject": "Bea private bug",
+                    "description": "Private issue authored by the manager.",
+                    "start_date": "2026-09-01",
+                    "due_date": "2026-09-10",
+                    "done_ratio": 0,
+                    "is_private": true,
+                    "estimated_hours": 1.25,
+                    "total_estimated_hours": 1.25,
+                    "spent_hours": 0,
+                    "total_spent_hours": 0,
+                    "custom_fields": [
+                        {
+                            "id": 1,
+                            "name": "Pin string",
+                            "value": ""
+                        },
+                        {
+                            "id": 2,
+                            "name": "Pin list",
+                            "value": ""
+                        },
+                        {
+                            "id": 3,
+                            "name": "Pin enum",
+                            "value": ""
+                        },
+                        {
+                            "id": 4,
+                            "name": "Pin link",
+                            "value": ""
+                        },
+                        {
+                            "id": 5,
+                            "name": "Pin text",
+                            "value": ""
+                        },
+                        {
+                            "id": 6,
+                            "name": "Pin int",
+                            "value": ""
+                        },
+                        {
+                            "id": 7,
+                            "name": "Pin float",
+                            "value": ""
+                        },
+                        {
+                            "id": 8,
+                            "name": "Pin date",
+                            "value": ""
+                        },
+                        {
+                            "id": 9,
+                            "name": "Pin bool",
+                            "value": ""
+                        },
+                        {
+                            "id": 10,
+                            "name": "Pin user",
+                            "value": ""
+                        },
+                        {
+                            "id": 11,
+                            "name": "Pin version",
+                            "value": ""
+                        },
+                        {
+                            "id": 12,
+                            "name": "Pin bar",
+                            "value": ""
+                        },
+                        {
+                            "id": 13,
+                            "name": "Pin multi",
+                            "value": ""
+                        },
+                        {
+                            "id": 14,
+                            "name": "Pin bare",
+                            "value": ""
+                        },
+                        {
+                            "id": 15,
+                            "name": "Pin scheme",
+                            "value": ""
+                        }
+                    ],
+                    "created_on": "2026-09-01T08:00:00Z",
+                    "updated_on": "2026-09-01T08:00:00Z",
+                    "closed_on": null
+                },
+                {
+                    "id": 3,
+                    "project": {
+                        "id": 1,
+                        "name": "Parity Core"
+                    },
+                    "tracker": {
+                        "id": 2,
+                        "name": "Feature"
+                    },
+                    "status": {
+                        "id": 4,
+                        "name": "Closed",
+                        "is_closed": true
+                    },
+                    "priority": {
+                        "id": 2,
+                        "name": "High"
+                    },
+                    "author": {
+                        "id": 4,
+                        "name": "Bea Manager"
+                    },
+                    "assigned_to": {
+                        "id": 4,
+                        "name": "Bea Manager"
+                    },
+                    "subject": "Closed feature",
+                    "description": "Shipped feature on the parent project.",
+                    "start_date": "2026-07-01",
+                    "due_date": "2026-07-15",
+                    "done_ratio": 100,
+                    "is_private": false,
+                    "estimated_hours": 4,
+                    "total_estimated_hours": 4,
+                    "spent_hours": 0,
+                    "total_spent_hours": 0,
+                    "custom_fields": [],
+                    "created_on": "2026-07-15T09:00:00Z",
+                    "updated_on": "2026-07-15T09:00:00Z",
+                    "closed_on": "2026-07-15T09:00:00Z"
+                },
+                {
+                    "id": 2,
+                    "project": {
+                        "id": 1,
+                        "name": "Parity Core"
+                    },
+                    "tracker": {
+                        "id": 2,
+                        "name": "Feature"
+                    },
+                    "status": {
+                        "id": 1,
+                        "name": "New",
+                        "is_closed": false
+                    },
+                    "priority": {
+                        "id": 2,
+                        "name": "High"
+                    },
+                    "author": {
+                        "id": 1,
+                        "name": "Ada Lovelace"
+                    },
+                    "assigned_to": {
+                        "id": 1,
+                        "name": "Ada Lovelace"
+                    },
+                    "parent": {
+                        "id": 1
+                    },
+                    "subject": "Parity pin subtask",
+                    "description": "Synthetic subtask nested under the parent issue.",
+                    "start_date": "2026-08-26",
+                    "due_date": null,
+                    "done_ratio": 0,
+                    "is_private": false,
+                    "estimated_hours": null,
+                    "total_estimated_hours": 0,
+                    "spent_hours": 0,
+                    "total_spent_hours": 0,
+                    "custom_fields": [],
+                    "created_on": "2026-08-26T12:00:00Z",
+                    "updated_on": "2026-08-26T12:00:00Z",
+                    "closed_on": null
+                },
+                {
+                    "id": 1,
+                    "project": {
+                        "id": 1,
+                        "name": "Parity Core"
+                    },
+                    "tracker": {
+                        "id": 1,
+                        "name": "Bug"
+                    },
+                    "status": {
+                        "id": 1,
+                        "name": "New",
+                        "is_closed": false
+                    },
+                    "priority": {
+                        "id": 1,
+                        "name": "Normal"
+                    },
+                    "author": {
+                        "id": 1,
+                        "name": "Ada Lovelace"
+                    },
+                    "assigned_to": {
+                        "id": 1,
+                        "name": "Ada Lovelace"
+                    },
+                    "category": {
+                        "id": 1,
+                        "name": "Backend"
+                    },
+                    "fixed_version": {
+                        "id": 1,
+                        "name": "1.0"
+                    },
+                    "subject": "Parity pin parent",
+                    "description": "Synthetic parent issue for the parity pin.",
+                    "start_date": "2026-08-26",
+                    "due_date": "2026-09-02",
+                    "done_ratio": 0,
+                    "is_private": false,
+                    "estimated_hours": 2.5,
+                    "total_estimated_hours": 2.5,
+                    "spent_hours": 4.5,
+                    "total_spent_hours": 4.5,
+                    "custom_fields": [
+                        {
+                            "id": 1,
+                            "name": "Pin string",
+                            "value": "pin"
+                        },
+                        {
+                            "id": 2,
+                            "name": "Pin list",
+                            "value": "alpha"
+                        },
+                        {
+                            "id": 3,
+                            "name": "Pin enum",
+                            "value": "1"
+                        },
+                        {
+                            "id": 4,
+                            "name": "Pin link",
+                            "value": "pin-link"
+                        },
+                        {
+                            "id": 5,
+                            "name": "Pin text",
+                            "value": "note"
+                        },
+                        {
+                            "id": 6,
+                            "name": "Pin int",
+                            "value": "42"
+                        },
+                        {
+                            "id": 7,
+                            "name": "Pin float",
+                            "value": "1.5"
+                        },
+                        {
+                            "id": 8,
+                            "name": "Pin date",
+                            "value": "2026-08-26"
+                        },
+                        {
+                            "id": 9,
+                            "name": "Pin bool",
+                            "value": "1"
+                        },
+                        {
+                            "id": 10,
+                            "name": "Pin user",
+                            "value": "1"
+                        },
+                        {
+                            "id": 11,
+                            "name": "Pin version",
+                            "value": "1"
+                        },
+                        {
+                            "id": 12,
+                            "name": "Pin bar",
+                            "value": "50"
+                        },
+                        {
+                            "id": 13,
+                            "name": "Pin multi",
+                            "value": [
+                                "alpha",
+                                "beta"
+                            ]
+                        },
+                        {
+                            "id": 14,
+                            "name": "Pin bare",
+                            "value": "example.test/a"
+                        },
+                        {
+                            "id": 15,
+                            "name": "Pin scheme",
+                            "value": "https://already.test/a"
+                        }
+                    ],
+                    "created_on": "2026-08-26T12:00:00Z",
+                    "updated_on": "2026-08-26T12:00:00Z",
+                    "closed_on": null
+                }
+            ],
+            "total_count": 5,
+            "offset": 0,
+            "limit": 100
+        }
+    },
+    "issues_page": {
+        "status": 200,
+        "body": {
+            "issues": [
+                {
+                    "id": 6,
+                    "project": {
+                        "id": 1,
+                        "name": "Parity Core"
+                    },
+                    "tracker": {
+                        "id": 2,
+                        "name": "Feature"
+                    },
+                    "status": {
+                        "id": 2,
+                        "name": "In Progress",
+                        "is_closed": false
+                    },
+                    "priority": {
+                        "id": 2,
+                        "name": "High"
+                    },
+                    "author": {
+                        "id": 2,
+                        "name": "Pin Admin"
+                    },
+                    "assigned_to": {
+                        "id": 3,
+                        "name": "Platform"
+                    },
+                    "category": {
+                        "id": 1,
+                        "name": "Backend"
+                    },
+                    "fixed_version": {
+                        "id": 1,
+                        "name": "1.0"
+                    },
+                    "subject": "Grouped assignee",
+                    "description": "Open feature assigned to a group.",
+                    "start_date": "2026-09-01",
+                    "due_date": null,
+                    "done_ratio": 0,
+                    "is_private": false,
+                    "estimated_hours": null,
+                    "total_estimated_hours": 0,
+                    "spent_hours": 0.5,
+                    "total_spent_hours": 0.5,
+                    "custom_fields": [],
+                    "created_on": "2026-08-01T10:00:00Z",
+                    "updated_on": "2026-08-10T10:00:00Z",
+                    "closed_on": null
+                }
+            ],
+            "total_count": 5,
+            "offset": 0,
+            "limit": 1
+        }
+    },
+    "issues_nometa": {
+        "status": 200,
+        "body": {
+            "issues": [
+                {
+                    "id": 6,
+                    "project": {
+                        "id": 1,
+                        "name": "Parity Core"
+                    },
+                    "tracker": {
+                        "id": 2,
+                        "name": "Feature"
+                    },
+                    "status": {
+                        "id": 2,
+                        "name": "In Progress",
+                        "is_closed": false
+                    },
+                    "priority": {
+                        "id": 2,
+                        "name": "High"
+                    },
+                    "author": {
+                        "id": 2,
+                        "name": "Pin Admin"
+                    },
+                    "assigned_to": {
+                        "id": 3,
+                        "name": "Platform"
+                    },
+                    "category": {
+                        "id": 1,
+                        "name": "Backend"
+                    },
+                    "fixed_version": {
+                        "id": 1,
+                        "name": "1.0"
+                    },
+                    "subject": "Grouped assignee",
+                    "description": "Open feature assigned to a group.",
+                    "start_date": "2026-09-01",
+                    "due_date": null,
+                    "done_ratio": 0,
+                    "is_private": false,
+                    "estimated_hours": null,
+                    "total_estimated_hours": 0,
+                    "spent_hours": 0.5,
+                    "total_spent_hours": 0.5,
+                    "custom_fields": [],
+                    "created_on": "2026-08-01T10:00:00Z",
+                    "updated_on": "2026-08-10T10:00:00Z",
+                    "closed_on": null
+                }
+            ]
+        }
+    },
+    "issue": {
+        "status": 200,
+        "body": {
+            "issue": {
+                "id": 1,
+                "project": {
+                    "id": 1,
+                    "name": "Parity Core"
+                },
+                "tracker": {
+                    "id": 1,
+                    "name": "Bug"
+                },
+                "status": {
+                    "id": 1,
+                    "name": "New",
+                    "is_closed": false
+                },
+                "priority": {
+                    "id": 1,
+                    "name": "Normal"
+                },
+                "author": {
+                    "id": 1,
+                    "name": "Ada Lovelace"
+                },
+                "assigned_to": {
+                    "id": 1,
+                    "name": "Ada Lovelace"
+                },
+                "category": {
+                    "id": 1,
+                    "name": "Backend"
+                },
+                "fixed_version": {
+                    "id": 1,
+                    "name": "1.0"
+                },
+                "subject": "Parity pin parent",
+                "description": "Synthetic parent issue for the parity pin.",
+                "start_date": "2026-08-26",
+                "due_date": "2026-09-02",
+                "done_ratio": 0,
+                "is_private": false,
+                "estimated_hours": 2.5,
+                "total_estimated_hours": 2.5,
+                "spent_hours": 4.5,
+                "total_spent_hours": 4.5,
+                "custom_fields": [
+                    {
+                        "id": 1,
+                        "name": "Pin string",
+                        "value": "pin"
+                    },
+                    {
+                        "id": 2,
+                        "name": "Pin list",
+                        "value": "alpha"
+                    },
+                    {
+                        "id": 3,
+                        "name": "Pin enum",
+                        "value": "1"
+                    },
+                    {
+                        "id": 4,
+                        "name": "Pin link",
+                        "value": "pin-link"
+                    },
+                    {
+                        "id": 5,
+                        "name": "Pin text",
+                        "value": "note"
+                    },
+                    {
+                        "id": 6,
+                        "name": "Pin int",
+                        "value": "42"
+                    },
+                    {
+                        "id": 7,
+                        "name": "Pin float",
+                        "value": "1.5"
+                    },
+                    {
+                        "id": 8,
+                        "name": "Pin date",
+                        "value": "2026-08-26"
+                    },
+                    {
+                        "id": 9,
+                        "name": "Pin bool",
+                        "value": "1"
+                    },
+                    {
+                        "id": 10,
+                        "name": "Pin user",
+                        "value": "1"
+                    },
+                    {
+                        "id": 11,
+                        "name": "Pin version",
+                        "value": "1"
+                    },
+                    {
+                        "id": 12,
+                        "name": "Pin bar",
+                        "value": "50"
+                    },
+                    {
+                        "id": 13,
+                        "name": "Pin multi",
+                        "value": [
+                            "alpha",
+                            "beta"
+                        ]
+                    },
+                    {
+                        "id": 14,
+                        "name": "Pin bare",
+                        "value": "example.test/a"
+                    },
+                    {
+                        "id": 15,
+                        "name": "Pin scheme",
+                        "value": "https://already.test/a"
+                    }
+                ],
+                "created_on": "2026-08-26T12:00:00Z",
+                "updated_on": "2026-08-26T12:00:00Z",
+                "closed_on": null
+            }
+        }
+    },
+    "issue_include": {
+        "status": 200,
+        "body": {
+            "issue": {
+                "id": 1,
+                "project": {
+                    "id": 1,
+                    "name": "Parity Core"
+                },
+                "tracker": {
+                    "id": 1,
+                    "name": "Bug"
+                },
+                "status": {
+                    "id": 1,
+                    "name": "New",
+                    "is_closed": false
+                },
+                "priority": {
+                    "id": 1,
+                    "name": "Normal"
+                },
+                "author": {
+                    "id": 1,
+                    "name": "Ada Lovelace"
+                },
+                "assigned_to": {
+                    "id": 1,
+                    "name": "Ada Lovelace"
+                },
+                "category": {
+                    "id": 1,
+                    "name": "Backend"
+                },
+                "fixed_version": {
+                    "id": 1,
+                    "name": "1.0"
+                },
+                "subject": "Parity pin parent",
+                "description": "Synthetic parent issue for the parity pin.",
+                "start_date": "2026-08-26",
+                "due_date": "2026-09-02",
+                "done_ratio": 0,
+                "is_private": false,
+                "estimated_hours": 2.5,
+                "total_estimated_hours": 2.5,
+                "spent_hours": 4.5,
+                "total_spent_hours": 4.5,
+                "custom_fields": [
+                    {
+                        "id": 1,
+                        "name": "Pin string",
+                        "value": "pin"
+                    },
+                    {
+                        "id": 2,
+                        "name": "Pin list",
+                        "value": "alpha"
+                    },
+                    {
+                        "id": 3,
+                        "name": "Pin enum",
+                        "value": "1"
+                    },
+                    {
+                        "id": 4,
+                        "name": "Pin link",
+                        "value": "pin-link"
+                    },
+                    {
+                        "id": 5,
+                        "name": "Pin text",
+                        "value": "note"
+                    },
+                    {
+                        "id": 6,
+                        "name": "Pin int",
+                        "value": "42"
+                    },
+                    {
+                        "id": 7,
+                        "name": "Pin float",
+                        "value": "1.5"
+                    },
+                    {
+                        "id": 8,
+                        "name": "Pin date",
+                        "value": "2026-08-26"
+                    },
+                    {
+                        "id": 9,
+                        "name": "Pin bool",
+                        "value": "1"
+                    },
+                    {
+                        "id": 10,
+                        "name": "Pin user",
+                        "value": "1"
+                    },
+                    {
+                        "id": 11,
+                        "name": "Pin version",
+                        "value": "1"
+                    },
+                    {
+                        "id": 12,
+                        "name": "Pin bar",
+                        "value": "50"
+                    },
+                    {
+                        "id": 13,
+                        "name": "Pin multi",
+                        "value": [
+                            "alpha",
+                            "beta"
+                        ]
+                    },
+                    {
+                        "id": 14,
+                        "name": "Pin bare",
+                        "value": "example.test/a"
+                    },
+                    {
+                        "id": 15,
+                        "name": "Pin scheme",
+                        "value": "https://already.test/a"
+                    }
+                ],
+                "created_on": "2026-08-26T12:00:00Z",
+                "updated_on": "2026-08-26T12:00:00Z",
+                "closed_on": null,
+                "children": [
+                    {
+                        "id": 2,
+                        "tracker": {
+                            "id": 2,
+                            "name": "Feature"
+                        },
+                        "subject": "Parity pin subtask"
+                    }
+                ],
+                "attachments": [
+                    {
+                        "id": 1,
+                        "filename": "before.pdf",
+                        "filesize": 12,
+                        "content_type": "application/pdf",
+                        "description": "",
+                        "content_url": "http://localhost/attachments/1",
+                        "author": {
+                            "id": 1,
+                            "name": "Ada Lovelace"
+                        },
+                        "created_on": "2026-08-26T12:00:00Z"
+                    },
+                    {
+                        "id": 2,
+                        "filename": "after.pdf",
+                        "filesize": 18,
+                        "content_type": "application/pdf",
+                        "description": "",
+                        "content_url": "http://localhost/attachments/2",
+                        "author": {
+                            "id": 1,
+                            "name": "Ada Lovelace"
+                        },
+                        "created_on": "2026-08-26T12:00:00Z"
+                    }
+                ],
+                "relations": [
+                    {
+                        "id": 3,
+                        "issue_id": 1,
+                        "issue_to_id": 2,
+                        "relation_type": "relates",
+                        "delay": null
+                    }
+                ],
+                "journals": [
+                    {
+                        "id": 1,
+                        "user": {
+                            "id": 1,
+                            "name": "Ada Lovelace"
+                        },
+                        "notes": "Opened from the parity pin.",
+                        "created_on": "2026-08-26T12:00:00Z",
+                        "private_notes": false,
+                        "details": [
+                            {
+                                "property": "attr",
+                                "name": "subject",
+                                "old_value": null,
+                                "new_value": "Parity pin parent"
+                            }
+                        ]
+                    },
+                    {
+                        "id": 2,
+                        "user": {
+                            "id": 2,
+                            "name": "Pin Admin"
+                        },
+                        "notes": "Private note stored on the pin.",
+                        "created_on": "2026-08-26T12:05:00Z",
+                        "private_notes": true,
+                        "details": []
+                    },
+                    {
+                        "id": 5,
+                        "user": {
+                            "id": 1,
+                            "name": "Ada Lovelace"
+                        },
+                        "notes": null,
+                        "created_on": "2026-08-26T13:00:00Z",
+                        "private_notes": false,
+                        "details": [
+                            {
+                                "property": "attr",
+                                "name": "status_id",
+                                "old_value": "1",
+                                "new_value": "2"
+                            },
+                            {
+                                "property": "attr",
+                                "name": "done_ratio",
+                                "old_value": "0",
+                                "new_value": "30"
+                            },
+                            {
+                                "property": "attr",
+                                "name": "subject",
+                                "old_value": "Parity pin parent",
+                                "new_value": "Renamed parent"
+                            },
+                            {
+                                "property": "attr",
+                                "name": "description",
+                                "old_value": "before",
+                                "new_value": "after"
+                            },
+                            {
+                                "property": "attr",
+                                "name": "priority_id",
+                                "old_value": "1",
+                                "new_value": "2"
+                            },
+                            {
+                                "property": "attr",
+                                "name": "assigned_to_id",
+                                "old_value": "1",
+                                "new_value": "4"
+                            },
+                            {
+                                "property": "attr",
+                                "name": "start_date",
+                                "old_value": "2026-08-26",
+                                "new_value": "2026-09-01"
+                            },
+                            {
+                                "property": "attr",
+                                "name": "due_date",
+                                "old_value": null,
+                                "new_value": "2026-09-30"
+                            },
+                            {
+                                "property": "attr",
+                                "name": "estimated_hours",
+                                "old_value": "2.5",
+                                "new_value": "3"
+                            },
+                            {
+                                "property": "attr",
+                                "name": "is_private",
+                                "old_value": "0",
+                                "new_value": "1"
+                            },
+                            {
+                                "property": "attr",
+                                "name": "parent_id",
+                                "old_value": null,
+                                "new_value": "2"
+                            },
+                            {
+                                "property": "attr",
+                                "name": "tracker_id",
+                                "old_value": "1",
+                                "new_value": "2"
+                            },
+                            {
+                                "property": "attr",
+                                "name": "category_id",
+                                "old_value": "1",
+                                "new_value": null
+                            },
+                            {
+                                "property": "attr",
+                                "name": "fixed_version_id",
+                                "old_value": "1",
+                                "new_value": "2"
+                            },
+                            {
+                                "property": "attr",
+                                "name": "project_id",
+                                "old_value": "1",
+                                "new_value": "2"
+                            },
+                            {
+                                "property": "attachment",
+                                "name": "1",
+                                "old_value": null,
+                                "new_value": "spec.pdf"
+                            },
+                            {
+                                "property": "attachment",
+                                "name": "2",
+                                "old_value": "draft.pdf",
+                                "new_value": null
+                            },
+                            {
+                                "property": "relation",
+                                "name": "relates",
+                                "old_value": null,
+                                "new_value": "2"
+                            },
+                            {
+                                "property": "relation",
+                                "name": "duplicates",
+                                "old_value": "2",
+                                "new_value": null
+                            },
+                            {
+                                "property": "relation",
+                                "name": "blocks",
+                                "old_value": null,
+                                "new_value": "4"
+                            },
+                            {
+                                "property": "cf",
+                                "name": "1",
+                                "old_value": "pin",
+                                "new_value": "next"
+                            },
+                            {
+                                "property": "cf",
+                                "name": "3",
+                                "old_value": "1",
+                                "new_value": "2"
+                            },
+                            {
+                                "property": "cf",
+                                "name": "4",
+                                "old_value": "pin-link",
+                                "new_value": "other"
+                            },
+                            {
+                                "property": "cf",
+                                "name": "5",
+                                "old_value": "old body",
+                                "new_value": "new body"
+                            },
+                            {
+                                "property": "cf",
+                                "name": "6",
+                                "old_value": "7",
+                                "new_value": "42"
+                            },
+                            {
+                                "property": "cf",
+                                "name": "7",
+                                "old_value": "1.5",
+                                "new_value": "2.25"
+                            },
+                            {
+                                "property": "cf",
+                                "name": "8",
+                                "old_value": "2026-08-01",
+                                "new_value": "2026-08-26"
+                            },
+                            {
+                                "property": "cf",
+                                "name": "9",
+                                "old_value": "0",
+                                "new_value": "1"
+                            },
+                            {
+                                "property": "cf",
+                                "name": "10",
+                                "old_value": "1",
+                                "new_value": "4"
+                            },
+                            {
+                                "property": "cf",
+                                "name": "11",
+                                "old_value": "1",
+                                "new_value": "2"
+                            },
+                            {
+                                "property": "cf",
+                                "name": "12",
+                                "old_value": "40",
+                                "new_value": "50"
+                            },
+                            {
+                                "property": "cf",
+                                "name": "13",
+                                "old_value": "alpha",
+                                "new_value": "alpha,beta"
+                            },
+                            {
+                                "property": "cf",
+                                "name": "16",
+                                "old_value": "1",
+                                "new_value": "2"
+                            },
+                            {
+                                "property": "cf",
+                                "name": "99",
+                                "old_value": "a",
+                                "new_value": "b"
+                            }
+                        ]
+                    },
+                    {
+                        "id": 6,
+                        "user": {
+                            "id": 1,
+                            "name": "Ada Lovelace"
+                        },
+                        "notes": null,
+                        "created_on": "2026-08-26T13:05:00Z",
+                        "private_notes": false,
+                        "details": [
+                            {
+                                "property": "cf",
+                                "name": "13",
+                                "old_value": null,
+                                "new_value": "beta"
+                            }
+                        ]
+                    },
+                    {
+                        "id": 7,
+                        "user": {
+                            "id": 1,
+                            "name": "Ada Lovelace"
+                        },
+                        "notes": "Ada hid this remark.",
+                        "created_on": "2026-08-26T13:10:00Z",
+                        "private_notes": true,
+                        "details": []
+                    },
+                    {
+                        "id": 8,
+                        "user": {
+                            "id": 2,
+                            "name": "Pin Admin"
+                        },
+                        "notes": "Manager left a remark.",
+                        "created_on": "2026-08-26T13:15:00Z",
+                        "private_notes": false,
+                        "details": []
+                    }
+                ],
+                "watchers": [
+                    {
+                        "id": 2,
+                        "name": "Pin Admin"
+                    }
+                ],
+                "allowed_statuses": [
+                    {
+                        "id": 1,
+                        "name": "New",
+                        "is_closed": false
+                    },
+                    {
+                        "id": 2,
+                        "name": "In Progress",
+                        "is_closed": false
+                    },
+                    {
+                        "id": 3,
+                        "name": "Resolved",
+                        "is_closed": false
+                    },
+                    {
+                        "id": 4,
+                        "name": "Closed",
+                        "is_closed": true
+                    }
+                ]
+            }
+        }
+    },
+    "projects": {
+        "status": 200,
+        "body": {
+            "projects": [
+                {
+                    "id": 2,
+                    "name": "Parity Child",
+                    "identifier": "parity-child",
+                    "description": "Synthetic child project nested inside Parity Core.",
+                    "homepage": "",
+                    "status": 1,
+                    "is_public": false,
+                    "inherit_members": true,
+                    "parent": {
+                        "id": 1,
+                        "name": "Parity Core"
+                    },
+                    "created_on": "2026-08-26T12:00:00Z",
+                    "updated_on": "2026-08-26T12:00:00Z"
+                },
+                {
+                    "id": 1,
+                    "name": "Parity Core",
+                    "identifier": "parity-core",
+                    "description": "Synthetic parent project for the parity pin.",
+                    "homepage": "",
+                    "status": 1,
+                    "is_public": true,
+                    "inherit_members": false,
+                    "created_on": "2026-08-26T12:00:00Z",
+                    "updated_on": "2026-08-26T12:00:00Z"
+                }
+            ],
+            "total_count": 2,
+            "offset": 0,
+            "limit": 25
+        }
+    },
+    "project": {
+        "status": 200,
+        "body": {
+            "project": {
+                "id": 1,
+                "name": "Parity Core",
+                "identifier": "parity-core",
+                "description": "Synthetic parent project for the parity pin.",
+                "homepage": "",
+                "status": 1,
+                "is_public": true,
+                "inherit_members": false,
+                "created_on": "2026-08-26T12:00:00Z",
+                "updated_on": "2026-08-26T12:00:00Z",
+                "custom_fields": [
+                    {
+                        "id": 22,
+                        "name": "Project label",
+                        "value": "core"
+                    },
+                    {
+                        "id": 23,
+                        "name": "Project budget",
+                        "value": "10.5"
+                    },
+                    {
+                        "id": 24,
+                        "name": "Project secret",
+                        "value": "hidden-core"
+                    },
+                    {
+                        "id": 25,
+                        "name": "Project seats",
+                        "value": "4"
+                    },
+                    {
+                        "id": 26,
+                        "name": "Project lane",
+                        "value": "alpha"
+                    }
+                ],
+                "trackers": [
+                    {
+                        "id": 1,
+                        "name": "Bug"
+                    },
+                    {
+                        "id": 2,
+                        "name": "Feature"
+                    }
+                ],
+                "issue_categories": [
+                    {
+                        "id": 1,
+                        "name": "Backend"
+                    }
+                ],
+                "enabled_modules": [
+                    {
+                        "id": 1,
+                        "name": "issue_tracking"
+                    },
+                    {
+                        "id": 2,
+                        "name": "time_tracking"
+                    }
+                ],
+                "time_entry_activities": [
+                    {
+                        "id": 3,
+                        "name": "Development",
+                        "is_default": true
+                    }
+                ]
+            }
+        }
+    },
+    "memberships": {
+        "status": 200,
+        "body": {
+            "memberships": [
+                {
+                    "id": 1,
+                    "project": {
+                        "id": 1,
+                        "name": "Parity Core"
+                    },
+                    "user": {
+                        "id": 1,
+                        "name": "Ada Lovelace"
+                    },
+                    "roles": [
+                        {
+                            "id": 1,
+                            "name": "Developer"
+                        },
+                        {
+                            "id": 5,
+                            "name": "Observer"
+                        }
+                    ]
+                },
+                {
+                    "id": 3,
+                    "project": {
+                        "id": 1,
+                        "name": "Parity Core"
+                    },
+                    "user": {
+                        "id": 2,
+                        "name": "Pin Admin"
+                    },
+                    "roles": [
+                        {
+                            "id": 2,
+                            "name": "Manager"
+                        }
+                    ]
+                },
+                {
+                    "id": 4,
+                    "project": {
+                        "id": 1,
+                        "name": "Parity Core"
+                    },
+                    "group": {
+                        "id": 3,
+                        "name": "Platform"
+                    },
+                    "roles": [
+                        {
+                            "id": 1,
+                            "name": "Developer"
+                        }
+                    ]
+                },
+                {
+                    "id": 5,
+                    "project": {
+                        "id": 1,
+                        "name": "Parity Core"
+                    },
+                    "user": {
+                        "id": 4,
+                        "name": "Bea Manager"
+                    },
+                    "roles": [
+                        {
+                            "id": 2,
+                            "name": "Manager"
+                        }
+                    ]
+                },
+                {
+                    "id": 7,
+                    "project": {
+                        "id": 1,
+                        "name": "Parity Core"
+                    },
+                    "user": {
+                        "id": 8,
+                        "name": "Erin Directory"
+                    },
+                    "roles": [
+                        {
+                            "id": 6,
+                            "name": "Directory"
+                        }
+                    ]
+                },
+                {
+                    "id": 8,
+                    "project": {
+                        "id": 1,
+                        "name": "Parity Core"
+                    },
+                    "user": {
+                        "id": 6,
+                        "name": "Lars Locked"
+                    },
+                    "roles": [
+                        {
+                            "id": 5,
+                            "name": "Observer"
+                        }
+                    ]
+                },
+                {
+                    "id": 9,
+                    "project": {
+                        "id": 1,
+                        "name": "Parity Core"
+                    },
+                    "user": {
+                        "id": 9,
+                        "name": "Finn Own"
+                    },
+                    "roles": [
+                        {
+                            "id": 7,
+                            "name": "Hour own"
+                        }
+                    ]
+                }
+            ],
+            "total_count": 7,
+            "offset": 0,
+            "limit": 25
+        }
+    },
+    "versions": {
+        "status": 200,
+        "body": {
+            "versions": [
+                {
+                    "id": 1,
+                    "project": {
+                        "id": 1,
+                        "name": "Parity Core"
+                    },
+                    "name": "1.0",
+                    "description": "Synthetic version",
+                    "status": "open",
+                    "due_date": null,
+                    "sharing": "none",
+                    "wiki_page_title": null,
+                    "created_on": "2026-08-26T12:00:00Z",
+                    "updated_on": "2026-08-26T12:00:00Z"
+                },
+                {
+                    "id": 8,
+                    "project": {
+                        "id": 1,
+                        "name": "Parity Core"
+                    },
+                    "name": "Locked",
+                    "description": "Synthetic locked version shared with every project",
+                    "status": "locked",
+                    "due_date": null,
+                    "sharing": "system",
+                    "wiki_page_title": null,
+                    "created_on": "2026-08-26T12:00:00Z",
+                    "updated_on": "2026-08-26T12:00:00Z"
+                },
+                {
+                    "id": 2,
+                    "project": {
+                        "id": 1,
+                        "name": "Parity Core"
+                    },
+                    "name": "Shared down",
+                    "description": "Synthetic version shared with subprojects",
+                    "status": "open",
+                    "due_date": null,
+                    "sharing": "descendants",
+                    "wiki_page_title": null,
+                    "created_on": "2026-08-26T12:00:00Z",
+                    "updated_on": "2026-08-26T12:00:00Z"
+                },
+                {
+                    "id": 6,
+                    "project": {
+                        "id": 1,
+                        "name": "Parity Core"
+                    },
+                    "name": "System",
+                    "description": "Synthetic version shared with every project",
+                    "status": "open",
+                    "due_date": null,
+                    "sharing": "system",
+                    "wiki_page_title": null,
+                    "created_on": "2026-08-26T12:00:00Z",
+                    "updated_on": "2026-08-26T12:00:00Z"
+                },
+                {
+                    "id": 5,
+                    "project": {
+                        "id": 1,
+                        "name": "Parity Core"
+                    },
+                    "name": "Tree",
+                    "description": "Synthetic version shared with the project tree",
+                    "status": "open",
+                    "due_date": null,
+                    "sharing": "tree",
+                    "wiki_page_title": null,
+                    "created_on": "2026-08-26T12:00:00Z",
+                    "updated_on": "2026-08-26T12:00:00Z"
+                }
+            ]
+        }
+    },
+    "version": {
+        "status": 200,
+        "body": {
+            "version": {
+                "id": 1,
+                "project": {
+                    "id": 1,
+                    "name": "Parity Core"
+                },
+                "name": "1.0",
+                "description": "Synthetic version",
+                "status": "open",
+                "due_date": null,
+                "sharing": "none",
+                "wiki_page_title": null,
+                "created_on": "2026-08-26T12:00:00Z",
+                "updated_on": "2026-08-26T12:00:00Z"
+            }
+        }
+    },
+    "categories": {
+        "status": 200,
+        "body": {
+            "issue_categories": [
+                {
+                    "id": 1,
+                    "project": {
+                        "id": 1,
+                        "name": "Parity Core"
+                    },
+                    "name": "Backend",
+                    "assigned_to": {
+                        "id": 1,
+                        "name": "Ada Lovelace"
+                    }
+                }
+            ]
+        }
+    },
+    "category": {
+        "status": 200,
+        "body": {
+            "issue_category": {
+                "id": 1,
+                "project": {
+                    "id": 1,
+                    "name": "Parity Core"
+                },
+                "name": "Backend",
+                "assigned_to": {
+                    "id": 1,
+                    "name": "Ada Lovelace"
+                }
+            }
+        }
+    },
+    "users": {
+        "status": 200,
+        "body": {
+            "users": [
+                {
+                    "id": 2,
+                    "login": "admin",
+                    "admin": true,
+                    "firstname": "Pin",
+                    "lastname": "Admin",
+                    "mail": "admin@parity.test",
+                    "created_on": "2026-08-26T12:00:00Z",
+                    "last_login_on": null
+                },
+                {
+                    "id": 7,
+                    "login": "dora",
+                    "admin": false,
+                    "firstname": "Dora",
+                    "lastname": "Child",
+                    "mail": null,
+                    "created_on": "2026-08-26T12:00:00Z",
+                    "last_login_on": null
+                },
+                {
+                    "id": 8,
+                    "login": "erin",
+                    "admin": false,
+                    "firstname": "Erin",
+                    "lastname": "Directory",
+                    "mail": null,
+                    "created_on": "2026-08-26T12:00:00Z",
+                    "last_login_on": null
+                },
+                {
+                    "id": 1,
+                    "login": "ada",
+                    "admin": false,
+                    "firstname": "Ada",
+                    "lastname": "Lovelace",
+                    "mail": "ada@parity.test",
+                    "created_on": "2026-08-26T12:00:00Z",
+                    "last_login_on": null
+                },
+                {
+                    "id": 4,
+                    "login": "bea",
+                    "admin": false,
+                    "firstname": "Bea",
+                    "lastname": "Manager",
+                    "mail": null,
+                    "created_on": "2026-08-26T12:00:00Z",
+                    "last_login_on": null
+                },
+                {
+                    "id": 5,
+                    "login": "cleo",
+                    "admin": false,
+                    "firstname": "Cleo",
+                    "lastname": "Outsider",
+                    "mail": null,
+                    "created_on": "2026-08-26T12:00:00Z",
+                    "last_login_on": null
+                },
+                {
+                    "id": 9,
+                    "login": "finn",
+                    "admin": false,
+                    "firstname": "Finn",
+                    "lastname": "Own",
+                    "mail": null,
+                    "created_on": "2026-08-26T12:00:00Z",
+                    "last_login_on": null
+                }
+            ],
+            "total_count": 7,
+            "offset": 0,
+            "limit": 100
+        }
+    },
+    "user": {
+        "status": 200,
+        "body": {
+            "user": {
+                "id": 1,
+                "login": "ada",
+                "admin": false,
+                "firstname": "Ada",
+                "lastname": "Lovelace",
+                "mail": "ada@parity.test",
+                "created_on": "2026-08-26T12:00:00Z",
+                "last_login_on": null,
+                "status": 1,
+                "api_key": "pinned-api-key",
+                "custom_fields": []
+            }
+        }
+    },
+    "account": {
+        "status": 200,
+        "body": {
+            "user": {
+                "id": 2,
+                "login": "admin",
+                "admin": true,
+                "firstname": "Pin",
+                "lastname": "Admin",
+                "mail": "admin@parity.test",
+                "created_on": "2026-08-26T12:00:00Z",
+                "last_login_on": null,
+                "status": 1,
+                "api_key": "pinned-api-key",
+                "custom_fields": []
+            }
+        }
+    },
+    "time_entries": {
+        "status": 200,
+        "body": {
+            "time_entries": [
+                {
+                    "id": 5,
+                    "project": {
+                        "id": 1,
+                        "name": "Parity Core"
+                    },
+                    "issue": {
+                        "id": 1
+                    },
+                    "user": {
+                        "id": 9,
+                        "name": "Finn Own"
+                    },
+                    "activity": {
+                        "id": 3,
+                        "name": "Development"
+                    },
+                    "hours": 1,
+                    "comments": "Own time",
+                    "spent_on": "2026-08-27",
+                    "created_on": "2026-08-27T12:00:00Z",
+                    "updated_on": "2026-08-27T12:00:00Z",
+                    "custom_fields": []
+                },
+                {
+                    "id": 4,
+                    "project": {
+                        "id": 2,
+                        "name": "Parity Child"
+                    },
+                    "issue": {
+                        "id": 5
+                    },
+                    "user": {
+                        "id": 7,
+                        "name": "Dora Child"
+                    },
+                    "activity": {
+                        "id": 3,
+                        "name": "Development"
+                    },
+                    "hours": 3,
+                    "comments": "Child time",
+                    "spent_on": "2026-08-27",
+                    "created_on": "2026-08-27T12:00:00Z",
+                    "updated_on": "2026-08-27T12:00:00Z",
+                    "custom_fields": []
+                },
+                {
+                    "id": 3,
+                    "project": {
+                        "id": 1,
+                        "name": "Parity Core"
+                    },
+                    "issue": {
+                        "id": 6
+                    },
+                    "user": {
+                        "id": 1,
+                        "name": "Ada Lovelace"
+                    },
+                    "activity": {
+                        "id": 3,
+                        "name": "Development"
+                    },
+                    "hours": 0.5,
+                    "comments": "Feature time",
+                    "spent_on": "2026-08-27",
+                    "created_on": "2026-08-27T12:00:00Z",
+                    "updated_on": "2026-08-27T12:00:00Z",
+                    "custom_fields": []
+                },
+                {
+                    "id": 2,
+                    "project": {
+                        "id": 1,
+                        "name": "Parity Core"
+                    },
+                    "issue": {
+                        "id": 1
+                    },
+                    "user": {
+                        "id": 4,
+                        "name": "Bea Manager"
+                    },
+                    "activity": {
+                        "id": 3,
+                        "name": "Development"
+                    },
+                    "hours": 2,
+                    "comments": "Manager time",
+                    "spent_on": "2026-08-27",
+                    "created_on": "2026-08-27T12:00:00Z",
+                    "updated_on": "2026-08-27T12:00:00Z",
+                    "custom_fields": []
+                },
+                {
+                    "id": 1,
+                    "project": {
+                        "id": 1,
+                        "name": "Parity Core"
+                    },
+                    "issue": {
+                        "id": 1
+                    },
+                    "user": {
+                        "id": 1,
+                        "name": "Ada Lovelace"
+                    },
+                    "activity": {
+                        "id": 3,
+                        "name": "Development"
+                    },
+                    "hours": 1.5,
+                    "comments": "Pin time",
+                    "spent_on": "2026-08-26",
+                    "created_on": "2026-08-26T12:00:00Z",
+                    "updated_on": "2026-08-26T12:00:00Z",
+                    "custom_fields": []
+                }
+            ],
+            "total_count": 5,
+            "offset": 0,
+            "limit": 100
+        }
+    },
+    "issue_time_entries": {
+        "status": 200,
+        "body": {
+            "time_entries": [
+                {
+                    "id": 5,
+                    "project": {
+                        "id": 1,
+                        "name": "Parity Core"
+                    },
+                    "issue": {
+                        "id": 1
+                    },
+                    "user": {
+                        "id": 9,
+                        "name": "Finn Own"
+                    },
+                    "activity": {
+                        "id": 3,
+                        "name": "Development"
+                    },
+                    "hours": 1,
+                    "comments": "Own time",
+                    "spent_on": "2026-08-27",
+                    "created_on": "2026-08-27T12:00:00Z",
+                    "updated_on": "2026-08-27T12:00:00Z",
+                    "custom_fields": []
+                },
+                {
+                    "id": 2,
+                    "project": {
+                        "id": 1,
+                        "name": "Parity Core"
+                    },
+                    "issue": {
+                        "id": 1
+                    },
+                    "user": {
+                        "id": 4,
+                        "name": "Bea Manager"
+                    },
+                    "activity": {
+                        "id": 3,
+                        "name": "Development"
+                    },
+                    "hours": 2,
+                    "comments": "Manager time",
+                    "spent_on": "2026-08-27",
+                    "created_on": "2026-08-27T12:00:00Z",
+                    "updated_on": "2026-08-27T12:00:00Z",
+                    "custom_fields": []
+                },
+                {
+                    "id": 1,
+                    "project": {
+                        "id": 1,
+                        "name": "Parity Core"
+                    },
+                    "issue": {
+                        "id": 1
+                    },
+                    "user": {
+                        "id": 1,
+                        "name": "Ada Lovelace"
+                    },
+                    "activity": {
+                        "id": 3,
+                        "name": "Development"
+                    },
+                    "hours": 1.5,
+                    "comments": "Pin time",
+                    "spent_on": "2026-08-26",
+                    "created_on": "2026-08-26T12:00:00Z",
+                    "updated_on": "2026-08-26T12:00:00Z",
+                    "custom_fields": []
+                }
+            ],
+            "total_count": 3,
+            "offset": 0,
+            "limit": 25
+        }
+    },
+    "time_entry": {
+        "status": 200,
+        "body": {
+            "time_entry": {
+                "id": 1,
+                "project": {
+                    "id": 1,
+                    "name": "Parity Core"
+                },
+                "issue": {
+                    "id": 1
+                },
+                "user": {
+                    "id": 1,
+                    "name": "Ada Lovelace"
+                },
+                "activity": {
+                    "id": 3,
+                    "name": "Development"
+                },
+                "hours": 1.5,
+                "comments": "Pin time",
+                "spent_on": "2026-08-26",
+                "created_on": "2026-08-26T12:00:00Z",
+                "updated_on": "2026-08-26T12:00:00Z",
+                "custom_fields": []
+            }
+        }
+    },
+    "relations": {
+        "status": 200,
+        "body": {
+            "relations": [
+                {
+                    "id": 3,
+                    "issue_id": 1,
+                    "issue_to_id": 2,
+                    "relation_type": "relates",
+                    "delay": null
+                }
+            ]
+        }
+    },
+    "relation": {
+        "status": 200,
+        "body": {
+            "relation": {
+                "id": 1,
+                "issue_id": 6,
+                "issue_to_id": 4,
+                "relation_type": "blocks",
+                "delay": null
+            }
+        }
+    },
+    "trackers": {
+        "status": 200,
+        "body": {
+            "trackers": [
+                {
+                    "id": 1,
+                    "name": "Bug",
+                    "default_status": {
+                        "id": 1,
+                        "name": "New"
+                    },
+                    "description": "Synthetic bug tracker"
+                },
+                {
+                    "id": 2,
+                    "name": "Feature",
+                    "default_status": {
+                        "id": 1,
+                        "name": "New"
+                    },
+                    "description": "Synthetic feature tracker"
+                }
+            ],
+            "total_count": 2,
+            "offset": 0,
+            "limit": 25
+        }
+    },
+    "tracker": {
+        "status": 200,
+        "body": {
+            "tracker": {
+                "id": 1,
+                "name": "Bug",
+                "default_status": {
+                    "id": 1,
+                    "name": "New"
+                },
+                "description": "Synthetic bug tracker"
+            }
+        }
+    },
+    "statuses": {
+        "status": 200,
+        "body": {
+            "issue_statuses": [
+                {
+                    "id": 1,
+                    "name": "New",
+                    "is_closed": false
+                },
+                {
+                    "id": 2,
+                    "name": "In Progress",
+                    "is_closed": false
+                },
+                {
+                    "id": 3,
+                    "name": "Resolved",
+                    "is_closed": false
+                },
+                {
+                    "id": 4,
+                    "name": "Closed",
+                    "is_closed": true
+                }
+            ],
+            "total_count": 4,
+            "offset": 0,
+            "limit": 25
+        }
+    },
+    "status": {
+        "status": 200,
+        "body": {
+            "issue_status": {
+                "id": 1,
+                "name": "New",
+                "is_closed": false
+            }
+        }
+    },
+    "priorities": {
+        "status": 200,
+        "body": {
+            "issue_priorities": [
+                {
+                    "id": 1,
+                    "name": "Normal",
+                    "is_default": true,
+                    "active": true
+                },
+                {
+                    "id": 2,
+                    "name": "High",
+                    "is_default": false,
+                    "active": true
+                }
+            ]
+        }
+    },
+    "activities": {
+        "status": 200,
+        "body": {
+            "time_entry_activities": [
+                {
+                    "id": 3,
+                    "name": "Development",
+                    "is_default": true,
+                    "active": true
+                }
+            ]
+        }
+    },
+    "document_categories": {
+        "status": 200,
+        "body": {
+            "document_categories": [
+                {
+                    "id": 4,
+                    "name": "User guide",
+                    "is_default": true,
+                    "active": true
+                }
+            ]
+        }
+    },
+    "custom_fields": {
+        "status": 200,
+        "body": {
+            "custom_fields": [
+                {
+                    "id": 1,
+                    "name": "Pin string",
+                    "customized_type": "issue",
+                    "field_format": "string",
+                    "regexp": "",
+                    "min_length": null,
+                    "max_length": null,
+                    "is_required": false,
+                    "is_filter": true,
+                    "searchable": false,
+                    "multiple": false,
+                    "default_value": null,
+                    "visible": true,
+                    "possible_values": []
+                },
+                {
+                    "id": 2,
+                    "name": "Pin list",
+                    "customized_type": "issue",
+                    "field_format": "list",
+                    "regexp": "",
+                    "min_length": null,
+                    "max_length": null,
+                    "is_required": false,
+                    "is_filter": true,
+                    "searchable": false,
+                    "multiple": false,
+                    "default_value": null,
+                    "visible": true,
+                    "possible_values": [
+                        {
+                            "value": "alpha"
+                        },
+                        {
+                            "value": "beta"
+                        }
+                    ]
+                },
+                {
+                    "id": 3,
+                    "name": "Pin enum",
+                    "customized_type": "issue",
+                    "field_format": "enumeration",
+                    "regexp": "",
+                    "min_length": null,
+                    "max_length": null,
+                    "is_required": false,
+                    "is_filter": true,
+                    "searchable": false,
+                    "multiple": false,
+                    "default_value": null,
+                    "visible": false,
+                    "possible_values": []
+                },
+                {
+                    "id": 4,
+                    "name": "Pin link",
+                    "customized_type": "issue",
+                    "field_format": "link",
+                    "regexp": "",
+                    "min_length": null,
+                    "max_length": null,
+                    "is_required": false,
+                    "is_filter": false,
+                    "searchable": false,
+                    "multiple": false,
+                    "default_value": null,
+                    "visible": true,
+                    "possible_values": []
+                },
+                {
+                    "id": 5,
+                    "name": "Pin text",
+                    "customized_type": "issue",
+                    "field_format": "text",
+                    "regexp": "",
+                    "min_length": null,
+                    "max_length": null,
+                    "is_required": false,
+                    "is_filter": false,
+                    "searchable": false,
+                    "multiple": false,
+                    "default_value": null,
+                    "visible": true,
+                    "possible_values": []
+                },
+                {
+                    "id": 6,
+                    "name": "Pin int",
+                    "customized_type": "issue",
+                    "field_format": "int",
+                    "regexp": "",
+                    "min_length": null,
+                    "max_length": null,
+                    "is_required": false,
+                    "is_filter": false,
+                    "searchable": false,
+                    "multiple": false,
+                    "default_value": null,
+                    "visible": true,
+                    "possible_values": []
+                },
+                {
+                    "id": 7,
+                    "name": "Pin float",
+                    "customized_type": "issue",
+                    "field_format": "float",
+                    "regexp": "",
+                    "min_length": null,
+                    "max_length": null,
+                    "is_required": false,
+                    "is_filter": false,
+                    "searchable": false,
+                    "multiple": false,
+                    "default_value": null,
+                    "visible": true,
+                    "possible_values": []
+                },
+                {
+                    "id": 8,
+                    "name": "Pin date",
+                    "customized_type": "issue",
+                    "field_format": "date",
+                    "regexp": "",
+                    "min_length": null,
+                    "max_length": null,
+                    "is_required": false,
+                    "is_filter": false,
+                    "searchable": false,
+                    "multiple": false,
+                    "default_value": null,
+                    "visible": true,
+                    "possible_values": []
+                },
+                {
+                    "id": 9,
+                    "name": "Pin bool",
+                    "customized_type": "issue",
+                    "field_format": "bool",
+                    "regexp": "",
+                    "min_length": null,
+                    "max_length": null,
+                    "is_required": false,
+                    "is_filter": false,
+                    "searchable": false,
+                    "multiple": false,
+                    "default_value": null,
+                    "visible": true,
+                    "possible_values": []
+                },
+                {
+                    "id": 10,
+                    "name": "Pin user",
+                    "customized_type": "issue",
+                    "field_format": "user",
+                    "regexp": "",
+                    "min_length": null,
+                    "max_length": null,
+                    "is_required": false,
+                    "is_filter": false,
+                    "searchable": false,
+                    "multiple": false,
+                    "default_value": null,
+                    "visible": true,
+                    "possible_values": []
+                },
+                {
+                    "id": 11,
+                    "name": "Pin version",
+                    "customized_type": "issue",
+                    "field_format": "version",
+                    "regexp": "",
+                    "min_length": null,
+                    "max_length": null,
+                    "is_required": false,
+                    "is_filter": false,
+                    "searchable": false,
+                    "multiple": false,
+                    "default_value": null,
+                    "visible": true,
+                    "possible_values": []
+                },
+                {
+                    "id": 12,
+                    "name": "Pin bar",
+                    "customized_type": "issue",
+                    "field_format": "progressbar",
+                    "regexp": "",
+                    "min_length": null,
+                    "max_length": null,
+                    "is_required": false,
+                    "is_filter": false,
+                    "searchable": false,
+                    "multiple": false,
+                    "default_value": null,
+                    "visible": true,
+                    "possible_values": []
+                },
+                {
+                    "id": 13,
+                    "name": "Pin multi",
+                    "customized_type": "issue",
+                    "field_format": "list",
+                    "regexp": "",
+                    "min_length": null,
+                    "max_length": null,
+                    "is_required": false,
+                    "is_filter": false,
+                    "searchable": false,
+                    "multiple": true,
+                    "default_value": null,
+                    "visible": true,
+                    "possible_values": [
+                        {
+                            "value": "alpha"
+                        },
+                        {
+                            "value": "beta"
+                        }
+                    ]
+                },
+                {
+                    "id": 14,
+                    "name": "Pin bare",
+                    "customized_type": "issue",
+                    "field_format": "link",
+                    "regexp": "",
+                    "min_length": null,
+                    "max_length": null,
+                    "is_required": false,
+                    "is_filter": false,
+                    "searchable": false,
+                    "multiple": false,
+                    "default_value": null,
+                    "visible": true,
+                    "possible_values": []
+                },
+                {
+                    "id": 15,
+                    "name": "Pin scheme",
+                    "customized_type": "issue",
+                    "field_format": "link",
+                    "regexp": "",
+                    "min_length": null,
+                    "max_length": null,
+                    "is_required": false,
+                    "is_filter": false,
+                    "searchable": false,
+                    "multiple": false,
+                    "default_value": null,
+                    "visible": true,
+                    "possible_values": []
+                },
+                {
+                    "id": 16,
+                    "name": "History file",
+                    "customized_type": "issue",
+                    "field_format": "attachment",
+                    "regexp": "",
+                    "min_length": null,
+                    "max_length": null,
+                    "is_required": false,
+                    "is_filter": false,
+                    "searchable": false,
+                    "multiple": false,
+                    "default_value": null,
+                    "visible": true,
+                    "possible_values": []
+                },
+                {
+                    "id": 17,
+                    "name": "Role user",
+                    "customized_type": "issue",
+                    "field_format": "user",
+                    "regexp": "",
+                    "min_length": null,
+                    "max_length": null,
+                    "is_required": false,
+                    "is_filter": false,
+                    "searchable": false,
+                    "multiple": false,
+                    "default_value": null,
+                    "visible": true,
+                    "possible_values": []
+                },
+                {
+                    "id": 18,
+                    "name": "Priority note",
+                    "customized_type": "issue_priority",
+                    "field_format": "string",
+                    "regexp": "",
+                    "min_length": null,
+                    "max_length": null,
+                    "is_required": true,
+                    "is_filter": false,
+                    "searchable": false,
+                    "multiple": false,
+                    "default_value": "normal",
+                    "visible": true,
+                    "possible_values": []
+                },
+                {
+                    "id": 19,
+                    "name": "Activity code",
+                    "customized_type": "time_entry_activity",
+                    "field_format": "string",
+                    "regexp": "",
+                    "min_length": null,
+                    "max_length": null,
+                    "is_required": false,
+                    "is_filter": false,
+                    "searchable": false,
+                    "multiple": false,
+                    "default_value": null,
+                    "visible": false,
+                    "possible_values": []
+                },
+                {
+                    "id": 20,
+                    "name": "Category tag",
+                    "customized_type": "document_category",
+                    "field_format": "string",
+                    "regexp": "",
+                    "min_length": null,
+                    "max_length": null,
+                    "is_required": false,
+                    "is_filter": false,
+                    "searchable": false,
+                    "multiple": false,
+                    "default_value": "guide",
+                    "visible": true,
+                    "possible_values": []
+                },
+                {
+                    "id": 21,
+                    "name": "Doc label",
+                    "customized_type": "document",
+                    "field_format": "string",
+                    "regexp": "",
+                    "min_length": null,
+                    "max_length": null,
+                    "is_required": true,
+                    "is_filter": false,
+                    "searchable": false,
+                    "multiple": false,
+                    "default_value": "unset",
+                    "visible": true,
+                    "possible_values": []
+                },
+                {
+                    "id": 22,
+                    "name": "Project label",
+                    "customized_type": "project",
+                    "field_format": "string",
+                    "regexp": "",
+                    "min_length": null,
+                    "max_length": null,
+                    "is_required": false,
+                    "is_filter": true,
+                    "searchable": false,
+                    "multiple": false,
+                    "default_value": null,
+                    "visible": true,
+                    "possible_values": []
+                },
+                {
+                    "id": 23,
+                    "name": "Project budget",
+                    "customized_type": "project",
+                    "field_format": "float",
+                    "regexp": "",
+                    "min_length": null,
+                    "max_length": null,
+                    "is_required": false,
+                    "is_filter": true,
+                    "searchable": false,
+                    "multiple": false,
+                    "default_value": null,
+                    "visible": true,
+                    "possible_values": []
+                },
+                {
+                    "id": 24,
+                    "name": "Project secret",
+                    "customized_type": "project",
+                    "field_format": "string",
+                    "regexp": "",
+                    "min_length": null,
+                    "max_length": null,
+                    "is_required": false,
+                    "is_filter": true,
+                    "searchable": false,
+                    "multiple": false,
+                    "default_value": null,
+                    "visible": false,
+                    "possible_values": []
+                },
+                {
+                    "id": 25,
+                    "name": "Project seats",
+                    "customized_type": "project",
+                    "field_format": "int",
+                    "regexp": "",
+                    "min_length": null,
+                    "max_length": null,
+                    "is_required": false,
+                    "is_filter": false,
+                    "searchable": false,
+                    "multiple": false,
+                    "default_value": null,
+                    "visible": true,
+                    "possible_values": []
+                },
+                {
+                    "id": 26,
+                    "name": "Project lane",
+                    "customized_type": "project",
+                    "field_format": "list",
+                    "regexp": "",
+                    "min_length": null,
+                    "max_length": null,
+                    "is_required": false,
+                    "is_filter": true,
+                    "searchable": false,
+                    "multiple": false,
+                    "default_value": null,
+                    "visible": true,
+                    "possible_values": [
+                        {
+                            "value": "alpha"
+                        },
+                        {
+                            "value": "beta"
+                        }
+                    ]
+                }
+            ],
+            "total_count": 26,
+            "offset": 0,
+            "limit": 100
+        }
+    },
+    "custom_field": {
+        "status": 200,
+        "body": {
+            "custom_field": {
+                "id": 1,
+                "name": "Pin string",
+                "customized_type": "issue",
+                "field_format": "string",
+                "regexp": "",
+                "min_length": null,
+                "max_length": null,
+                "is_required": false,
+                "is_filter": true,
+                "searchable": false,
+                "multiple": false,
+                "default_value": null,
+                "visible": true,
+                "possible_values": [],
+                "trackers": [
+                    {
+                        "id": 1,
+                        "name": "Bug"
+                    }
+                ]
+            }
+        }
+    },
+    "queries": {
+        "status": 200,
+        "body": {
+            "queries": [
+                {
+                    "id": 4,
+                    "name": "Ada global",
+                    "is_public": false,
+                    "project_id": null
+                },
+                {
+                    "id": 3,
+                    "name": "Closed public",
+                    "is_public": true,
+                    "project_id": 1
+                },
+                {
+                    "id": 6,
+                    "name": "Open board",
+                    "is_public": true,
+                    "project_id": 1
+                },
+                {
+                    "id": 2,
+                    "name": "Open for developers",
+                    "is_public": false,
+                    "project_id": 1
+                },
+                {
+                    "id": 5,
+                    "name": "Open for managers",
+                    "is_public": false,
+                    "project_id": 1
+                },
+                {
+                    "id": 1,
+                    "name": "Open on parity-core",
+                    "is_public": false,
+                    "project_id": 1
+                }
+            ],
+            "total_count": 6,
+            "offset": 0,
+            "limit": 100
+        }
+    },
+    "query": {
+        "status": 200,
+        "body": {
+            "query": {
+                "id": 1,
+                "name": "Open on parity-core",
+                "is_public": false,
+                "project_id": 1
+            }
+        }
+    },
+    "roles": {
+        "status": 200,
+        "body": {
+            "roles": [
+                {
+                    "id": 1,
+                    "name": "Developer"
+                },
+                {
+                    "id": 2,
+                    "name": "Manager"
+                },
+                {
+                    "id": 3,
+                    "name": "Non member"
+                },
+                {
+                    "id": 4,
+                    "name": "Anonymous"
+                },
+                {
+                    "id": 5,
+                    "name": "Observer"
+                },
+                {
+                    "id": 6,
+                    "name": "Directory"
+                },
+                {
+                    "id": 7,
+                    "name": "Hour own"
+                }
+            ],
+            "total_count": 7,
+            "offset": 0,
+            "limit": 25
+        }
+    },
+    "role": {
+        "status": 200,
+        "body": {
+            "role": {
+                "id": 1,
+                "name": "Developer",
+                "assignable": true,
+                "builtin": 0,
+                "permissions": [
+                    "view_issues",
+                    "add_issues",
+                    "edit_issues",
+                    "edit_own_issues",
+                    "add_issue_notes",
+                    "edit_own_issue_notes",
+                    "view_issue_watchers",
+                    "add_issue_watchers",
+                    "view_time_entries",
+                    "log_time",
+                    "save_queries"
+                ]
+            }
+        }
+    },
+    "groups": {
+        "status": 200,
+        "body": {
+            "groups": [
+                {
+                    "id": 3,
+                    "name": "Platform",
+                    "users": [
+                        {
+                            "id": 1,
+                            "name": "Ada Lovelace"
+                        }
+                    ]
+                }
+            ],
+            "total_count": 1,
+            "offset": 0,
+            "limit": 100
+        }
+    },
+    "group": {
+        "status": 200,
+        "body": {
+            "group": {
+                "id": 3,
+                "name": "Platform",
+                "users": [
+                    {
+                        "id": 1,
+                        "name": "Ada Lovelace"
+                    }
+                ]
+            }
+        }
+    },
+    "news": {
+        "status": 200,
+        "body": {
+            "news": [],
+            "total_count": 0,
+            "offset": 0,
+            "limit": 25
+        }
+    },
+    "attachment": {
+        "status": 200,
+        "body": {
+            "attachment": {
+                "id": 1,
+                "filename": "before.pdf",
+                "filesize": 12,
+                "content_type": "application/pdf",
+                "description": "",
+                "content_url": "/attachments/1",
+                "author": {
+                    "id": 1,
+                    "name": "Ada Lovelace"
+                },
+                "created_on": "2026-08-26T12:00:00Z"
+            }
+        }
+    },
+    "journals": {
+        "status": 200,
+        "body": {
+            "journals": [
+                {
+                    "id": 1,
+                    "user": {
+                        "id": 1,
+                        "name": "Ada Lovelace"
+                    },
+                    "notes": "Opened from the parity pin.",
+                    "created_on": "2026-08-26T12:00:00Z",
+                    "private_notes": false,
+                    "details": [
+                        {
+                            "property": "attr",
+                            "name": "subject",
+                            "old_value": null,
+                            "new_value": "Parity pin parent"
+                        }
+                    ]
+                },
+                {
+                    "id": 2,
+                    "user": {
+                        "id": 2,
+                        "name": "Pin Admin"
+                    },
+                    "notes": "Private note stored on the pin.",
+                    "created_on": "2026-08-26T12:05:00Z",
+                    "private_notes": true,
+                    "details": []
+                },
+                {
+                    "id": 5,
+                    "user": {
+                        "id": 1,
+                        "name": "Ada Lovelace"
+                    },
+                    "notes": null,
+                    "created_on": "2026-08-26T13:00:00Z",
+                    "private_notes": false,
+                    "details": [
+                        {
+                            "property": "attr",
+                            "name": "status_id",
+                            "old_value": "1",
+                            "new_value": "2"
+                        },
+                        {
+                            "property": "attr",
+                            "name": "done_ratio",
+                            "old_value": "0",
+                            "new_value": "30"
+                        },
+                        {
+                            "property": "attr",
+                            "name": "subject",
+                            "old_value": "Parity pin parent",
+                            "new_value": "Renamed parent"
+                        },
+                        {
+                            "property": "attr",
+                            "name": "description",
+                            "old_value": "before",
+                            "new_value": "after"
+                        },
+                        {
+                            "property": "attr",
+                            "name": "priority_id",
+                            "old_value": "1",
+                            "new_value": "2"
+                        },
+                        {
+                            "property": "attr",
+                            "name": "assigned_to_id",
+                            "old_value": "1",
+                            "new_value": "4"
+                        },
+                        {
+                            "property": "attr",
+                            "name": "start_date",
+                            "old_value": "2026-08-26",
+                            "new_value": "2026-09-01"
+                        },
+                        {
+                            "property": "attr",
+                            "name": "due_date",
+                            "old_value": null,
+                            "new_value": "2026-09-30"
+                        },
+                        {
+                            "property": "attr",
+                            "name": "estimated_hours",
+                            "old_value": "2.5",
+                            "new_value": "3"
+                        },
+                        {
+                            "property": "attr",
+                            "name": "is_private",
+                            "old_value": "0",
+                            "new_value": "1"
+                        },
+                        {
+                            "property": "attr",
+                            "name": "parent_id",
+                            "old_value": null,
+                            "new_value": "2"
+                        },
+                        {
+                            "property": "attr",
+                            "name": "tracker_id",
+                            "old_value": "1",
+                            "new_value": "2"
+                        },
+                        {
+                            "property": "attr",
+                            "name": "category_id",
+                            "old_value": "1",
+                            "new_value": null
+                        },
+                        {
+                            "property": "attr",
+                            "name": "fixed_version_id",
+                            "old_value": "1",
+                            "new_value": "2"
+                        },
+                        {
+                            "property": "attr",
+                            "name": "project_id",
+                            "old_value": "1",
+                            "new_value": "2"
+                        },
+                        {
+                            "property": "attachment",
+                            "name": "1",
+                            "old_value": null,
+                            "new_value": "spec.pdf"
+                        },
+                        {
+                            "property": "attachment",
+                            "name": "2",
+                            "old_value": "draft.pdf",
+                            "new_value": null
+                        },
+                        {
+                            "property": "relation",
+                            "name": "relates",
+                            "old_value": null,
+                            "new_value": "2"
+                        },
+                        {
+                            "property": "relation",
+                            "name": "duplicates",
+                            "old_value": "2",
+                            "new_value": null
+                        },
+                        {
+                            "property": "relation",
+                            "name": "blocks",
+                            "old_value": null,
+                            "new_value": "4"
+                        },
+                        {
+                            "property": "cf",
+                            "name": "1",
+                            "old_value": "pin",
+                            "new_value": "next"
+                        },
+                        {
+                            "property": "cf",
+                            "name": "3",
+                            "old_value": "1",
+                            "new_value": "2"
+                        },
+                        {
+                            "property": "cf",
+                            "name": "4",
+                            "old_value": "pin-link",
+                            "new_value": "other"
+                        },
+                        {
+                            "property": "cf",
+                            "name": "5",
+                            "old_value": "old body",
+                            "new_value": "new body"
+                        },
+                        {
+                            "property": "cf",
+                            "name": "6",
+                            "old_value": "7",
+                            "new_value": "42"
+                        },
+                        {
+                            "property": "cf",
+                            "name": "7",
+                            "old_value": "1.5",
+                            "new_value": "2.25"
+                        },
+                        {
+                            "property": "cf",
+                            "name": "8",
+                            "old_value": "2026-08-01",
+                            "new_value": "2026-08-26"
+                        },
+                        {
+                            "property": "cf",
+                            "name": "9",
+                            "old_value": "0",
+                            "new_value": "1"
+                        },
+                        {
+                            "property": "cf",
+                            "name": "10",
+                            "old_value": "1",
+                            "new_value": "4"
+                        },
+                        {
+                            "property": "cf",
+                            "name": "11",
+                            "old_value": "1",
+                            "new_value": "2"
+                        },
+                        {
+                            "property": "cf",
+                            "name": "12",
+                            "old_value": "40",
+                            "new_value": "50"
+                        },
+                        {
+                            "property": "cf",
+                            "name": "13",
+                            "old_value": "alpha",
+                            "new_value": "alpha,beta"
+                        },
+                        {
+                            "property": "cf",
+                            "name": "16",
+                            "old_value": "1",
+                            "new_value": "2"
+                        },
+                        {
+                            "property": "cf",
+                            "name": "99",
+                            "old_value": "a",
+                            "new_value": "b"
+                        }
+                    ]
+                },
+                {
+                    "id": 6,
+                    "user": {
+                        "id": 1,
+                        "name": "Ada Lovelace"
+                    },
+                    "notes": null,
+                    "created_on": "2026-08-26T13:05:00Z",
+                    "private_notes": false,
+                    "details": [
+                        {
+                            "property": "cf",
+                            "name": "13",
+                            "old_value": null,
+                            "new_value": "beta"
+                        }
+                    ]
+                },
+                {
+                    "id": 7,
+                    "user": {
+                        "id": 1,
+                        "name": "Ada Lovelace"
+                    },
+                    "notes": "Ada hid this remark.",
+                    "created_on": "2026-08-26T13:10:00Z",
+                    "private_notes": true,
+                    "details": []
+                },
+                {
+                    "id": 8,
+                    "user": {
+                        "id": 2,
+                        "name": "Pin Admin"
+                    },
+                    "notes": "Manager left a remark.",
+                    "created_on": "2026-08-26T13:15:00Z",
+                    "private_notes": false,
+                    "details": []
+                }
+            ]
+        }
+    },
+    "journal": {
+        "status": 200,
+        "body": {
+            "journal": {
+                "id": 1,
+                "user": {
+                    "id": 1,
+                    "name": "Ada Lovelace"
+                },
+                "notes": "Opened from the parity pin.",
+                "created_on": "2026-08-26T12:00:00Z",
+                "private_notes": false,
+                "details": [
+                    {
+                        "property": "attr",
+                        "name": "subject",
+                        "old_value": null,
+                        "new_value": "Parity pin parent"
+                    }
+                ]
+            }
+        }
+    },
+    "search": {
+        "status": 200,
+        "body": {
+            "results": [
+                {
+                    "id": 2,
+                    "title": "Parity pin subtask",
+                    "type": "issue",
+                    "url": "/issues/2",
+                    "description": "Synthetic subtask nested under the parent issue.",
+                    "datetime": "2026-08-26T12:00:00Z"
+                },
+                {
+                    "id": 1,
+                    "title": "Parity pin parent",
+                    "type": "issue",
+                    "url": "/issues/1",
+                    "description": "Synthetic parent issue for the parity pin.",
+                    "datetime": "2026-08-26T12:00:00Z"
+                },
+                {
+                    "id": 1,
+                    "title": "Parity Core",
+                    "type": "project",
+                    "url": "/projects/parity-core",
+                    "description": "Synthetic parent project for the parity pin.",
+                    "datetime": "2026-08-26T12:00:00Z"
+                },
+                {
+                    "id": 2,
+                    "title": "Parity Child",
+                    "type": "project",
+                    "url": "/projects/parity-child",
+                    "description": "Synthetic child project nested inside Parity Core.",
+                    "datetime": "2026-08-26T12:00:00Z"
+                }
+            ],
+            "total_count": 4,
+            "offset": 0,
+            "limit": 25
+        }
+    },
+    "issue_include_ada": {
+        "status": 200,
+        "body": {
+            "issue": {
+                "id": 1,
+                "project": {
+                    "id": 1,
+                    "name": "Parity Core"
+                },
+                "tracker": {
+                    "id": 1,
+                    "name": "Bug"
+                },
+                "status": {
+                    "id": 1,
+                    "name": "New",
+                    "is_closed": false
+                },
+                "priority": {
+                    "id": 1,
+                    "name": "Normal"
+                },
+                "author": {
+                    "id": 1,
+                    "name": "Ada Lovelace"
+                },
+                "assigned_to": {
+                    "id": 1,
+                    "name": "Ada Lovelace"
+                },
+                "category": {
+                    "id": 1,
+                    "name": "Backend"
+                },
+                "fixed_version": {
+                    "id": 1,
+                    "name": "1.0"
+                },
+                "subject": "Parity pin parent",
+                "description": "Synthetic parent issue for the parity pin.",
+                "start_date": "2026-08-26",
+                "due_date": "2026-09-02",
+                "done_ratio": 0,
+                "is_private": false,
+                "estimated_hours": 2.5,
+                "total_estimated_hours": 2.5,
+                "spent_hours": 4.5,
+                "total_spent_hours": 4.5,
+                "custom_fields": [
+                    {
+                        "id": 1,
+                        "name": "Pin string",
+                        "value": "pin"
+                    },
+                    {
+                        "id": 2,
+                        "name": "Pin list",
+                        "value": "alpha"
+                    },
+                    {
+                        "id": 3,
+                        "name": "Pin enum",
+                        "value": "1"
+                    },
+                    {
+                        "id": 4,
+                        "name": "Pin link",
+                        "value": "pin-link"
+                    },
+                    {
+                        "id": 5,
+                        "name": "Pin text",
+                        "value": "note"
+                    },
+                    {
+                        "id": 6,
+                        "name": "Pin int",
+                        "value": "42"
+                    },
+                    {
+                        "id": 7,
+                        "name": "Pin float",
+                        "value": "1.5"
+                    },
+                    {
+                        "id": 8,
+                        "name": "Pin date",
+                        "value": "2026-08-26"
+                    },
+                    {
+                        "id": 9,
+                        "name": "Pin bool",
+                        "value": "1"
+                    },
+                    {
+                        "id": 10,
+                        "name": "Pin user",
+                        "value": "1"
+                    },
+                    {
+                        "id": 11,
+                        "name": "Pin version",
+                        "value": "1"
+                    },
+                    {
+                        "id": 12,
+                        "name": "Pin bar",
+                        "value": "50"
+                    },
+                    {
+                        "id": 13,
+                        "name": "Pin multi",
+                        "value": [
+                            "alpha",
+                            "beta"
+                        ]
+                    },
+                    {
+                        "id": 14,
+                        "name": "Pin bare",
+                        "value": "example.test/a"
+                    },
+                    {
+                        "id": 15,
+                        "name": "Pin scheme",
+                        "value": "https://already.test/a"
+                    }
+                ],
+                "created_on": "2026-08-26T12:00:00Z",
+                "updated_on": "2026-08-26T12:00:00Z",
+                "closed_on": null,
+                "journals": [
+                    {
+                        "id": 1,
+                        "user": {
+                            "id": 1,
+                            "name": "Ada Lovelace"
+                        },
+                        "notes": "Opened from the parity pin.",
+                        "created_on": "2026-08-26T12:00:00Z",
+                        "private_notes": false,
+                        "details": [
+                            {
+                                "property": "attr",
+                                "name": "subject",
+                                "old_value": null,
+                                "new_value": "Parity pin parent"
+                            }
+                        ]
+                    },
+                    {
+                        "id": 5,
+                        "user": {
+                            "id": 1,
+                            "name": "Ada Lovelace"
+                        },
+                        "notes": null,
+                        "created_on": "2026-08-26T13:00:00Z",
+                        "private_notes": false,
+                        "details": [
+                            {
+                                "property": "attr",
+                                "name": "status_id",
+                                "old_value": "1",
+                                "new_value": "2"
+                            },
+                            {
+                                "property": "attr",
+                                "name": "done_ratio",
+                                "old_value": "0",
+                                "new_value": "30"
+                            },
+                            {
+                                "property": "attr",
+                                "name": "subject",
+                                "old_value": "Parity pin parent",
+                                "new_value": "Renamed parent"
+                            },
+                            {
+                                "property": "attr",
+                                "name": "description",
+                                "old_value": "before",
+                                "new_value": "after"
+                            },
+                            {
+                                "property": "attr",
+                                "name": "priority_id",
+                                "old_value": "1",
+                                "new_value": "2"
+                            },
+                            {
+                                "property": "attr",
+                                "name": "assigned_to_id",
+                                "old_value": "1",
+                                "new_value": "4"
+                            },
+                            {
+                                "property": "attr",
+                                "name": "start_date",
+                                "old_value": "2026-08-26",
+                                "new_value": "2026-09-01"
+                            },
+                            {
+                                "property": "attr",
+                                "name": "due_date",
+                                "old_value": null,
+                                "new_value": "2026-09-30"
+                            },
+                            {
+                                "property": "attr",
+                                "name": "estimated_hours",
+                                "old_value": "2.5",
+                                "new_value": "3"
+                            },
+                            {
+                                "property": "attr",
+                                "name": "is_private",
+                                "old_value": "0",
+                                "new_value": "1"
+                            },
+                            {
+                                "property": "attr",
+                                "name": "parent_id",
+                                "old_value": null,
+                                "new_value": "2"
+                            },
+                            {
+                                "property": "attr",
+                                "name": "tracker_id",
+                                "old_value": "1",
+                                "new_value": "2"
+                            },
+                            {
+                                "property": "attr",
+                                "name": "category_id",
+                                "old_value": "1",
+                                "new_value": null
+                            },
+                            {
+                                "property": "attr",
+                                "name": "fixed_version_id",
+                                "old_value": "1",
+                                "new_value": "2"
+                            },
+                            {
+                                "property": "attr",
+                                "name": "project_id",
+                                "old_value": "1",
+                                "new_value": "2"
+                            },
+                            {
+                                "property": "attachment",
+                                "name": "1",
+                                "old_value": null,
+                                "new_value": "spec.pdf"
+                            },
+                            {
+                                "property": "attachment",
+                                "name": "2",
+                                "old_value": "draft.pdf",
+                                "new_value": null
+                            },
+                            {
+                                "property": "relation",
+                                "name": "relates",
+                                "old_value": null,
+                                "new_value": "2"
+                            },
+                            {
+                                "property": "relation",
+                                "name": "duplicates",
+                                "old_value": "2",
+                                "new_value": null
+                            },
+                            {
+                                "property": "relation",
+                                "name": "blocks",
+                                "old_value": null,
+                                "new_value": "4"
+                            },
+                            {
+                                "property": "cf",
+                                "name": "1",
+                                "old_value": "pin",
+                                "new_value": "next"
+                            },
+                            {
+                                "property": "cf",
+                                "name": "3",
+                                "old_value": "1",
+                                "new_value": "2"
+                            },
+                            {
+                                "property": "cf",
+                                "name": "4",
+                                "old_value": "pin-link",
+                                "new_value": "other"
+                            },
+                            {
+                                "property": "cf",
+                                "name": "5",
+                                "old_value": "old body",
+                                "new_value": "new body"
+                            },
+                            {
+                                "property": "cf",
+                                "name": "6",
+                                "old_value": "7",
+                                "new_value": "42"
+                            },
+                            {
+                                "property": "cf",
+                                "name": "7",
+                                "old_value": "1.5",
+                                "new_value": "2.25"
+                            },
+                            {
+                                "property": "cf",
+                                "name": "8",
+                                "old_value": "2026-08-01",
+                                "new_value": "2026-08-26"
+                            },
+                            {
+                                "property": "cf",
+                                "name": "9",
+                                "old_value": "0",
+                                "new_value": "1"
+                            },
+                            {
+                                "property": "cf",
+                                "name": "10",
+                                "old_value": "1",
+                                "new_value": "4"
+                            },
+                            {
+                                "property": "cf",
+                                "name": "11",
+                                "old_value": "1",
+                                "new_value": "2"
+                            },
+                            {
+                                "property": "cf",
+                                "name": "12",
+                                "old_value": "40",
+                                "new_value": "50"
+                            },
+                            {
+                                "property": "cf",
+                                "name": "13",
+                                "old_value": "alpha",
+                                "new_value": "alpha,beta"
+                            },
+                            {
+                                "property": "cf",
+                                "name": "16",
+                                "old_value": "1",
+                                "new_value": "2"
+                            },
+                            {
+                                "property": "cf",
+                                "name": "99",
+                                "old_value": "a",
+                                "new_value": "b"
+                            }
+                        ]
+                    },
+                    {
+                        "id": 6,
+                        "user": {
+                            "id": 1,
+                            "name": "Ada Lovelace"
+                        },
+                        "notes": null,
+                        "created_on": "2026-08-26T13:05:00Z",
+                        "private_notes": false,
+                        "details": [
+                            {
+                                "property": "cf",
+                                "name": "13",
+                                "old_value": null,
+                                "new_value": "beta"
+                            }
+                        ]
+                    },
+                    {
+                        "id": 8,
+                        "user": {
+                            "id": 2,
+                            "name": "Pin Admin"
+                        },
+                        "notes": "Manager left a remark.",
+                        "created_on": "2026-08-26T13:15:00Z",
+                        "private_notes": false,
+                        "details": []
+                    }
+                ]
+            }
+        }
+    },
+    "issue_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<issue><id>1</id><project><id>1</id><name>Parity Core</name></project><tracker><id>1</id><name>Bug</name></tracker><status><id>1</id><name>New</name><is_closed>false</is_closed></status><priority><id>1</id><name>Normal</name></priority><author><id>1</id><name>Ada Lovelace</name></author><assigned_to><id>1</id><name>Ada Lovelace</name></assigned_to><category><id>1</id><name>Backend</name></category><fixed_version><id>1</id><name>1.0</name></fixed_version><subject>Parity pin parent</subject><description>Synthetic parent issue for the parity pin.</description><start_date>2026-08-26</start_date><due_date>2026-09-02</due_date><done_ratio>0</done_ratio><is_private>false</is_private><estimated_hours>2.5</estimated_hours><total_estimated_hours>2.5</total_estimated_hours><spent_hours>4.5</spent_hours><total_spent_hours>4.5</total_spent_hours><custom_fields type=\"array\"><custom_field><id>1</id><name>Pin string</name><value>pin</value></custom_field><custom_field><id>2</id><name>Pin list</name><value>alpha</value></custom_field><custom_field><id>3</id><name>Pin enum</name><value>1</value></custom_field><custom_field><id>4</id><name>Pin link</name><value>pin-link</value></custom_field><custom_field><id>5</id><name>Pin text</name><value>note</value></custom_field><custom_field><id>6</id><name>Pin int</name><value>42</value></custom_field><custom_field><id>7</id><name>Pin float</name><value>1.5</value></custom_field><custom_field><id>8</id><name>Pin date</name><value>2026-08-26</value></custom_field><custom_field><id>9</id><name>Pin bool</name><value>1</value></custom_field><custom_field><id>10</id><name>Pin user</name><value>1</value></custom_field><custom_field><id>11</id><name>Pin version</name><value>1</value></custom_field><custom_field><id>12</id><name>Pin bar</name><value>50</value></custom_field><custom_field><id>13</id><name>Pin multi</name><value type=\"array\"><value>alpha</value><value>beta</value></value></custom_field><custom_field><id>14</id><name>Pin bare</name><value>example.test/a</value></custom_field><custom_field><id>15</id><name>Pin scheme</name><value>https://already.test/a</value></custom_field></custom_fields><created_on>2026-08-26T12:00:00Z</created_on><updated_on>2026-08-26T12:00:00Z</updated_on><closed_on nil=\"true\"/></issue>",
+    "issues_xml": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<issues type=\"array\" total_count=\"5\" offset=\"0\" limit=\"1\"><issue><id>6</id><project><id>1</id><name>Parity Core</name></project><tracker><id>2</id><name>Feature</name></tracker><status><id>2</id><name>In Progress</name><is_closed>false</is_closed></status><priority><id>2</id><name>High</name></priority><author><id>2</id><name>Pin Admin</name></author><assigned_to><id>3</id><name>Platform</name></assigned_to><category><id>1</id><name>Backend</name></category><fixed_version><id>1</id><name>1.0</name></fixed_version><subject>Grouped assignee</subject><description>Open feature assigned to a group.</description><start_date>2026-09-01</start_date><due_date nil=\"true\"/><done_ratio>0</done_ratio><is_private>false</is_private><estimated_hours nil=\"true\"/><total_estimated_hours>0</total_estimated_hours><spent_hours>0.5</spent_hours><total_spent_hours>0.5</total_spent_hours><custom_fields type=\"array\"></custom_fields><created_on>2026-08-01T10:00:00Z</created_on><updated_on>2026-08-10T10:00:00Z</updated_on><closed_on nil=\"true\"/></issue></issues>"
+}

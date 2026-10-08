@@ -31,6 +31,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'oauth/token',
             'oauth/revoke',
+            '*.json',
+            '*.xml',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

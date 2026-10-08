@@ -2,12 +2,14 @@
     "routes": [
         "DELETE projects/{project}/wiki",
         "DELETE projects/{project}/wiki/{title}",
+        "DELETE projects/{project}/wiki/{title}.{format}",
         "DELETE projects/{project}/wiki/{title}/{version}",
         "GET projects/{project}/wiki",
         "GET projects/{project}/wiki/date_index",
         "GET projects/{project}/wiki/export",
         "GET projects/{project}/wiki/export.{format}",
         "GET projects/{project}/wiki/index",
+        "GET projects/{project}/wiki/index.{format}",
         "GET projects/{project}/wiki/new",
         "GET projects/{project}/wiki/{title}",
         "GET projects/{project}/wiki/{title}.{format}",
@@ -25,6 +27,7 @@
         "POST projects/{project}/wiki/{title}/protect",
         "POST projects/{project}/wiki/{title}/rename",
         "PUT projects/{project}/wiki",
+        "PUT projects/{project}/wiki/{title}.{format}",
         "PUT|POST projects/{project}/wiki/{title}"
     ],
     "guest_html": 302,

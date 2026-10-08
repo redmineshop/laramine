@@ -283,7 +283,7 @@ class ActivityParityTest extends TestCase
         $this->assertMatchesRegularExpression('/^\| Activity for wiki and messages \| VERIFIED \|/m', $checklist);
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/expectations/activity/modules.json', $checklist);
         $this->assertMatchesRegularExpression('/^\| Activity for changesets \| NOT VERIFIED \|/m', $checklist);
-        $this->assertMatchesRegularExpression('/^\| Users and authentication — full REST API \| NOT VERIFIED \|/m', $checklist);
+        $this->assertMatchesRegularExpression('/^\| Users and authentication — full REST API \| VERIFIED \|/m', $checklist);
     }
 
     /**

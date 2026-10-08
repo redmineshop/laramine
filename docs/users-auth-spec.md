@@ -1,6 +1,6 @@
 # Users and authentication spec
 
-**Status: founder lock 2026-10-07. Phases 1–10 are implemented.** The Phase 2 checklist row is **VERIFIED** by `tests/Parity/UsersAuthParityTest.php`. The later-phase sub-rows are **VERIFIED** by `tests/Parity/UsersAuthGapParityTest.php`. Outbound mail is **VERIFIED** by `tests/Parity/NotificationParityTest.php`. Activity for issues, journals, and time entries is **VERIFIED** by `tests/Parity/ActivityParityTest.php`. OpenID Connect, live LDAP, and the rest of the REST API stay **NOT VERIFIED**. This is not a 0.1 tag and it is not production-ready. A green feature test by itself is Laramine behavior. `users_visibility` is compared on the identity row.
+**Status: founder lock 2026-10-07. Phases 1–10 are implemented.** The Phase 2 checklist row is **VERIFIED** by `tests/Parity/UsersAuthParityTest.php`. The later-phase sub-rows are **VERIFIED** by `tests/Parity/UsersAuthGapParityTest.php`. Outbound mail is **VERIFIED** by `tests/Parity/NotificationParityTest.php`. Activity for issues, journals, and time entries is **VERIFIED** by `tests/Parity/ActivityParityTest.php`. OpenID Connect is **N/A**. The full REST API row is **VERIFIED** by `tests/Parity/RestApiParityTest.php`. Live LDAP stays **NOT VERIFIED**. This is not a 0.1 tag and it is not production-ready. A green feature test by itself is Laramine behavior. `users_visibility` is compared on the identity row.
 
 Column lists stay in [schema-inventory.md](schema-inventory.md) (section “1. Identity / ACL”) and in the structure dump [sources/redmine-7.0.1-schema.rb](sources/redmine-7.0.1-schema.rb). This file does not copy that inventory and does not copy Redmine Ruby.
 
@@ -83,7 +83,7 @@ The sixteen decisions below are closed. A later slice follows them. If a new pro
 | 3 | `auth_sources` / LDAP, including on-the-fly registration | Landed. `MemoryLdapDirectory` is the tested adapter. A live directory is not implemented. |
 | 4 | Two-factor scheme, TOTP, backup codes | Landed. Setting `twofa` is `0` disabled, `1` optional, `2` required for administrators, `3` required. A disabled setting ignores a stored scheme. |
 | 5 | OAuth services on the existing `oauth_*` tables | Landed for the authorization-code grant, PKCE (`S256` and `plain`), and refresh-token rotation. OpenID Connect and an external identity provider are not in 7.0.1 core and are not implemented. |
-| 6 | API and feed tokens | Landed. `GET /users/current.json` accepts `X-Redmine-API-Key`, `key`, HTTP basic, and a bearer access token when `rest_api_enabled` is on. `GET /my.atom` accepts a `feeds` key and renders that account's activity feed. The activity comparison is the Activity checklist row. This is not the rest of the REST API. |
+| 6 | API and feed tokens | Landed. `GET /users/current.json` accepts `X-Redmine-API-Key`, `key`, HTTP basic, and a bearer access token when `rest_api_enabled` is on. `GET /my.atom` accepts a `feeds` key and renders that account's activity feed. The activity comparison is the Activity checklist row. The full REST API is the separate checklist row. |
 | 7 | User directory, running `UserQuery` | Landed. `UserQueryRunner` applies `UserVisibility`. `users_visibility` itself stays on the identity row. The queries checklist row stays IssueQuery. |
 | 8 | Account administration under `users.admin` | Landed. Create, edit, lock, unlock, activate, delete, and group membership. Delete reassigns authorship to `AnonymousUser` and fails closed when that row is missing. |
 | 9 | Mail-notification values and the `user_preferences.others` codec | Landed. `others` is a JSON object. Text that is not a JSON object is ignored on read. Delivery is the outbound mail row. |
@@ -158,7 +158,7 @@ Laravel `sessions` is the Phase 1 web session store. `sessions.user_id` referenc
 - `user_preferences.others` is JSON. A Ruby YAML document in that column is ignored on read. `gantt_zoom` (`1` through `4`) and `gantt_months` (a positive integer) are stored as strings when a signed-in user changes the gantt window. Those two keys are compared on the calendar and Gantt row. The preferences comparison itself stays `expectations/users-auth/gap.json`.
 - `settings.notified_events` is JSON. Message ids have no random suffix. A blank `mail_notification` does not receive mail. Lock and unlock queue an informational message. The HTTP notice still does not include the token value; the mail body does. News, document, and file mail, and message and wiki mail, are compared on their notification rows.
 - `users_visibility` is applied by `UserVisibility` on the ACL path and on the user directory. The Phase 2 sign-in comparison does not read it.
-- OpenID Connect, a live LDAP directory, and the rest of the REST API are not implemented. Activity Atom feeds cover issues, journals, time entries, news, documents, files, wiki edits, and messages. Changesets have no activity provider.
+- OpenID Connect is not in the 7.0.1 schema pin. A live LDAP directory is not implemented. The REST API is compared by `tests/Parity/RestApiParityTest.php`. Activity Atom feeds cover issues, journals, time entries, news, documents, files, wiki edits, and messages. Changesets have no activity provider.
 - The forty-zero placeholder never verifies, even if a digest collided with it.
 - Posted passwords are not trimmed. Identifiers are trimmed.
 - A wrong password stays on the generic notice. Locked and registered accounts get their own notice only after the digest matches.
@@ -166,12 +166,12 @@ Laravel `sessions` is the Phase 1 web session store. `sessions.user_id` referenc
 
 ## What the parity row covers
 
-`tests/Parity/UsersAuthParityTest.php` loads the shared pin and compares digest check, session login and logout, status notices, `must_change_passwd`, and the `recovery` / `register` token rules to `tests/Parity/fixtures/redmine-7.0.1/expectations/users-auth/sign-in.json`. `tests/Parity/UsersAuthGapParityTest.php` compares the later phases to `tests/Parity/fixtures/redmine-7.0.1/expectations/users-auth/gap.json`. Passing the ACL/workflow smoke does not close users and auth. `users_visibility` is part of the identity comparison. OpenID Connect, live LDAP, and the rest of the REST API stay out of both comparisons. Outbound mail and activity are separate checklist rows.
+`tests/Parity/UsersAuthParityTest.php` loads the shared pin and compares digest check, session login and logout, status notices, `must_change_passwd`, and the `recovery` / `register` token rules to `tests/Parity/fixtures/redmine-7.0.1/expectations/users-auth/sign-in.json`. `tests/Parity/UsersAuthGapParityTest.php` compares the later phases to `tests/Parity/fixtures/redmine-7.0.1/expectations/users-auth/gap.json`. Passing the ACL/workflow smoke does not close users and auth. `users_visibility` is part of the identity comparison. OpenID Connect and live LDAP stay out of both comparisons. The REST API is a separate checklist row. Outbound mail and activity are separate checklist rows.
 
 ## Checklist links
 
 | Checklist | Users / auth status |
 | --- | --- |
-| [parity-checklist.md](parity-checklist.md) | **VERIFIED** for the Phase 2 row, the later-phase sub-rows that cite a passing pin comparison, the outbound mail row, and the activity row. OpenID Connect, live LDAP, and the rest of the REST API stay **NOT VERIFIED**. `users_visibility` is on the identity row. Not a 0.1 tag. |
+| [parity-checklist.md](parity-checklist.md) | **VERIFIED** for the Phase 2 row, the later-phase sub-rows that cite a passing pin comparison, the outbound mail row, and the activity row. OpenID Connect is **N/A**. The full REST API row is **VERIFIED** by `tests/Parity/RestApiParityTest.php`. Live LDAP stays **NOT VERIFIED**. `users_visibility` is on the identity row. Not a 0.1 tag. |
 | [acl-workflow-parity-gate.md](acl-workflow-parity-gate.md) | Smoke **PASS** is not the checklist. `users_visibility` is applied by `UserVisibility`. The directory comparison is the users and authentication row. Not a 0.1 tag. |
 | [QUALITY.md](../QUALITY.md) | No 0.1 tag. Phase 1 is not a production-ready claim. |

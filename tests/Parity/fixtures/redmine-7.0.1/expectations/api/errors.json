@@ -1,0 +1,164 @@
+{
+    "missing_key": {
+        "status": 401,
+        "body": {
+            "errors": [
+                "Unauthorized"
+            ]
+        }
+    },
+    "unknown_issue": {
+        "status": 404,
+        "body": {
+            "errors": [
+                "Not found"
+            ]
+        }
+    },
+    "unknown_issue_xml": {
+        "status": 404,
+        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<errors type=\"array\"><error>Not found</error></errors>"
+    },
+    "users_forbidden": {
+        "status": 403,
+        "body": {
+            "errors": [
+                "You are not authorized to access this page."
+            ]
+        }
+    },
+    "blank_subject": {
+        "status": 422,
+        "body": {
+            "errors": [
+                "Subject is required."
+            ]
+        }
+    },
+    "blank_search": {
+        "status": 422,
+        "body": {
+            "errors": [
+                "Query is required."
+            ]
+        }
+    },
+    "project_news_module": {
+        "status": 403,
+        "body": {
+            "errors": [
+                "You are not authorized to access this page."
+            ]
+        }
+    },
+    "project_wiki_module": {
+        "status": 403,
+        "body": {
+            "errors": [
+                "You are not authorized to access this page."
+            ]
+        }
+    },
+    "project_files_module": {
+        "status": 403,
+        "body": {
+            "errors": [
+                "You are not authorized to access this page."
+            ]
+        }
+    },
+    "project_boards_module": {
+        "status": 403,
+        "body": {
+            "errors": [
+                "You are not authorized to access this page."
+            ]
+        }
+    },
+    "switch_denied": {
+        "status": 412,
+        "body": {
+            "error": "User impersonation failed"
+        }
+    },
+    "key_query": {
+        "status": 200,
+        "body": {
+            "user": {
+                "id": 1,
+                "login": "ada",
+                "admin": false,
+                "firstname": "Ada",
+                "lastname": "Lovelace",
+                "mail": "ada@parity.test",
+                "created_on": "2026-08-26T12:00:00Z",
+                "last_login_on": null,
+                "status": 1,
+                "api_key": "pinned-api-key",
+                "custom_fields": []
+            }
+        }
+    },
+    "basic_password": {
+        "status": 200,
+        "body": {
+            "user": {
+                "id": 1,
+                "login": "ada",
+                "admin": false,
+                "firstname": "Ada",
+                "lastname": "Lovelace",
+                "mail": "ada@parity.test",
+                "created_on": "2026-08-26T12:00:00Z",
+                "last_login_on": null,
+                "status": 1,
+                "api_key": "pinned-api-key",
+                "custom_fields": []
+            }
+        }
+    },
+    "basic_key": {
+        "status": 200,
+        "body": {
+            "user": {
+                "id": 1,
+                "login": "ada",
+                "admin": false,
+                "firstname": "Ada",
+                "lastname": "Lovelace",
+                "mail": "ada@parity.test",
+                "created_on": "2026-08-26T12:00:00Z",
+                "last_login_on": null,
+                "status": 1,
+                "api_key": "pinned-api-key",
+                "custom_fields": []
+            }
+        }
+    },
+    "switch_user": {
+        "status": 200,
+        "body": {
+            "user": {
+                "id": 1,
+                "login": "ada",
+                "admin": false,
+                "firstname": "Ada",
+                "lastname": "Lovelace",
+                "mail": "ada@parity.test",
+                "created_on": "2026-08-26T12:00:00Z",
+                "last_login_on": null,
+                "status": 1,
+                "api_key": "pinned-api-key",
+                "custom_fields": []
+            }
+        }
+    },
+    "rest_disabled": {
+        "status": 401,
+        "body": {
+            "errors": [
+                "Unauthorized"
+            ]
+        }
+    }
+}
