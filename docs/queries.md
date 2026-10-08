@@ -1,6 +1,6 @@
 # Saved queries and issue filters
 
-Laramine stores saved queries in the Redmine 7.0.1 `queries` and `queries_roles` tables. The queries checklist row is **VERIFIED** only by `tests/Parity/IssueQueryParityTest.php` against the shared pin and `tests/Parity/fixtures/redmine-7.0.1/expectations/queries/results.json`. That comparison is not a 0.1 tag. `ProjectQuery`, `ProjectAdminQuery`, and the descendant hour columns are compared by `tests/Parity/CalendarGanttQueryParityTest.php`. Repository or SCM data stays outside it. Journal presentation of custom-field history stays on the journals row. The HTTP API and the filter form are not part of this slice. `IssueQuery` is the type compared on the queries checklist row. `UserQuery` runs a limited catalog inside `UserVisibility` and is compared on the users and authentication user-directory row. `TimeEntryQuery` runs, and its list, report, and CSV comparison is the time entries row (`tests/Parity/TimeEntryParityTest.php`), not this queries row. `ProjectQuery` and `ProjectAdminQuery` run through `ProjectQueryRunner`.
+Laramine stores saved queries in the Redmine 7.0.1 `queries` and `queries_roles` tables. The queries checklist row is **VERIFIED** by `tests/Parity/IssueQueryParityTest.php` against the shared pin and `tests/Parity/fixtures/redmine-7.0.1/expectations/queries/results.json`, by `tests/Parity/CalendarGanttQueryParityTest.php` for `ProjectQuery`, `ProjectAdminQuery`, and the descendant hour columns (`tests/Parity/fixtures/redmine-7.0.1/expectations/queries/projects-and-hours.json`), and by `tests/Parity/QueryRemainderParityTest.php` for `estimated_remaining_hours`, project custom fields, and `last_activity_date` (`tests/Parity/fixtures/redmine-7.0.1/expectations/queries/remainder.json`). That comparison is not a 0.1 tag. Changeset activity stays N/A: the pin excludes `repositories`, `changesets`, `changes`, `changeset_parents`, and `changesets_issues`. Journal presentation of custom-field history stays on the journals row. The HTTP API and the filter form are not part of this slice. `IssueQuery` is the type compared on the queries checklist row. `UserQuery` runs a limited catalog inside `UserVisibility` and is compared on the users and authentication user-directory row. `TimeEntryQuery` runs, and its list, report, and CSV comparison is the time entries row (`tests/Parity/TimeEntryParityTest.php`), not this queries row. `ProjectQuery` and `ProjectAdminQuery` run through `ProjectQueryRunner`.
 
 ## JSON instead of YAML
 
@@ -145,7 +145,7 @@ When no sort is stored, the order is `issues.id` ascending. `group_by` adds a le
 | `project` | `projects.name` |
 | `category` | `issue_categories.name`. No category sorts as NULL. |
 | `fixed_version` | `versions.name`. No version sorts as NULL. |
-| `id`, `subject`, dates, hours, `parent`, `is_private`, `description`, `project_id`, `category_id`, `fixed_version_id`, and the same names with `_id` where the table above does not already claim them | The issue column |
+| `id`, `subject`, dates, hours, `estimated_remaining_hours`, `parent`, `is_private`, `description`, `project_id`, `category_id`, `fixed_version_id`, and the same names with `_id` where the table above does not already claim them | The issue column. `estimated_remaining_hours` sorts by `COALESCE(estimated_hours, 0) * (100 - COALESCE(done_ratio, 0)) / 100` |
 
 `cf_{id}` must be an `IssueCustomField` the actor can see. `is_filter` is not required, and the name does not have to be listed in `column_names`. Several stored values become one key, the minimum:
 
@@ -159,7 +159,7 @@ When no sort is stored, the order is `issues.id` ascending. `group_by` adds a le
 | version | `MIN` of `versions.name` for stored version ids. |
 | attachment | Rejected. |
 
-An unknown field, a field that is not an `IssueCustomField`, a hidden field, or an attachment field is an error. Saving an `IssueQuery` runs the same check. Other query types reject `cf_{id}` sort keys. A public query that names a hidden field can be saved by an admin. Another user who can open that query still cannot run that sort.
+An unknown field, a field that is not an `IssueCustomField`, a hidden field, or an attachment field is an error. Saving an `IssueQuery` runs the same check. `ProjectQuery` and `ProjectAdminQuery` accept a visible `ProjectCustomField` sort key instead; see Project queries. `UserQuery` and `TimeEntryQuery` keep their own sort catalogs. A public query that names a hidden field can be saved by an admin. Another user who can open that query still cannot run that sort.
 
 ## Totals
 
@@ -168,16 +168,17 @@ An unknown field, a field that is not an `IssueCustomField`, a hidden field, or 
 | Name | Sum |
 | --- | --- |
 | `estimated_hours` | `SUM` of `issues.estimated_hours`. Null estimates add nothing. The sum is rounded to 2 decimal places. An empty set is `0`. |
+| `estimated_remaining_hours` | `ROUND(SUM(COALESCE(estimated_hours, 0) * (100 - COALESCE(done_ratio, 0)) / 100), 2)`. A null estimate and a null done ratio count as zero, so a missing estimate adds `0` rather than being skipped. An empty set is `0`. It is not a filter. |
 | `spent_hours` | Each issue contributes `COALESCE(ROUND(SUM(time_entries.hours), 2), 0)` for time entries whose `project_id` is that issue's project. The query total adds those per-issue numbers. Hours on issues outside the result set are not included. `time_entries_visibility` applies per issue project, the same rule as the Spent time tab: `all`, or `own` where `user_id` is the actor. Only roles that grant `view_time_entries` count, and several of those roles use the most open value. Any other stored value contributes nothing. Active admins see every entry. A user with no matching role contributes `0`. The projected `spent_hours` column uses that same per-issue number. |
 | `cf_{id}` | An `IssueCustomField` the actor can see, whose format reports `supportsTotal` (int and float). `is_filter` is not required. The name does not have to be listed in `column_names`. Int values matching an optional sign and digits are summed as whole numbers. Float values matching a decimal token are summed as decimals. Blank text and any other stored text are skipped. Every matching `custom_values` row is added, including more than one row on the same issue. |
 
-`spent_time` is the filter name, not a total name. Progress bar, list, and the other formats that do not report `supportsTotal` are rejected. An unknown name, a repeated name, a non-list `totalable_names`, a hidden field, or a custom field that is not an `IssueCustomField` is rejected. Saving an `IssueQuery` runs the same check. Other query types still store `options` and do not run, so their `totalable_names` are not checked.
+`spent_time` is the filter name, not a total name. Progress bar, list, and the other formats that do not report `supportsTotal` are rejected. An unknown name, a repeated name, a non-list `totalable_names`, a hidden field, or a custom field that is not an `IssueCustomField` is rejected. Saving an `IssueQuery` runs the same check. A `ProjectQuery` or `ProjectAdminQuery` checks `totalable_names` for visible int and float `ProjectCustomField` names. `UserQuery` and `TimeEntryQuery` keep their own total checks on their checklist rows.
 
 A public query that names a hidden field can be saved by an admin. Another user who can open that query still cannot total the field.
 
 ## Display
 
-`options.display_type` selects how `IssueQueryRunner::present` lays out the same filtered issue set. A missing or null value is `list`. `list` and `board` are the only accepted values. Any other value is rejected when an IssueQuery is saved or run, including `execute` and `totals`. Other query types still store `options` and do not run, so their `display_type` is not checked.
+`options.display_type` selects how `IssueQueryRunner::present` lays out the same filtered issue set. A missing or null value is `list`. `list` and `board` are the only accepted values. Any other value is rejected when an IssueQuery is saved or run, including `execute` and `totals`. `ProjectQuery` and `ProjectAdminQuery` run and do not read `display_type`. `UserQuery` does not check it.
 
 | Type | Result |
 | --- | --- |
@@ -190,13 +191,13 @@ Gantt, calendar, swimlanes, and a board grouped by another field are not impleme
 
 `IssueQueryRunner::execute` still returns issue models so filters and sort keep using that set. `present` is the projected result. `Query::displayColumns` remains the stored list, or the default when `column_names` is null.
 
-Available built-in names are `id`, `project`, `tracker`, `parent`, `status`, `priority`, `subject`, `author`, `assigned_to`, `updated_on`, `category`, `fixed_version`, `start_date`, `due_date`, `estimated_hours`, `spent_hours`, `done_ratio`, `created_on`, `closed_on`, `is_private`, and `description`.
+Available built-in names are `id`, `project`, `tracker`, `parent`, `status`, `priority`, `subject`, `author`, `assigned_to`, `updated_on`, `category`, `fixed_version`, `start_date`, `due_date`, `estimated_hours`, `total_estimated_hours`, `spent_hours`, `total_spent_hours`, `estimated_remaining_hours`, `done_ratio`, `created_on`, `closed_on`, `is_private`, and `description`.
 
 `cf_{id}` is available when it is an `IssueCustomField` the actor can see. `is_filter` is not required. A hidden field is omitted for that actor and is not an error, unlike a hidden sort or total. An admin still sees it. Tracker limits and a per-project custom-field list are not applied, so a visible issue custom field stays available even when the issue has no value.
 
-A null `column_names` uses `tracker`, `status`, `priority`, `subject`, `assigned_to`, `updated_on`. An empty list projects no cells. The row still carries the issue id. Unknown names, including `total_estimated_hours` and `total_spent_hours`, stay stored and are left out of the projection. Repeated names keep the first.
+A null `column_names` uses `tracker`, `status`, `priority`, `subject`, `assigned_to`, `updated_on`. An empty list projects no cells. The row still carries the issue id. Unknown names stay stored and are left out of the projection. Repeated names keep the first.
 
-Cell values are plain text. Associations use the related name. Author and assignee use firstname, then lastname, then login. A missing association is null. `parent` is the parent issue id. Dates are `YYYY-MM-DD`. Datetimes are `YYYY-MM-DD HH:MM:SS`. `is_private` is `0` or `1`. `estimated_hours` is a plain decimal, or null when the issue has no estimate. `spent_hours` is the per-issue total described above, including `0`.
+Cell values are plain text. Associations use the related name. Author and assignee use firstname, then lastname, then login. A missing association is null. `parent` is the parent issue id. Dates are `YYYY-MM-DD`. Datetimes are `YYYY-MM-DD HH:MM:SS`. `is_private` is `0` or `1`. `estimated_hours` is a plain decimal, or null when the issue has no estimate. `estimated_remaining_hours` is always a plain decimal, including `0` when the estimate is null: `COALESCE(estimated_hours, 0) * (100 - COALESCE(done_ratio, 0)) / 100`. `spent_hours` is the per-issue total described above, including `0`.
 
 Several custom values on one issue are joined with `, ` in `custom_values.id` order. Enumeration, user, and version values use the related name when that row exists, and the stored text otherwise. Attachment values stay the stored id. There is no yes/no label for bool, and no card layout.
 
@@ -232,8 +233,18 @@ An unknown operator or an unknown field is rejected.
 - `display_type` accepts `list` and `board` only. Board columns are statuses. `group_by` does not pick the board axis.
 - `spent_hours` totals, the projected column, and the `spent_time` filter count time entries on the issue's own project after `time_entries_visibility`. They do not roll descendant time into a parent that is outside the result. A stored visibility other than `all` or `own` contributes nothing.
 - `total_estimated_hours` sums `estimated_hours` for the issue and the visible descendants in its nested set. A missing sum is `0`. `total_spent_hours` sums visible time entries on that nested set, including a descendant issue the actor cannot see. The spent column is omitted unless the actor can view time entries on the query project, or on any project when the query is global.
+- `estimated_remaining_hours` uses the issue's own estimate and done ratio. A null estimate displays as `0`. The total rounds the sum to 2 decimal places. It is not rolled into descendants and it is not a filter.
+- `last_activity_date` is the calendar date (`YYYY-MM-DD`) of the latest visible activity event, not a datetime. The providers are the same ones the activity feed uses: issue `created_on`, a non-empty journal, time-entry `created_on`, news `created_on`, document `created_on`, a project or version file attachment `created_on`, `wiki_contents.updated_on`, and message `created_on`. The module must be enabled, including for an administrator. Permissions are `view_issues`, `view_time_entries` through `TimeEntryVisibility`, `view_news`, `view_documents`, `view_files`, `view_wiki_edits`, and `view_messages`. Changesets are not a provider.
 - A hidden custom field is an error for sort and totals. The same name in `column_names` is omitted from the projection for an actor who cannot see the field.
 - Global queries OR `IssueVisibility` per project, including tracker masks. Archived projects drop out because `view_issues` is denied. Closed projects stay when that read permission is allowed. Spent hours use each issue's project, not the query project alone. The queries checklist row does not newly verify archived projects; that gate is the projects row.
+
+## Project queries
+
+`ProjectQueryRunner` lists active and closed projects the actor can see. `ProjectAdminQuery` lists every status and only an active administrator can run it. `is_public` is the group column. A blank sort finishes on `lft`. `run` does not include totals. `totals` sums the requested names over that same project set.
+
+A `cf_{id}` filter must be a `ProjectCustomField` with `is_filter` that the actor can see on some project (`visible`, an active administrator, or a role in `custom_fields_roles`). Columns, sort, and totals do not require `is_filter`. Int and float are the totalable formats. A hidden field is omitted from columns and rejected for a filter, sort, or total. On a project where the actor cannot see the field, the cell is blank, the sort key is blank, the total skips the value, and a positive filter does not match that stored value. `is_for_all` false only limits where a value is stored; it does not hide the column. History operators (`ev`, `!ev`, `cf`) apply when the format's filter type lists them. They read `journalized_type` Project. This tree does not write those journals, so `cf` matches nothing until one exists. A private project journal is skipped without `view_private_notes`.
+
+`last_activity_date` is the date described under intentional differences. The cell stays `YYYY-MM-DD` so a project whose latest event is an issue, journal, or time entry keeps that calendar day.
 
 ## Still open
 
@@ -244,6 +255,6 @@ These are Laramine gaps. They stay outside the pin comparison above. They are no
 | Gantt and calendar screens | The data layer is compared on the calendar and Gantt row. The Inertia pages are not that screen. |
 | Board grouped by a field other than status | Board columns are statuses. `group_by` only sorts. |
 | `cf_N.*` other than `.due_date` and `.status` | Listed under deferred fields. |
-| `estimated_remaining_hours` | Not a column and not a total. |
 | Column layout | Inline versus block columns, tracker-limited column lists, attachment filenames, and bool labels are not applied. Unknown stored names are omitted. |
-| Project activity sources and custom fields | `last_activity_date` uses the latest visible issue, journal, or time-entry timestamp. News, documents, files, wiki, messages, and changesets are not included. Project custom fields are not filters or columns. `UserQuery` stays on the users and authentication row. `TimeEntryQuery` stays on the time entries row. |
+| `UserQuery` and `TimeEntryQuery` | They run, and they stay on the users and authentication row and the time entries row. |
+| Changeset activity on `last_activity_date` | N/A with repository, git, and SCM. The pin excludes `repositories`, `changesets`, `changes`, `changeset_parents`, and `changesets_issues`. |

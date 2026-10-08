@@ -2,16 +2,11 @@
 
 namespace App\Domain\Queries;
 
-use App\Domain\Acl\IssueVisibility;
 use App\Domain\Acl\PermissionService;
-use App\Domain\Acl\TimeEntryVisibility;
-use App\Domain\Issues\IssueJournalWriter;
+use App\Domain\Activity\ActivityProvider;
 use App\Domain\PermissionDeniedException;
-use App\Models\Issue;
-use App\Models\Journal;
 use App\Models\Project;
 use App\Models\Query;
-use App\Models\TimeEntry;
 use App\Models\User;
 use DateTimeInterface;
 
@@ -21,8 +16,11 @@ use DateTimeInterface;
  * A project query sees active and closed projects the actor can see.
  * Archived projects and projects scheduled for deletion stay out, including
  * for an administrator. An admin query is the opposite scope: every status,
- * and only an active administrator can run it. There are no total columns.
- * `is_public` is the groupable column. A blank sort finishes on `lft`.
+ * and only an active administrator can run it. Project custom fields are
+ * filters, columns, sort keys, and totals. `is_public` is the groupable
+ * column. A blank sort finishes on `lft`. `last_activity_date` is the
+ * calendar date of the latest visible activity event. Changesets are not
+ * included.
  */
 final class ProjectQueryRunner
 {
@@ -53,9 +51,9 @@ final class ProjectQueryRunner
 
     public function __construct(
         private readonly PermissionService $permissions,
-        private readonly IssueVisibility $issues,
-        private readonly TimeEntryVisibility $timeEntries,
         private readonly SavedQueryService $saved,
+        private readonly ActivityProvider $activity,
+        private readonly ProjectQueryFields $fields,
     ) {}
 
     /**
@@ -81,15 +79,15 @@ final class ProjectQueryRunner
 
         $parsed = QueryFilter::listFromMap($filters);
         foreach ($parsed as $filter) {
-            $this->assertFilter($filter, $admin);
+            $this->fields->assertFilter($filter, $actor, $admin);
         }
-        $names = $this->columns($columns);
+        $names = $this->fields->columns($actor, $columns, self::COLUMNS, self::DEFAULT_COLUMNS);
         $group = $groupBy === null || $groupBy === '' ? null : $groupBy;
         if ($group !== null && $group !== 'is_public') {
             throw new QueryValidationException('Group column is not available: '.$group.'.');
         }
         foreach ($sort as [$column, $direction]) {
-            $this->assertSort($column, $direction);
+            $this->fields->assertSort($column, $direction, $actor, self::COLUMNS);
         }
 
         $projects = [];
@@ -102,7 +100,7 @@ final class ProjectQueryRunner
         foreach ($projects as $project) {
             $activity[(int) $project->id] = $this->lastActivity($actor, $project);
         }
-        $this->sortProjects($projects, $sort, $group, $activity);
+        $this->sortProjects($actor, $projects, $sort, $group, $activity);
 
         $rows = [];
         $ids = [];
@@ -110,7 +108,7 @@ final class ProjectQueryRunner
             $ids[] = (int) $project->id;
             $cells = [];
             foreach ($names as $name) {
-                $cells[$name] = $this->cell($project, $name, $activity[(int) $project->id]);
+                $cells[$name] = $this->cell($actor, $project, $name, $activity[(int) $project->id]);
             }
             $rows[] = $cells;
         }
@@ -147,53 +145,34 @@ final class ProjectQueryRunner
         );
     }
 
-    private function assertFilter(QueryFilter $filter, bool $admin): void
-    {
-        $type = match ($filter->field) {
-            'status', 'id', 'is_public' => 'list',
-            'parent_id' => 'list_subprojects',
-            'name', 'description' => 'text',
-            'created_on', 'updated_on' => 'date_past',
-            default => throw new QueryValidationException('Filter field is not available: '.$filter->field.'.'),
-        };
-        if ($filter->field === 'status') {
-            foreach ($filter->values as $value) {
-                $allowed = $admin ? ['1', '5', '9', '10'] : ['1', '5'];
-                if (! in_array($value, $allowed, true)) {
-                    throw new QueryValidationException('Project status is not available: '.$value.'.');
-                }
-            }
-        }
-        OperatorMatrix::assert($type, $filter->operator, $filter->field);
-        FilterValues::assertCount($filter);
-    }
-
     /**
-     * @param  list<string>|null  $columns
-     * @return list<string>
+     * Sums project custom-field totals over the same projects `run` would return.
+     *
+     * @param  array<string, array{operator: string, values: list<string>}>  $filters
+     * @param  list<string>  $names
+     * @return array<string, string>
      */
-    private function columns(?array $columns): array
+    public function totals(?User $actor, string $type, array $filters, array $names): array
     {
-        $requested = $columns ?? self::DEFAULT_COLUMNS;
-        $names = [];
-        foreach ($requested as $name) {
-            if (! in_array($name, self::COLUMNS, true) || in_array($name, $names, true)) {
-                continue;
+        $admin = $type === QueryType::PROJECT_ADMIN;
+        if ($type !== QueryType::PROJECT && ! $admin) {
+            throw new QueryValidationException('Only a project query can be executed.');
+        }
+        if ($admin && ! ($actor !== null && $actor->admin && $actor->isActive())) {
+            throw new PermissionDeniedException('view_project');
+        }
+        $parsed = QueryFilter::listFromMap($filters);
+        foreach ($parsed as $filter) {
+            $this->fields->assertFilter($filter, $actor, $admin);
+        }
+        $projects = [];
+        foreach (Project::query()->orderBy('lft')->get() as $project) {
+            if ($this->included($actor, $project, $admin) && $this->matches($actor, $project, $parsed)) {
+                $projects[] = $project;
             }
-            $names[] = $name;
         }
 
-        return $names;
-    }
-
-    private function assertSort(string $column, string $direction): void
-    {
-        if (! in_array($column, self::COLUMNS, true)) {
-            throw new QueryValidationException('Sort column is not available: '.$column.'.');
-        }
-        if ($direction !== 'asc' && $direction !== 'desc') {
-            throw new QueryValidationException('Sort direction is invalid.');
-        }
+        return $this->fields->totals($actor, $projects, $names);
     }
 
     private function included(?User $actor, Project $project, bool $admin): bool
@@ -225,6 +204,9 @@ final class ProjectQueryRunner
 
     private function match(?User $actor, Project $project, QueryFilter $filter): bool
     {
+        if (str_starts_with($filter->field, 'cf_')) {
+            return $this->fields->matches($actor, $project, $filter);
+        }
         $operator = $filter->operator;
         if ($filter->field === 'status' || $filter->field === 'id' || $filter->field === 'is_public' || $filter->field === 'parent_id') {
             return $this->matchList($project, $filter);
@@ -325,16 +307,16 @@ final class ProjectQueryRunner
      * @param  list<array{0: string, 1: string}>  $sort
      * @param  array<int, string|null>  $activity
      */
-    private function sortProjects(array &$projects, array $sort, ?string $group, array $activity): void
+    private function sortProjects(?User $actor, array &$projects, array $sort, ?string $group, array $activity): void
     {
         $keys = $sort;
         if ($group !== null) {
             array_unshift($keys, [$group, 'asc']);
         }
         $keys[] = ['lft', 'asc'];
-        usort($projects, function (Project $left, Project $right) use ($keys, $activity): int {
+        usort($projects, function (Project $left, Project $right) use ($actor, $keys, $activity): int {
             foreach ($keys as [$column, $direction]) {
-                $compared = $this->sortValue($left, $column, $activity) <=> $this->sortValue($right, $column, $activity);
+                $compared = $this->sortValue($actor, $left, $column, $activity) <=> $this->sortValue($actor, $right, $column, $activity);
                 if ($compared !== 0) {
                     return $direction === 'desc' ? -$compared : $compared;
                 }
@@ -347,7 +329,7 @@ final class ProjectQueryRunner
     /**
      * @param  array<int, string|null>  $activity
      */
-    private function sortValue(Project $project, string $column, array $activity): string
+    private function sortValue(?User $actor, Project $project, string $column, array $activity): string
     {
         return match ($column) {
             'lft', 'parent_id' => sprintf('%08d', (int) $project->lft),
@@ -360,7 +342,7 @@ final class ProjectQueryRunner
             'created_on' => $project->created_on instanceof DateTimeInterface ? $project->created_on->format('Y-m-d H:i:s') : '',
             'updated_on' => $project->updated_on instanceof DateTimeInterface ? $project->updated_on->format('Y-m-d H:i:s') : '',
             'last_activity_date' => $activity[(int) $project->id] ?? '',
-            default => '',
+            default => $this->fields->sortKey($actor, $project, $column),
         };
     }
 
@@ -383,7 +365,7 @@ final class ProjectQueryRunner
         return $groups;
     }
 
-    private function cell(Project $project, string $column, ?string $activity): ?string
+    private function cell(?User $actor, Project $project, string $column, ?string $activity): ?string
     {
         return match ($column) {
             'name' => (string) $project->name,
@@ -396,61 +378,12 @@ final class ProjectQueryRunner
             'created_on' => $project->created_on instanceof DateTimeInterface ? $project->created_on->format('Y-m-d H:i:s') : null,
             'updated_on' => $project->updated_on instanceof DateTimeInterface ? $project->updated_on->format('Y-m-d H:i:s') : null,
             'last_activity_date' => $activity,
-            default => null,
+            default => $this->fields->cell($actor, $project, $column),
         };
     }
 
     private function lastActivity(?User $actor, Project $project): ?string
     {
-        $latest = null;
-        if ($project->isModuleEnabled('issue_tracking')) {
-            $visible = $this->issues->apply(Issue::query(), $actor, $project)->get();
-            $ids = [];
-            foreach ($visible as $issue) {
-                $ids[] = (int) $issue->id;
-                $latest = $this->later($latest, $issue->created_on);
-            }
-            if ($ids !== []) {
-                $canPrivate = $this->permissions->allowed($actor, 'view_private_notes', $project);
-                $journals = Journal::query()
-                    ->where('journalized_type', IssueJournalWriter::JOURNALIZED_ISSUE)
-                    ->whereIn('journalized_id', $ids)
-                    ->withCount('details')
-                    ->get();
-                foreach ($journals as $journal) {
-                    if ($journal->private_notes && ! $canPrivate) {
-                        continue;
-                    }
-                    $notes = is_string($journal->notes) ? trim($journal->notes) : '';
-                    if ($notes === '' && (int) $journal->details_count === 0) {
-                        continue;
-                    }
-                    $latest = $this->later($latest, $journal->created_on);
-                }
-            }
-        }
-        if ($project->isModuleEnabled('time_tracking') && $actor instanceof User) {
-            $entries = $this->timeEntries->apply(TimeEntry::query()->where('project_id', $project->id), $actor, $project)->get();
-            foreach ($entries as $entry) {
-                $latest = $this->later($latest, $entry->created_on);
-            }
-        }
-        if (! $latest instanceof DateTimeInterface) {
-            return null;
-        }
-
-        return $latest->format('Y-m-d');
-    }
-
-    private function later(?DateTimeInterface $current, mixed $candidate): ?DateTimeInterface
-    {
-        if (! $candidate instanceof DateTimeInterface) {
-            return $current;
-        }
-        if ($current === null || $candidate > $current) {
-            return $candidate;
-        }
-
-        return $current;
+        return $this->activity->latestDate($actor, $project);
     }
 }

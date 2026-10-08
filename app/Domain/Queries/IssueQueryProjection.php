@@ -206,6 +206,7 @@ final class IssueQueryProjection
             'total_estimated_hours' => $context['estimated_total'][(int) $issue->id] ?? '0',
             'spent_hours' => $context['spent'][(int) $issue->id] ?? '0',
             'total_spent_hours' => $context['spent_total'][(int) $issue->id] ?? '0',
+            'estimated_remaining_hours' => $this->remaining($issue),
             'done_ratio' => $this->whole($issue, 'done_ratio'),
             'created_on' => $this->clock($issue, 'created_on', 19),
             'closed_on' => $this->clock($issue, 'closed_on', 19),
@@ -433,6 +434,16 @@ final class IssueQueryProjection
         }
 
         return substr($raw, 0, $length);
+    }
+
+    private function remaining(Issue $issue): string
+    {
+        $hours = $issue->getRawOriginal('estimated_hours');
+        $ratio = $issue->getRawOriginal('done_ratio');
+        $estimated = $hours === null || $hours === '' ? 0.0 : (float) $hours;
+        $done = is_numeric($ratio) ? (int) $ratio : 0;
+
+        return PlainDecimal::text($estimated * (100 - $done) / 100);
     }
 
     private function hours(Issue $issue): ?string

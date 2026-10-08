@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * Sums `options.totalable_names` over an already scoped issue query.
  *
- * Built-in names are `estimated_hours` and `spent_hours`. `cf_{id}` is accepted
+ * Built-in names are `estimated_hours`, `estimated_remaining_hours`, and `spent_hours`. `cf_{id}` is accepted
  * for an issue custom field the actor can see when the format supports totals
  * (int and float). A name does not have to appear in `column_names`, and
  * `is_filter` is not required. `display_type` does not change the sums.
@@ -70,6 +70,7 @@ final class IssueQueryTotals
         foreach ($columns as $column) {
             $totals[$column->name] = match ($column->source) {
                 QueryTotalSource::EstimatedHours => $this->estimatedHours($issues),
+                QueryTotalSource::EstimatedRemainingHours => $this->estimatedRemainingHours($issues),
                 QueryTotalSource::SpentHours => $this->spentHours->total($issues, $actor),
                 QueryTotalSource::CustomInt => $this->customSum($issues, $column, true),
                 QueryTotalSource::CustomFloat => $this->customSum($issues, $column, false),
@@ -83,6 +84,10 @@ final class IssueQueryTotals
     {
         if ($name === QueryTotalSource::EstimatedHours->value) {
             return new QueryTotalColumn($name, QueryTotalSource::EstimatedHours, null);
+        }
+
+        if ($name === QueryTotalSource::EstimatedRemainingHours->value) {
+            return new QueryTotalColumn($name, QueryTotalSource::EstimatedRemainingHours, null);
         }
 
         if ($name === QueryTotalSource::SpentHours->value) {
@@ -121,6 +126,19 @@ final class IssueQueryTotals
         $total = DB::table('issues')
             ->whereIn('issues.id', $this->scopedIds($issues))
             ->selectRaw('COALESCE(ROUND(SUM(CAST(issues.estimated_hours AS DECIMAL(30,4))), 2), 0) as total')
+            ->value('total');
+
+        return PlainDecimal::text($total);
+    }
+
+    /**
+     * @param  Builder<Issue>  $issues
+     */
+    private function estimatedRemainingHours(Builder $issues): string
+    {
+        $total = DB::table('issues')
+            ->whereIn('issues.id', $this->scopedIds($issues))
+            ->selectRaw('COALESCE(ROUND(SUM('.IssueQueryColumns::REMAINING_SQL.'), 2), 0) as total')
             ->value('total');
 
         return PlainDecimal::text($total);

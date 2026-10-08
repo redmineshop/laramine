@@ -21,5 +21,14 @@
     {"id": 20, "custom_field_id": 18, "customized_type": "IssuePriority", "customized_id": 1, "value": "pinned"},
     {"id": 21, "custom_field_id": 19, "customized_type": "TimeEntryActivity", "customized_id": 3, "value": "dev"},
     {"id": 22, "custom_field_id": 20, "customized_type": "DocumentCategory", "customized_id": 4, "value": "guides"},
-    {"id": 23, "custom_field_id": 21, "customized_type": "Document", "customized_id": 1, "value": "alpha"}
+    {"id": 23, "custom_field_id": 21, "customized_type": "Document", "customized_id": 1, "value": "alpha"},
+    {"id": 24, "custom_field_id": 22, "customized_type": "Project", "customized_id": 1, "value": "core"},
+    {"id": 25, "custom_field_id": 22, "customized_type": "Project", "customized_id": 2, "value": "child"},
+    {"id": 26, "custom_field_id": 23, "customized_type": "Project", "customized_id": 1, "value": "10.5"},
+    {"id": 27, "custom_field_id": 23, "customized_type": "Project", "customized_id": 2, "value": "2"},
+    {"id": 28, "custom_field_id": 24, "customized_type": "Project", "customized_id": 1, "value": "hidden-core"},
+    {"id": 29, "custom_field_id": 24, "customized_type": "Project", "customized_id": 2, "value": "hidden-child"},
+    {"id": 30, "custom_field_id": 25, "customized_type": "Project", "customized_id": 1, "value": "4"},
+    {"id": 31, "custom_field_id": 26, "customized_type": "Project", "customized_id": 1, "value": "alpha"},
+    {"id": 32, "custom_field_id": 26, "customized_type": "Project", "customized_id": 2, "value": "beta"}
 ]
