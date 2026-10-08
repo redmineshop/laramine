@@ -196,6 +196,8 @@ class QueryGapParityTest extends TestCase
         $this->assertMatchesRegularExpression('/^\| Activity for changesets \| NOT VERIFIED \|/m', $checklist);
         $this->assertMatchesRegularExpression('/^\| Users and authentication — live LDAP \| VERIFIED \|/m', $checklist);
         $this->assertMatchesRegularExpression('/^\| Wiki and boards visual UX \| NOT VERIFIED \|/m', $checklist);
+        $this->assertMatchesRegularExpression('/^\| Webhooks \| NOT VERIFIED \|.*645.*461/m', $checklist);
+        $this->assertMatchesRegularExpression('/^\| Reactions \| NOT VERIFIED \|.*490/m', $checklist);
     }
 
     private function seedAssociatedFields(): void

@@ -15,15 +15,19 @@ final class ApiResponder
 
     public function send(string $format, ApiResult $result): Response
     {
+        $headers = [];
+        if ($result->location !== null) {
+            $headers['Location'] = $result->location;
+        }
         if ($result->body === null) {
-            return response('', $result->status);
+            return response('', $result->status, $headers);
         }
         if ($format === 'xml') {
-            return response($this->xml->render($result->body), $result->status, [
-                'Content-Type' => 'application/xml; charset=utf-8',
-            ]);
+            $headers['Content-Type'] = 'application/xml; charset=utf-8';
+
+            return response($this->xml->render($result->body), $result->status, $headers);
         }
 
-        return response()->json($result->body, $result->status);
+        return response()->json($result->body, $result->status, $headers);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Domain\Acl;
 
+use App\Domain\Auth\OauthScope;
 use App\Models\Project;
 use App\Models\Role;
 use App\Models\Tracker;
@@ -23,6 +24,7 @@ final class PermissionService
         private readonly PermissionCatalog $catalog,
         private readonly MembershipService $memberships,
         private readonly TrackerPermissionMask $trackers,
+        private readonly OauthScope $oauthScope,
     ) {}
 
     public function allowed(?User $user, string $permission, ?Project $project = null, ?Tracker $tracker = null): bool
@@ -34,7 +36,7 @@ final class PermissionService
         }
 
         if ($this->isActiveAdmin($user)) {
-            return true;
+            return $this->oauthScope->permits($permission);
         }
 
         if ($definition->isModular()) {
@@ -48,7 +50,8 @@ final class PermissionService
         }
 
         if ($definition->public) {
-            return $project === null || $this->projectVisible($user, $project);
+            return ($project === null || $this->projectVisible($user, $project))
+                && $this->oauthScope->permits($permission);
         }
 
         foreach ($this->rolesFor($user, $project) as $role) {
@@ -59,7 +62,7 @@ final class PermissionService
                 continue;
             }
 
-            return true;
+            return $this->oauthScope->permits($permission);
         }
 
         return false;

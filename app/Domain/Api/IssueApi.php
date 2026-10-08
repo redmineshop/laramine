@@ -4,13 +4,18 @@ namespace App\Domain\Api;
 
 use App\Domain\Acl\IssueVisibility;
 use App\Domain\Acl\PermissionService;
+use App\Domain\Attachments\AttachmentContainerService;
+use App\Domain\DomainException;
 use App\Domain\Issues\IssueDeletion;
 use App\Domain\Issues\IssueRelationService;
 use App\Domain\Issues\IssueService;
+use App\Domain\PermissionDeniedException;
 use App\Domain\Queries\JournalVisibility;
 use App\Domain\TimeEntries\IssueSpentHours;
+use App\Domain\Watchers\WatcherLedger;
 use App\Domain\Workflow\WorkflowService;
 use App\Http\Api\ApiCall;
+use App\Http\Api\ApiLocation;
 use App\Http\Api\ApiPage;
 use App\Http\Api\ApiQuery;
 use App\Http\Api\ApiResult;
@@ -25,6 +30,7 @@ use App\Models\Project;
 use App\Models\User;
 use App\Models\Watcher;
 use Illuminate\Http\Request;
+use SimpleXMLElement;
 
 /**
  * Issue list, show, create, update, and delete for the REST API.
@@ -41,6 +47,8 @@ final class IssueApi
         private readonly IssueSpentHours $hours,
         private readonly WorkflowService $workflows,
         private readonly JournalVisibility $journals,
+        private readonly AttachmentContainerService $attachments,
+        private readonly WatcherLedger $watchersLedger,
     ) {}
 
     public function index(User $actor, Request $request): ApiResult
@@ -85,8 +93,13 @@ final class IssueApi
                 return $project;
             }
             $issue = $this->issues->create($actor, $project, $attributes);
+            $this->applyUploads($actor, $issue, $attributes);
+            $this->applyWatchers($actor, $issue, $attributes);
 
-            return ApiResult::created(['issue' => $this->document($actor, $issue->refresh(), [])]);
+            return ApiResult::created(
+                ['issue' => $this->document($actor, $issue->refresh(), [])],
+                ApiLocation::to($request, 'issues/'.$issue->id),
+            );
         });
     }
 
@@ -99,6 +112,9 @@ final class IssueApi
             }
             $attributes = ApiQuery::resource($request, 'issue');
             $this->issues->update($actor, $issue, $attributes);
+            $issue->refresh();
+            $this->applyUploads($actor, $issue, $attributes);
+            $this->applyWatchers($actor, $issue, $attributes);
 
             return ApiResult::noContent();
         });
@@ -112,6 +128,48 @@ final class IssueApi
                 return $issue;
             }
             $this->deletion->delete($actor, $issue);
+
+            return ApiResult::noContent();
+        });
+    }
+
+    public function addWatcher(User $actor, int $id, Request $request): ApiResult
+    {
+        return $this->calls->run(function () use ($actor, $id, $request): ApiResult {
+            $issue = $this->readable($actor, $id);
+            if ($issue instanceof ApiResult) {
+                return $issue;
+            }
+            $project = $issue->project;
+            if (! $project instanceof Project || ! $this->permissions->allowed($actor, 'add_issue_watchers', $project)) {
+                return ApiResult::fail(403, 'You are not authorized to access this page.');
+            }
+            $user = $this->watcherUser($this->watcherId($request));
+            if (! $user instanceof User) {
+                return ApiResult::fail(422, 'User is invalid.');
+            }
+            $this->watchersLedger->add($user, WatcherLedger::ISSUE, (int) $issue->id);
+
+            return ApiResult::noContent();
+        });
+    }
+
+    public function removeWatcher(User $actor, int $id, int $userId): ApiResult
+    {
+        return $this->calls->run(function () use ($actor, $id, $userId): ApiResult {
+            $issue = $this->readable($actor, $id);
+            if ($issue instanceof ApiResult) {
+                return $issue;
+            }
+            $project = $issue->project;
+            if (! $project instanceof Project || ! $this->permissions->allowed($actor, 'delete_issue_watchers', $project)) {
+                return ApiResult::fail(403, 'You are not authorized to access this page.');
+            }
+            $user = User::query()->where('type', User::TYPE_USER)->find($userId);
+            if (! $user instanceof User) {
+                return ApiResult::fail(404, 'Not found');
+            }
+            $this->watchersLedger->remove($user, WatcherLedger::ISSUE, (int) $issue->id);
 
             return ApiResult::noContent();
         });
@@ -508,5 +566,85 @@ final class IssueApi
         }
 
         return $rows;
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    private function applyUploads(User $actor, Issue $issue, array $attributes): void
+    {
+        $uploads = $attributes['uploads'] ?? null;
+        if (! is_array($uploads)) {
+            return;
+        }
+        foreach ($uploads as $upload) {
+            if (! is_array($upload)) {
+                throw new DomainException('Attachment token is invalid.');
+            }
+            $token = $upload['token'] ?? null;
+            if (! is_string($token) || $token === '') {
+                throw new DomainException('Attachment token is invalid.');
+            }
+            $filename = is_string($upload['filename'] ?? null) ? $upload['filename'] : null;
+            $description = is_string($upload['description'] ?? null) ? $upload['description'] : null;
+            $attachment = $this->attachments->claim($actor, $token, (int) $issue->id, null, $filename, $description);
+            $type = $upload['content_type'] ?? $upload['content-type'] ?? null;
+            if (is_string($type) && $type !== '') {
+                $attachment->content_type = $type;
+                $attachment->save();
+            }
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $attributes
+     */
+    private function applyWatchers(User $actor, Issue $issue, array $attributes): void
+    {
+        if (! array_key_exists('watcher_user_ids', $attributes)) {
+            return;
+        }
+        $project = $issue->project;
+        if (! $project instanceof Project || ! $this->permissions->allowed($actor, 'add_issue_watchers', $project)) {
+            throw new PermissionDeniedException('add_issue_watchers');
+        }
+        $ids = $attributes['watcher_user_ids'];
+        if (! is_array($ids)) {
+            throw new DomainException('Watchers are invalid.');
+        }
+        foreach ($ids as $id) {
+            if (! is_numeric($id)) {
+                throw new DomainException('Watchers are invalid.');
+            }
+            $user = $this->watcherUser((int) $id);
+            if (! $user instanceof User) {
+                throw new DomainException('User is invalid.');
+            }
+            $this->watchersLedger->add($user, WatcherLedger::ISSUE, (int) $issue->id);
+        }
+    }
+
+    private function watcherId(Request $request): int
+    {
+        $raw = $request->input('user_id');
+        if (! is_numeric($raw)) {
+            $raw = $request->json('user_id');
+        }
+        $content = $request->getContent();
+        if (! is_numeric($raw) && str_ends_with($request->getPathInfo(), '.xml') && trim($content) !== '') {
+            $parsed = simplexml_load_string($content);
+            if ($parsed instanceof SimpleXMLElement) {
+                $raw = $parsed->getName() === 'user_id' ? (string) $parsed : (string) $parsed->user_id;
+            }
+        }
+
+        return is_numeric($raw) ? (int) $raw : 0;
+    }
+
+    private function watcherUser(int $id): ?User
+    {
+        $user = User::query()->where('type', User::TYPE_USER)->find($id);
+
+        return $user instanceof User && $user->isActive() ? $user : null;
     }
 }

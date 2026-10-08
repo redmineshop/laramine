@@ -1,0 +1,660 @@
+{
+    "upload": {
+        "status": 201,
+        "location": null,
+        "body": {
+            "upload": {
+                "token": "attachments-1.b035273591daadc1d35839f3ee90964f21cef09115a712c39499edcb10f4488c"
+            }
+        }
+    },
+    "issue": {
+        "status": 201,
+        "location": "/issues/issues-1.json",
+        "body": {
+            "issue": {
+                "id": "issues-1",
+                "project": {
+                    "id": 1,
+                    "name": "Parity Core"
+                },
+                "tracker": {
+                    "id": 1,
+                    "name": "Bug"
+                },
+                "status": {
+                    "id": 1,
+                    "name": "New",
+                    "is_closed": false
+                },
+                "priority": {
+                    "id": 1,
+                    "name": "Normal"
+                },
+                "author": {
+                    "id": 2,
+                    "name": "Pin Admin"
+                },
+                "subject": "REST created",
+                "description": "",
+                "start_date": null,
+                "due_date": null,
+                "done_ratio": 0,
+                "is_private": false,
+                "estimated_hours": null,
+                "total_estimated_hours": 0,
+                "spent_hours": 0,
+                "total_spent_hours": 0,
+                "custom_fields": [
+                    {
+                        "id": 1,
+                        "name": "Pin string",
+                        "value": ""
+                    },
+                    {
+                        "id": 2,
+                        "name": "Pin list",
+                        "value": ""
+                    },
+                    {
+                        "id": 3,
+                        "name": "Pin enum",
+                        "value": ""
+                    },
+                    {
+                        "id": 4,
+                        "name": "Pin link",
+                        "value": ""
+                    },
+                    {
+                        "id": 5,
+                        "name": "Pin text",
+                        "value": ""
+                    },
+                    {
+                        "id": 6,
+                        "name": "Pin int",
+                        "value": ""
+                    },
+                    {
+                        "id": 7,
+                        "name": "Pin float",
+                        "value": ""
+                    },
+                    {
+                        "id": 8,
+                        "name": "Pin date",
+                        "value": ""
+                    },
+                    {
+                        "id": 9,
+                        "name": "Pin bool",
+                        "value": ""
+                    },
+                    {
+                        "id": 10,
+                        "name": "Pin user",
+                        "value": ""
+                    },
+                    {
+                        "id": 11,
+                        "name": "Pin version",
+                        "value": ""
+                    },
+                    {
+                        "id": 12,
+                        "name": "Pin bar",
+                        "value": ""
+                    },
+                    {
+                        "id": 13,
+                        "name": "Pin multi",
+                        "value": ""
+                    },
+                    {
+                        "id": 14,
+                        "name": "Pin bare",
+                        "value": ""
+                    },
+                    {
+                        "id": 15,
+                        "name": "Pin scheme",
+                        "value": ""
+                    }
+                ],
+                "created_on": "pinned-stamp",
+                "updated_on": "pinned-stamp",
+                "closed_on": null
+            }
+        }
+    },
+    "issue_shown": {
+        "status": 200,
+        "location": null,
+        "body": {
+            "issue": {
+                "id": "issues-1",
+                "project": {
+                    "id": 1,
+                    "name": "Parity Core"
+                },
+                "tracker": {
+                    "id": 1,
+                    "name": "Bug"
+                },
+                "status": {
+                    "id": 1,
+                    "name": "New",
+                    "is_closed": false
+                },
+                "priority": {
+                    "id": 1,
+                    "name": "Normal"
+                },
+                "author": {
+                    "id": 2,
+                    "name": "Pin Admin"
+                },
+                "subject": "REST created",
+                "description": "",
+                "start_date": null,
+                "due_date": null,
+                "done_ratio": 0,
+                "is_private": false,
+                "estimated_hours": null,
+                "total_estimated_hours": 0,
+                "spent_hours": 0,
+                "total_spent_hours": 0,
+                "custom_fields": [
+                    {
+                        "id": 1,
+                        "name": "Pin string",
+                        "value": ""
+                    },
+                    {
+                        "id": 2,
+                        "name": "Pin list",
+                        "value": ""
+                    },
+                    {
+                        "id": 3,
+                        "name": "Pin enum",
+                        "value": ""
+                    },
+                    {
+                        "id": 4,
+                        "name": "Pin link",
+                        "value": ""
+                    },
+                    {
+                        "id": 5,
+                        "name": "Pin text",
+                        "value": ""
+                    },
+                    {
+                        "id": 6,
+                        "name": "Pin int",
+                        "value": ""
+                    },
+                    {
+                        "id": 7,
+                        "name": "Pin float",
+                        "value": ""
+                    },
+                    {
+                        "id": 8,
+                        "name": "Pin date",
+                        "value": ""
+                    },
+                    {
+                        "id": 9,
+                        "name": "Pin bool",
+                        "value": ""
+                    },
+                    {
+                        "id": 10,
+                        "name": "Pin user",
+                        "value": ""
+                    },
+                    {
+                        "id": 11,
+                        "name": "Pin version",
+                        "value": ""
+                    },
+                    {
+                        "id": 12,
+                        "name": "Pin bar",
+                        "value": ""
+                    },
+                    {
+                        "id": 13,
+                        "name": "Pin multi",
+                        "value": ""
+                    },
+                    {
+                        "id": 14,
+                        "name": "Pin bare",
+                        "value": ""
+                    },
+                    {
+                        "id": 15,
+                        "name": "Pin scheme",
+                        "value": ""
+                    }
+                ],
+                "created_on": "pinned-stamp",
+                "updated_on": "pinned-stamp",
+                "closed_on": null,
+                "attachments": [
+                    {
+                        "id": "attachments-1",
+                        "filename": "note.txt",
+                        "filesize": 9,
+                        "content_type": "text/plain",
+                        "description": "",
+                        "content_url": "http://localhost/attachments/attachments-1",
+                        "author": {
+                            "id": 2,
+                            "name": "Pin Admin"
+                        },
+                        "created_on": "pinned-stamp"
+                    }
+                ],
+                "watchers": [
+                    {
+                        "id": 1,
+                        "name": "Ada Lovelace"
+                    }
+                ]
+            }
+        }
+    },
+    "issue_updated": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "relation": {
+        "status": 201,
+        "location": "/relations/issue_relations-1.json",
+        "body": {
+            "relation": {
+                "id": "issue_relations-1",
+                "issue_id": "issues-1",
+                "issue_to_id": 1,
+                "relation_type": "relates",
+                "delay": null
+            }
+        }
+    },
+    "relation_deleted": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "watcher_added": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "watcher_removed": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "issue_deleted": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "upload_xml": {
+        "status": 201,
+        "location": null,
+        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<upload><token>attachments-2.5571a9901cb36a1e96956ab0f1035d4a7424d30855868d20144b424a451b3438</token></upload>"
+    },
+    "upload_missing_filename": {
+        "status": 422,
+        "location": null,
+        "body": {
+            "errors": [
+                "Filename is required."
+            ]
+        }
+    },
+    "upload_wrong_type": {
+        "status": 422,
+        "location": null,
+        "body": {
+            "errors": [
+                "Content-Type must be application/octet-stream."
+            ]
+        }
+    },
+    "upload_empty": {
+        "status": 422,
+        "location": null,
+        "body": {
+            "errors": [
+                "Attachment file is empty."
+            ]
+        }
+    },
+    "upload_too_large": {
+        "status": 413,
+        "location": null,
+        "body": {
+            "errors": [
+                "Attachment file is too large."
+            ]
+        }
+    },
+    "upload_denied_extension": {
+        "status": 422,
+        "location": null,
+        "body": {
+            "errors": [
+                "Attachment extension is not allowed."
+            ]
+        }
+    },
+    "issue_xml": {
+        "status": 201,
+        "location": "/issues/issues-2.xml",
+        "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<issue><id>issues-2</id><project><id>1</id><name>Parity Core</name></project><tracker><id>1</id><name>Bug</name></tracker><status><id>1</id><name>New</name><is_closed>false</is_closed></status><priority><id>1</id><name>Normal</name></priority><author><id>2</id><name>Pin Admin</name></author><subject>REST xml</subject><description></description><start_date nil=\"true\"/><due_date nil=\"true\"/><done_ratio>0</done_ratio><is_private>false</is_private><estimated_hours nil=\"true\"/><total_estimated_hours>0</total_estimated_hours><spent_hours>0</spent_hours><total_spent_hours>0</total_spent_hours><custom_fields type=\"array\"><custom_field><id>1</id><name>Pin string</name><value></value></custom_field><custom_field><id>2</id><name>Pin list</name><value></value></custom_field><custom_field><id>3</id><name>Pin enum</name><value></value></custom_field><custom_field><id>4</id><name>Pin link</name><value></value></custom_field><custom_field><id>5</id><name>Pin text</name><value></value></custom_field><custom_field><id>6</id><name>Pin int</name><value></value></custom_field><custom_field><id>7</id><name>Pin float</name><value></value></custom_field><custom_field><id>8</id><name>Pin date</name><value></value></custom_field><custom_field><id>9</id><name>Pin bool</name><value></value></custom_field><custom_field><id>10</id><name>Pin user</name><value></value></custom_field><custom_field><id>11</id><name>Pin version</name><value></value></custom_field><custom_field><id>12</id><name>Pin bar</name><value></value></custom_field><custom_field><id>13</id><name>Pin multi</name><value></value></custom_field><custom_field><id>14</id><name>Pin bare</name><value></value></custom_field><custom_field><id>15</id><name>Pin scheme</name><value></value></custom_field></custom_fields><created_on>pinned-stamp</created_on><updated_on>pinned-stamp</updated_on><closed_on nil=\"true\"/></issue>"
+    },
+    "project": {
+        "status": 201,
+        "location": "/projects/parity-rest.json",
+        "body": {
+            "project": {
+                "id": "projects-1",
+                "name": "Parity REST",
+                "identifier": "parity-rest",
+                "description": "Created by the REST pin",
+                "homepage": "",
+                "status": 1,
+                "is_public": true,
+                "inherit_members": false,
+                "created_on": "pinned-stamp",
+                "updated_on": "pinned-stamp",
+                "custom_fields": [
+                    {
+                        "id": 22,
+                        "name": "Project label",
+                        "value": ""
+                    },
+                    {
+                        "id": 23,
+                        "name": "Project budget",
+                        "value": ""
+                    },
+                    {
+                        "id": 24,
+                        "name": "Project secret",
+                        "value": ""
+                    },
+                    {
+                        "id": 25,
+                        "name": "Project seats",
+                        "value": ""
+                    },
+                    {
+                        "id": 26,
+                        "name": "Project lane",
+                        "value": ""
+                    }
+                ]
+            }
+        }
+    },
+    "project_updated": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "membership": {
+        "status": 201,
+        "location": "/memberships/members-1.json",
+        "body": {
+            "membership": {
+                "id": "members-1",
+                "project": {
+                    "id": "projects-1",
+                    "name": "Parity REST renamed"
+                },
+                "user": {
+                    "id": 1,
+                    "name": "Ada Lovelace"
+                },
+                "roles": [
+                    {
+                        "id": 1,
+                        "name": "Developer"
+                    }
+                ]
+            }
+        }
+    },
+    "membership_updated": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "membership_deleted": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "version": {
+        "status": 201,
+        "location": "/versions/versions-1.json",
+        "body": {
+            "version": {
+                "id": "versions-1",
+                "project": {
+                    "id": "projects-1",
+                    "name": "Parity REST renamed"
+                },
+                "name": "rest-1",
+                "description": "",
+                "status": "open",
+                "due_date": null,
+                "sharing": "none",
+                "wiki_page_title": null,
+                "created_on": "pinned-stamp",
+                "updated_on": "pinned-stamp"
+            }
+        }
+    },
+    "version_updated": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "version_deleted": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "category": {
+        "status": 201,
+        "location": "/issue_categories/issue_categories-1.json",
+        "body": {
+            "issue_category": {
+                "id": "issue_categories-1",
+                "project": {
+                    "id": "projects-1",
+                    "name": "Parity REST renamed"
+                },
+                "name": "REST category"
+            }
+        }
+    },
+    "category_updated": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "category_deleted": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "project_closed": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "project_closed_write": {
+        "status": 403,
+        "location": null,
+        "body": {
+            "errors": [
+                "You are not authorized to access this page."
+            ]
+        }
+    },
+    "project_reopened": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "project_archived": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "project_unarchived": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "project_deleted": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "time_entry": {
+        "status": 201,
+        "location": "/time_entries/time_entries-1.json",
+        "body": {
+            "time_entry": {
+                "id": "time_entries-1",
+                "project": {
+                    "id": 1,
+                    "name": "Parity Core"
+                },
+                "issue": {
+                    "id": 1
+                },
+                "user": {
+                    "id": 2,
+                    "name": "Pin Admin"
+                },
+                "activity": {
+                    "id": 3,
+                    "name": "Development"
+                },
+                "hours": 1.25,
+                "comments": "REST pin",
+                "spent_on": "2026-10-01",
+                "created_on": "pinned-stamp",
+                "updated_on": "pinned-stamp",
+                "custom_fields": []
+            }
+        }
+    },
+    "time_entry_updated": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "time_entry_deleted": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "user": {
+        "status": 201,
+        "location": "/users/users-1.json",
+        "body": {
+            "user": {
+                "id": "users-1",
+                "login": "rest-user",
+                "admin": false,
+                "firstname": "Rest",
+                "lastname": "User",
+                "mail": "rest-user@example.test",
+                "created_on": "pinned-stamp",
+                "last_login_on": null,
+                "status": 1,
+                "api_key": null,
+                "custom_fields": []
+            }
+        }
+    },
+    "user_updated": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "user_deleted": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "group": {
+        "status": 201,
+        "location": "/groups/users-2.json",
+        "body": {
+            "group": {
+                "id": "users-2",
+                "name": "REST readers"
+            }
+        }
+    },
+    "group_user_added": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "group_user_removed": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "group_updated": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "group_deleted": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "account_updated": {
+        "status": 204,
+        "location": null,
+        "body": null
+    },
+    "account_shown": {
+        "status": 200,
+        "location": null,
+        "body": {
+            "user": {
+                "id": 2,
+                "login": "admin",
+                "admin": true,
+                "firstname": "Restadmin",
+                "lastname": "Admin",
+                "mail": "admin@parity.test",
+                "created_on": "pinned-stamp",
+                "last_login_on": null,
+                "status": 1,
+                "api_key": "pinned-api-key",
+                "custom_fields": []
+            }
+        }
+    }
+}

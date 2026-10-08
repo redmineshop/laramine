@@ -22,10 +22,12 @@ final class RestAuthenticator
         private readonly CredentialChecker $checker,
         private readonly TwoFactorPolicy $twoFactor,
         private readonly OauthProvider $oauth,
+        private readonly OauthScope $scope,
     ) {}
 
     public function authenticate(Request $request): RestIdentity
     {
+        $this->scope->clear();
         if (! $this->settings->restApiEnabled()) {
             return new RestIdentity(null, 401);
         }
@@ -66,7 +68,16 @@ final class RestAuthenticator
             return null;
         }
 
-        return $this->active($this->oauth->resourceOwner(trim(substr($header, 7))));
+        $row = $this->oauth->acceptedToken(trim(substr($header, 7)));
+        if ($row === null) {
+            return null;
+        }
+        $user = $this->active($row->resourceOwner);
+        if ($user instanceof User) {
+            $this->scope->restrict((string) $row->scopes);
+        }
+
+        return $user;
     }
 
     private function fromBasic(Request $request): ?User

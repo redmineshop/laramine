@@ -5,10 +5,12 @@ namespace App\Domain\Api;
 use App\Domain\Acl\ManagedRoleGuard;
 use App\Domain\Acl\MembershipService;
 use App\Domain\Acl\PermissionService;
+use App\Domain\Auth\OauthScope;
 use App\Domain\DomainException;
 use App\Domain\Projects\ProjectService;
 use App\Domain\Tree\NestedSet;
 use App\Http\Api\ApiCall;
+use App\Http\Api\ApiLocation;
 use App\Http\Api\ApiPage;
 use App\Http\Api\ApiQuery;
 use App\Http\Api\ApiResult;
@@ -38,6 +40,7 @@ final class ProjectApi
         private readonly ProjectService $projects,
         private readonly MembershipService $memberships,
         private readonly ManagedRoleGuard $managedRoles,
+        private readonly OauthScope $oauthScope,
     ) {}
 
     public function index(User $actor, Request $request): ApiResult
@@ -95,7 +98,10 @@ final class ProjectApi
                 'status' => is_numeric($attributes['status'] ?? null) ? (int) $attributes['status'] : 1,
             ], $parent);
 
-            return ApiResult::created(['project' => $this->document($actor, $project, [], true)]);
+            return ApiResult::created(
+                ['project' => $this->document($actor, $project, [], true)],
+                ApiLocation::to($request, 'projects/'.$project->identifier),
+            );
         });
     }
 
@@ -142,6 +148,73 @@ final class ProjectApi
                 }
                 $this->projects->move($project, $parent);
             }
+
+            return ApiResult::noContent();
+        });
+    }
+
+    public function archive(User $actor, string $key): ApiResult
+    {
+        return $this->setTreeStatus($actor, $key, Project::STATUS_ARCHIVED, true);
+    }
+
+    public function unarchive(User $actor, string $key): ApiResult
+    {
+        return $this->calls->run(function () use ($actor, $key): ApiResult {
+            $project = $this->located($actor, $key, true);
+            if ($project instanceof ApiResult) {
+                return $project;
+            }
+            if (! $this->administrator($actor)) {
+                return ApiResult::fail(403, 'You are not authorized to access this page.');
+            }
+            if ($project->parent_id !== null) {
+                $parent = Project::query()->find($project->parent_id);
+                if ($parent instanceof Project && (int) $parent->status === Project::STATUS_ARCHIVED) {
+                    return ApiResult::fail(422, 'Parent project is archived.');
+                }
+            }
+            $this->writeStatus($project, Project::STATUS_ACTIVE);
+
+            return ApiResult::noContent();
+        });
+    }
+
+    public function close(User $actor, string $key): ApiResult
+    {
+        return $this->calls->run(function () use ($actor, $key): ApiResult {
+            $project = $this->visible($actor, $key);
+            if ($project instanceof ApiResult) {
+                return $project;
+            }
+            if ((int) $project->status === Project::STATUS_ARCHIVED) {
+                return ApiResult::fail(422, 'Project is archived.');
+            }
+            if (! $this->permissions->allowed($actor, 'close_project', $project)) {
+                return ApiResult::fail(403, 'You are not authorized to access this page.');
+            }
+            $project->status = Project::STATUS_CLOSED;
+            $project->save();
+
+            return ApiResult::noContent();
+        });
+    }
+
+    public function reopen(User $actor, string $key): ApiResult
+    {
+        return $this->calls->run(function () use ($actor, $key): ApiResult {
+            $project = $this->located($actor, $key, true);
+            if ($project instanceof ApiResult) {
+                return $project;
+            }
+            if ((int) $project->status === Project::STATUS_ARCHIVED) {
+                return ApiResult::fail(422, 'Project is archived.');
+            }
+            if (! $this->permissions->allowed($actor, 'close_project', $project)) {
+                return ApiResult::fail(403, 'You are not authorized to access this page.');
+            }
+            $project->status = Project::STATUS_ACTIVE;
+            $project->save();
 
             return ApiResult::noContent();
         });
@@ -209,7 +282,10 @@ final class ProjectApi
                 return ApiResult::fail(422, 'Membership was not created.');
             }
 
-            return ApiResult::created(['membership' => $this->membershipDocument($member)]);
+            return ApiResult::created(
+                ['membership' => $this->membershipDocument($member)],
+                ApiLocation::to($request, 'memberships/'.$member->id),
+            );
         });
     }
 
@@ -242,28 +318,26 @@ final class ProjectApi
             if ($roleIds === []) {
                 return ApiResult::fail(422, 'Role is required.');
             }
+            $direct = [];
             foreach ($member->memberRoles as $memberRole) {
                 if ($memberRole->inherited_from === null) {
-                    $this->memberships->revokeRole($memberRole);
+                    $direct[(int) $memberRole->role_id] = $memberRole;
                 }
             }
-            $member = Member::query()->find($id);
             foreach ($roleIds as $roleId) {
+                if (isset($direct[$roleId])) {
+                    continue;
+                }
                 $role = Role::query()->find($roleId);
                 if (! $role instanceof Role) {
                     return ApiResult::fail(422, 'Role does not exist.');
                 }
                 $this->managedRoles->assign($actor, $project, $principal, $role);
             }
-            $fresh = Member::query()
-                ->where('project_id', $project->id)
-                ->where('user_id', $principal->id)
-                ->first();
-            if (! $fresh instanceof Member) {
-                return ApiResult::fail(422, 'Membership was not updated.');
-            }
-            if ($member instanceof Member && (int) $member->id !== (int) $fresh->id) {
-                return ApiResult::ok(['membership' => $this->membershipDocument($fresh)]);
+            foreach ($direct as $roleId => $memberRole) {
+                if (! in_array($roleId, $roleIds, true)) {
+                    $this->memberships->revokeRole($memberRole);
+                }
             }
 
             return ApiResult::noContent();
@@ -337,7 +411,10 @@ final class ProjectApi
                 'wiki_page_title' => $this->optionalText($attributes['wiki_page_title'] ?? null),
             ]);
 
-            return ApiResult::created(['version' => $this->versionDocument($version)]);
+            return ApiResult::created(
+                ['version' => $this->versionDocument($version)],
+                ApiLocation::to($request, 'versions/'.$version->id),
+            );
         });
     }
 
@@ -447,7 +524,10 @@ final class ProjectApi
                 'assigned_to_id' => $this->optionalId($attributes['assigned_to_id'] ?? null),
             ]);
 
-            return ApiResult::created(['issue_category' => $this->categoryDocument($category)]);
+            return ApiResult::created(
+                ['issue_category' => $this->categoryDocument($category)],
+                ApiLocation::to($request, 'issue_categories/'.$category->id),
+            );
         });
     }
 
@@ -597,12 +677,57 @@ final class ProjectApi
 
     private function visible(User $actor, string $key): Project|ApiResult
     {
+        return $this->located($actor, $key, false);
+    }
+
+    private function located(User $actor, string $key, bool $includeArchived): Project|ApiResult
+    {
         $project = $this->locate($key);
-        if (! $project instanceof Project || ! $this->permissions->projectVisible($actor, $project)) {
+        if (! $project instanceof Project) {
+            return ApiResult::fail(404, 'Not found');
+        }
+        if ($includeArchived && (int) $project->status === Project::STATUS_ARCHIVED && $this->administrator($actor)) {
+            return $project;
+        }
+        if (! $this->permissions->projectVisible($actor, $project)) {
             return ApiResult::fail(404, 'Not found');
         }
 
         return $project;
+    }
+
+    private function setTreeStatus(User $actor, string $key, int $status, bool $adminOnly): ApiResult
+    {
+        return $this->calls->run(function () use ($actor, $key, $status, $adminOnly): ApiResult {
+            $project = $this->visible($actor, $key);
+            if ($project instanceof ApiResult) {
+                return $project;
+            }
+            if ($adminOnly && ! $this->administrator($actor)) {
+                return ApiResult::fail(403, 'You are not authorized to access this page.');
+            }
+            $this->writeStatus($project, $status);
+
+            return ApiResult::noContent();
+        });
+    }
+
+    private function writeStatus(Project $project, int $status): void
+    {
+        $rows = Project::query()
+            ->where('lft', '>=', $project->lft)
+            ->where('rgt', '<=', $project->rgt)
+            ->orderBy('lft')
+            ->get();
+        foreach ($rows as $row) {
+            $row->status = $status;
+            $row->save();
+        }
+    }
+
+    private function administrator(User $actor): bool
+    {
+        return $actor->admin === true && $actor->isActive() && $this->oauthScope->permits('admin');
     }
 
     private function locate(string $key): ?Project

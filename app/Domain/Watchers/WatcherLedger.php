@@ -10,6 +10,8 @@ use App\Models\Watcher;
  */
 final class WatcherLedger
 {
+    public const ISSUE = 'Issue';
+
     public const WIKI_PAGE = 'WikiPage';
 
     public const MESSAGE = 'Message';

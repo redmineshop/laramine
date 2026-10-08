@@ -23,7 +23,7 @@ final class AttachmentRules
         }
         $limit = $this->settings->attachmentMaxKilobytes() * 1024;
         if ($bytes > $limit) {
-            throw new DomainException('Attachment file is too large.');
+            throw new AttachmentTooLargeException('Attachment file is too large.');
         }
 
         $extension = $this->extension($filename);

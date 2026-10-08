@@ -5,8 +5,10 @@ namespace App\Domain\Api;
 use App\Domain\Acl\PermissionService;
 use App\Domain\Acl\UserVisibility;
 use App\Domain\Auth\AccountAdminService;
+use App\Domain\Auth\OauthScope;
 use App\Domain\DomainException;
 use App\Http\Api\ApiCall;
+use App\Http\Api\ApiLocation;
 use App\Http\Api\ApiPage;
 use App\Http\Api\ApiQuery;
 use App\Http\Api\ApiResult;
@@ -29,6 +31,7 @@ final class DirectoryApi
         private readonly PermissionService $permissions,
         private readonly UserVisibility $visibility,
         private readonly AccountAdminService $accounts,
+        private readonly OauthScope $oauthScope,
     ) {}
 
     public function users(User $actor, Request $request): ApiResult
@@ -83,7 +86,10 @@ final class DirectoryApi
             }
             $user = $this->accounts->create($actor, $attributes);
 
-            return ApiResult::created(['user' => $this->detail($actor, $user->refresh())]);
+            return ApiResult::created(
+                ['user' => $this->detail($actor, $user->refresh())],
+                ApiLocation::to($request, 'users/'.$user->id),
+            );
         });
     }
 
@@ -220,7 +226,10 @@ final class DirectoryApi
                 'must_change_passwd' => false,
             ]);
 
-            return ApiResult::created(['group' => $this->groupDocument($actor, $group, [])]);
+            return ApiResult::created(
+                ['group' => $this->groupDocument($actor, $group, [])],
+                ApiLocation::to($request, 'groups/'.$group->id),
+            );
         });
     }
 
@@ -396,7 +405,10 @@ final class DirectoryApi
 
     private function admin(User $actor): bool
     {
-        return $actor->admin === true && $actor->isActive() && $this->permissions->isLoggedIn($actor);
+        return $actor->admin === true
+            && $actor->isActive()
+            && $this->permissions->isLoggedIn($actor)
+            && $this->oauthScope->permits('admin');
     }
 
     private function mail(User $actor, User $user): ?string

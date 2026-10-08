@@ -57,6 +57,16 @@ final class RestController extends Controller
         return $this->respond($request, fn (User $actor): ApiResult => $this->issues->destroy($actor, $issue));
     }
 
+    public function addWatcher(Request $request, int $issue): Response
+    {
+        return $this->respond($request, fn (User $actor): ApiResult => $this->issues->addWatcher($actor, $issue, $request));
+    }
+
+    public function removeWatcher(Request $request, int $issue, int $user): Response
+    {
+        return $this->respond($request, fn (User $actor): ApiResult => $this->issues->removeWatcher($actor, $issue, $user));
+    }
+
     public function projects(Request $request): Response
     {
         return $this->respond($request, fn (User $actor): ApiResult => $this->projects->index($actor, $request));
@@ -80,6 +90,26 @@ final class RestController extends Controller
     public function destroyProject(Request $request, string $project): Response
     {
         return $this->respond($request, fn (User $actor): ApiResult => $this->projects->destroy($actor, $project));
+    }
+
+    public function archiveProject(Request $request, string $project): Response
+    {
+        return $this->respond($request, fn (User $actor): ApiResult => $this->projects->archive($actor, $project));
+    }
+
+    public function unarchiveProject(Request $request, string $project): Response
+    {
+        return $this->respond($request, fn (User $actor): ApiResult => $this->projects->unarchive($actor, $project));
+    }
+
+    public function closeProject(Request $request, string $project): Response
+    {
+        return $this->respond($request, fn (User $actor): ApiResult => $this->projects->close($actor, $project));
+    }
+
+    public function reopenProject(Request $request, string $project): Response
+    {
+        return $this->respond($request, fn (User $actor): ApiResult => $this->projects->reopen($actor, $project));
     }
 
     public function memberships(Request $request, string $project): Response
@@ -449,6 +479,31 @@ final class RestController extends Controller
     public function storeFile(Request $request, string $project): Response
     {
         return $this->respond($request, fn (User $actor): ApiResult => $this->records->storeFile($actor, $project, $request));
+    }
+
+    public function documents(Request $request, string $project): Response
+    {
+        return $this->respond($request, fn (User $actor): ApiResult => $this->records->documents($actor, $project));
+    }
+
+    public function storeDocument(Request $request, string $project): Response
+    {
+        return $this->respond($request, fn (User $actor): ApiResult => $this->records->storeDocument($actor, $project, $request));
+    }
+
+    public function showDocument(Request $request, int $document): Response
+    {
+        return $this->respond($request, fn (User $actor): ApiResult => $this->records->showDocument($actor, $document));
+    }
+
+    public function updateDocument(Request $request, int $document): Response
+    {
+        return $this->respond($request, fn (User $actor): ApiResult => $this->records->updateDocument($actor, $document, $request));
+    }
+
+    public function destroyDocument(Request $request, int $document): Response
+    {
+        return $this->respond($request, fn (User $actor): ApiResult => $this->records->destroyDocument($actor, $document));
     }
 
     public function search(Request $request): Response

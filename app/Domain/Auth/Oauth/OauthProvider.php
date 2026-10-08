@@ -143,6 +143,21 @@ final class OauthProvider
 
     public function resourceOwner(string $bearer): ?User
     {
+        $row = $this->acceptedToken($bearer);
+        if (! $row instanceof OauthAccessToken) {
+            return null;
+        }
+
+        $user = $row->resourceOwner;
+
+        return $user instanceof User && $user->canKeepWebSession() ? $user : null;
+    }
+
+    /**
+     * A bearer row that is still usable: present, not revoked, and not expired.
+     */
+    public function acceptedToken(string $bearer): ?OauthAccessToken
+    {
         if ($bearer === '') {
             return null;
         }
@@ -153,8 +168,11 @@ final class OauthProvider
         }
 
         $user = $row->resourceOwner;
+        if (! $user instanceof User || ! $user->canKeepWebSession()) {
+            return null;
+        }
 
-        return $user instanceof User && $user->canKeepWebSession() ? $user : null;
+        return $row;
     }
 
     /**

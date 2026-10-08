@@ -9,6 +9,7 @@ use App\Domain\Acl\TimeEntryVisibility;
 use App\Domain\Attachments\AttachmentContainerService;
 use App\Domain\Boards\BoardService;
 use App\Domain\Boards\MessageService;
+use App\Domain\Documents\DocumentService;
 use App\Domain\Files\ProjectFileService;
 use App\Domain\Issues\IssueRelationService;
 use App\Domain\Issues\JournalNoteService;
@@ -17,12 +18,14 @@ use App\Domain\PermissionDeniedException;
 use App\Domain\TimeEntries\TimeEntryService;
 use App\Domain\Wiki\WikiService;
 use App\Http\Api\ApiCall;
+use App\Http\Api\ApiLocation;
 use App\Http\Api\ApiPage;
 use App\Http\Api\ApiQuery;
 use App\Http\Api\ApiResult;
 use App\Models\Attachment;
 use App\Models\Board;
 use App\Models\Document;
+use App\Models\Enumeration;
 use App\Models\Issue;
 use App\Models\IssueRelation;
 use App\Models\IssueStatus;
@@ -59,6 +62,7 @@ final class RecordApi
         private readonly ProjectFileService $files,
         private readonly AttachmentContainerService $attachments,
         private readonly JournalNoteService $notes,
+        private readonly DocumentService $documents,
     ) {}
 
     public function timeEntries(User $actor, Request $request): ApiResult
@@ -101,7 +105,10 @@ final class RecordApi
             }
             $entry = $this->timeEntries->create($actor, $project, $attributes);
 
-            return ApiResult::created(['time_entry' => $this->timeDocument($actor, $entry)]);
+            return ApiResult::created(
+                ['time_entry' => $this->timeDocument($actor, $entry)],
+                ApiLocation::to($request, 'time_entries/'.$entry->id),
+            );
         });
     }
 
@@ -186,7 +193,10 @@ final class RecordApi
             $type = is_string($attributes['relation_type'] ?? null) ? $attributes['relation_type'] : 'relates';
             $relation = $this->relations->add($actor, $issue, $other, $type);
 
-            return ApiResult::created(['relation' => $this->relationDocument($issue, $relation)]);
+            return ApiResult::created(
+                ['relation' => $this->relationDocument($issue, $relation)],
+                ApiLocation::to($request, 'relations/'.$relation->id),
+            );
         });
     }
 
@@ -260,7 +270,10 @@ final class RecordApi
                 $this->optional($attributes['description'] ?? null),
             );
 
-            return ApiResult::created(['news' => $this->newsDocument($item)]);
+            return ApiResult::created(
+                ['news' => $this->newsDocument($item)],
+                ApiLocation::to($request, 'news/'.$item->id),
+            );
         });
     }
 
@@ -351,6 +364,7 @@ final class RecordApi
             $comments = $this->values->text($attributes['comments'] ?? '');
             $version = is_numeric($attributes['version'] ?? null) ? (int) $attributes['version'] : null;
             $located = $this->wiki->locate($actor, $project, $title);
+            $creating = $located === null;
             if ($located === null) {
                 $page = $this->wiki->createPage($actor, $project, $title, $text, $comments, null, false, false);
             } else {
@@ -361,8 +375,14 @@ final class RecordApi
             if (! $content instanceof WikiContent) {
                 return ApiResult::fail(404, 'Not found');
             }
+            if (! $creating) {
+                return ApiResult::noContent();
+            }
 
-            return ApiResult::ok(['wiki_page' => $this->wikiDocument($page, $content)]);
+            return ApiResult::created(
+                ['wiki_page' => $this->wikiDocument($page, $content)],
+                ApiLocation::to($request, 'projects/'.$project->identifier.'/wiki/'.rawurlencode((string) $page->title)),
+            );
         });
     }
 
@@ -423,7 +443,10 @@ final class RecordApi
                 false,
             );
 
-            return ApiResult::created(['message' => $this->messageDocument($topic)]);
+            return ApiResult::created(
+                ['message' => $this->messageDocument($topic)],
+                ApiLocation::to($request, 'messages/'.$topic->id),
+            );
         });
     }
 
@@ -455,7 +478,10 @@ final class RecordApi
                 false,
             );
 
-            return ApiResult::created(['message' => $this->messageDocument($reply)]);
+            return ApiResult::created(
+                ['message' => $this->messageDocument($reply)],
+                ApiLocation::to($request, 'messages/'.$reply->id),
+            );
         });
     }
 
@@ -498,6 +524,10 @@ final class RecordApi
     public function upload(User $actor, Request $request): ApiResult
     {
         return $this->calls->run(function () use ($actor, $request): ApiResult {
+            $media = strtolower(trim(explode(';', (string) $request->header('Content-Type'))[0]));
+            if ($media !== 'application/octet-stream') {
+                return ApiResult::fail(422, 'Content-Type must be application/octet-stream.');
+            }
             $filename = $request->query('filename');
             if (! is_string($filename) || $filename === '') {
                 return ApiResult::fail(422, 'Filename is required.');
@@ -595,7 +625,113 @@ final class RecordApi
                 $versionId,
             );
 
-            return ApiResult::created(['file' => $this->attachmentDocument($attachment)]);
+            return ApiResult::created(
+                ['file' => $this->attachmentDocument($attachment)],
+                ApiLocation::to($request, 'attachments/'.$attachment->id),
+            );
+        });
+    }
+
+    public function documents(User $actor, string $projectKey): ApiResult
+    {
+        return $this->calls->run(function () use ($actor, $projectKey): ApiResult {
+            $project = $this->projectKey($actor, $projectKey);
+            if ($project instanceof ApiResult) {
+                return $project;
+            }
+            $this->modules->allow($actor, $project, 'documents', 'view_documents');
+            $rows = [];
+            $items = Document::query()->where('project_id', $project->id)->orderBy('title')->orderBy('id')->get();
+            foreach ($items as $item) {
+                $rows[] = $this->documentRow($item);
+            }
+
+            return ApiResult::ok(['documents' => $rows]);
+        });
+    }
+
+    public function showDocument(User $actor, int $id): ApiResult
+    {
+        return $this->calls->run(function () use ($actor, $id): ApiResult {
+            $document = $this->readableDocument($actor, $id);
+            if ($document instanceof ApiResult) {
+                return $document;
+            }
+
+            return ApiResult::ok(['document' => $this->documentRow($document)]);
+        });
+    }
+
+    public function storeDocument(User $actor, string $projectKey, Request $request): ApiResult
+    {
+        return $this->calls->run(function () use ($actor, $projectKey, $request): ApiResult {
+            $project = $this->projectKey($actor, $projectKey);
+            if ($project instanceof ApiResult) {
+                return $project;
+            }
+            $this->modules->allow($actor, $project, 'documents', 'add_documents');
+            $attributes = ApiQuery::resource($request, 'document');
+            if (! is_numeric($attributes['category_id'] ?? null)) {
+                return ApiResult::fail(422, 'Category is required.');
+            }
+            $document = $this->documents->create(
+                $actor,
+                $project,
+                $this->values->text($attributes['title'] ?? null),
+                (int) $attributes['category_id'],
+                $this->optional($attributes['description'] ?? null),
+            );
+
+            return ApiResult::created(
+                ['document' => $this->documentRow($document)],
+                ApiLocation::to($request, 'documents/'.$document->id),
+            );
+        });
+    }
+
+    public function updateDocument(User $actor, int $id, Request $request): ApiResult
+    {
+        return $this->calls->run(function () use ($actor, $id, $request): ApiResult {
+            $document = $this->readableDocument($actor, $id);
+            if ($document instanceof ApiResult) {
+                return $document;
+            }
+            $project = $document->project;
+            if (! $project instanceof Project) {
+                return ApiResult::fail(404, 'Not found');
+            }
+            $this->modules->allow($actor, $project, 'documents', 'edit_documents');
+            $attributes = ApiQuery::resource($request, 'document');
+            $categoryId = is_numeric($attributes['category_id'] ?? null)
+                ? (int) $attributes['category_id']
+                : (int) $document->category_id;
+            $this->documents->update(
+                $actor,
+                $document,
+                array_key_exists('title', $attributes) ? $this->values->text($attributes['title']) : (string) $document->title,
+                $categoryId,
+                array_key_exists('description', $attributes) ? $this->optional($attributes['description']) : $document->description,
+            );
+
+            return ApiResult::noContent();
+        });
+    }
+
+    public function destroyDocument(User $actor, int $id): ApiResult
+    {
+        return $this->calls->run(function () use ($actor, $id): ApiResult {
+            $document = $this->readableDocument($actor, $id);
+            if ($document instanceof ApiResult) {
+                return $document;
+            }
+            $project = $document->project;
+            if (! $project instanceof Project) {
+                return ApiResult::fail(404, 'Not found');
+            }
+            $this->modules->allow($actor, $project, 'documents', 'delete_documents');
+            $this->documents->delete($actor, $document);
+
+            return ApiResult::noContent();
         });
     }
 
@@ -840,6 +976,44 @@ final class RecordApi
         }
 
         return $ids;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function documentRow(Document $document): array
+    {
+        $document->loadMissing('project');
+        $project = $document->project;
+        $category = Enumeration::query()->find($document->category_id);
+
+        return [
+            'id' => (int) $document->id,
+            'project' => $project instanceof Project ? $this->values->ref((int) $project->id, (string) $project->name) : null,
+            'category' => $category instanceof Enumeration ? $this->values->ref((int) $category->id, (string) $category->name) : null,
+            'title' => (string) $document->title,
+            'description' => $this->values->text($document->description),
+            'created_on' => $this->values->stamp($document->created_on),
+        ];
+    }
+
+    private function readableDocument(User $actor, int $id): Document|ApiResult
+    {
+        $document = Document::query()->with('project')->find($id);
+        if (! $document instanceof Document) {
+            return ApiResult::fail(404, 'Not found');
+        }
+        $project = $document->project;
+        if (! $project instanceof Project) {
+            return ApiResult::fail(404, 'Not found');
+        }
+        try {
+            $this->modules->allow($actor, $project, 'documents', 'view_documents');
+        } catch (PermissionDeniedException) {
+            return ApiResult::fail(403, 'You are not authorized to access this page.');
+        }
+
+        return $document;
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace App\Http\Api;
 
+use App\Domain\Attachments\AttachmentTooLargeException;
 use App\Domain\Auth\AccountValidationException;
 use App\Domain\CustomFields\CustomFieldValidationException;
 use App\Domain\DomainException;
@@ -28,6 +29,8 @@ final class ApiCall
             return ApiResult::fail(422, ...$this->customFieldMessages($exception));
         } catch (WikiVersionConflictException $exception) {
             return ApiResult::fail(409, $exception->getMessage());
+        } catch (AttachmentTooLargeException $exception) {
+            return ApiResult::fail(413, $exception->getMessage());
         } catch (DomainException $exception) {
             return ApiResult::fail(422, $exception->getMessage());
         }

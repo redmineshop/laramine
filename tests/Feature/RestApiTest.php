@@ -153,13 +153,12 @@ class RestApiTest extends TestCase
         $this->flushHeaders()
             ->withHeader('X-Redmine-API-Key', $adminKey)
             ->putJson('/projects/'.$project.'/wiki/Guide.json', ['wiki_page' => ['text' => 'first']])
-            ->assertOk()
+            ->assertCreated()
             ->assertJsonPath('wiki_page.version', 1);
 
         $this->withHeader('X-Redmine-API-Key', $adminKey)
             ->putJson('/projects/'.$project.'/wiki/Guide.json', ['wiki_page' => ['text' => 'second']])
-            ->assertOk()
-            ->assertJsonPath('wiki_page.version', 2);
+            ->assertNoContent();
 
         $this->withHeader('X-Redmine-API-Key', $adminKey)
             ->putJson('/projects/'.$project.'/wiki/Guide.json', ['wiki_page' => ['text' => 'stale', 'version' => 1]])
