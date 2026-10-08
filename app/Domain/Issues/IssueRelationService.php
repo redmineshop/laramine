@@ -32,9 +32,11 @@ final class IssueRelationService
     ];
 
     /**
+     * Stored relation type to the type seen from the other issue.
+     *
      * @var array<string, string>
      */
-    private const REVERSE = [
+    public const REVERSE = [
         'relates' => 'relates',
         'blocks' => 'blocked',
         'duplicates' => 'duplicated',

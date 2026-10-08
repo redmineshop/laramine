@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Laramine
 
-Early MIT Laravel core. Domain goal is Redmine 7.0.1 semantics, reimplemented in original PHP. Read `AGENTS.md` before a large change. The P0 layout, users and authentication, identity, projects nested-set, workflows, custom fields, queries, journals, time entries and attachments, outbound mail, activity, news, documents, and files, wiki, boards and forums, calendar and Gantt, Textile and Markdown rendering, wiki HTTP, boards and forums HTTP, and the notification and activity rows for those modules in `docs/parity-checklist.md` are **VERIFIED** by the tests named there. Activity for changesets stays **NOT VERIFIED**. Wiki and boards visual UX stays **NOT VERIFIED**. Every other row is **NOT VERIFIED**. Do not describe the project as production-ready.
+Early MIT Laravel core. Domain goal is Redmine 7.0.1 semantics, reimplemented in original PHP. Read `AGENTS.md` before a large change. The P0 layout, users and authentication, identity, projects nested-set, workflows, custom fields, queries, journals, time entries and attachments, outbound mail, activity, news, documents, and files, wiki, boards and forums, calendar and Gantt, Textile and Markdown rendering, wiki HTTP, boards and forums HTTP, and the notification and activity rows for those modules in `docs/parity-checklist.md` are **VERIFIED** by the tests named there. The full REST API row is **VERIFIED** by `tests/Parity/RestApiParityTest.php`. OpenID Connect is **N/A**. Activity for changesets stays **NOT VERIFIED**. Wiki and boards visual UX stays **NOT VERIFIED**. Every other row is **NOT VERIFIED**. Do not describe the project as production-ready.
 
 ## Architecture
 

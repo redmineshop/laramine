@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ActivityController;
+use App\Http\Controllers\Api\RestController;
 use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\Auth\FeedController;
 use App\Http\Controllers\Auth\MyAccountController;
@@ -27,6 +28,7 @@ use App\Http\Controllers\ProjectFileController;
 use App\Http\Controllers\ProjectListController;
 use App\Http\Controllers\WatcherController;
 use App\Http\Controllers\WikiController;
+use App\Http\Controllers\WikiFormatController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', FrontendSmokeController::class);
@@ -141,7 +143,7 @@ Route::delete('/projects/{project}/documents/{document}', [DocumentController::c
     ->name('projects.documents.destroy');
 
 $projectKey = '[A-Za-z0-9_\-]+';
-$wikiTitle = '[^/]+';
+$wikiTitle = '[^/]+(?<!\.json)(?<!\.xml)';
 
 Route::get('/projects/{project}/wiki', [WikiController::class, 'show'])
     ->where('project', $projectKey)
@@ -202,8 +204,10 @@ Route::get('/projects/{project}/wiki/{title}/annotate', [WikiController::class, 
 Route::delete('/projects/{project}/wiki/{title}', [WikiController::class, 'destroy'])
     ->where(['project' => $projectKey, 'title' => $wikiTitle])
     ->name('projects.wiki.page.destroy');
-Route::get('/projects/{project}/wiki/{title}.{format}', [WikiController::class, 'exportPage'])
-    ->where(['project' => $projectKey, 'title' => $wikiTitle, 'format' => 'html|txt|pdf|png'])
+Route::get('/projects/{project}/wiki/index.{format}', [RestController::class, 'wikiIndex'])
+    ->where(['project' => $projectKey, 'format' => 'json|xml']);
+Route::get('/projects/{project}/wiki/{title}.{format}', [WikiFormatController::class, 'show'])
+    ->where(['project' => $projectKey, 'title' => $wikiTitle, 'format' => 'html|txt|pdf|png|json|xml'])
     ->name('projects.wiki.page.export');
 Route::get('/projects/{project}/wiki/{title}/{version}/edit', [WikiController::class, 'editVersion'])
     ->where(['project' => $projectKey, 'title' => $wikiTitle, 'version' => '[0-9]+'])
@@ -365,3 +369,5 @@ Route::middleware('auth')->group(function (): void {
     Route::post('/oauth/authorize', [OauthController::class, 'approve'])->name('oauth.approve');
     Route::post('/oauth/applications', [OauthController::class, 'storeApplication'])->name('oauth.applications.store');
 });
+
+require __DIR__.'/rest.php';

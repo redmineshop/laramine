@@ -103,9 +103,9 @@ class QueryRemainderParityTest extends TestCase
         $this->assertStringContainsString('tests/Parity/fixtures/redmine-7.0.1/', $checklist);
         $this->assertMatchesRegularExpression('/^\| Textile and Markdown rendering \| VERIFIED \|/m', $checklist);
         $this->assertMatchesRegularExpression('/^\| Activity for changesets \| NOT VERIFIED \|/m', $checklist);
-        $this->assertMatchesRegularExpression('/^\| Users and authentication — OpenID Connect \| NOT VERIFIED \|/m', $checklist);
+        $this->assertMatchesRegularExpression('/^\| Users and authentication — OpenID Connect \| N\/A \|/m', $checklist);
         $this->assertMatchesRegularExpression('/^\| Users and authentication — live LDAP \| NOT VERIFIED \|/m', $checklist);
-        $this->assertMatchesRegularExpression('/^\| Users and authentication — full REST API \| NOT VERIFIED \|/m', $checklist);
+        $this->assertMatchesRegularExpression('/^\| Users and authentication — full REST API \| VERIFIED \|/m', $checklist);
     }
 
     /**

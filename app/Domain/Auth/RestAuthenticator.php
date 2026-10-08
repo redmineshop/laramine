@@ -73,7 +73,16 @@ final class RestAuthenticator
     {
         $login = $request->getUser();
         $password = $request->getPassword();
-        if (! is_string($login) || $login === '' || ! is_string($password) || $password === '') {
+        if (! is_string($login) || $login === '') {
+            return null;
+        }
+
+        $byKey = $this->active($this->tokens->findByValue(Token::ACTION_API, $login)?->user);
+        if ($byKey instanceof User) {
+            return $byKey;
+        }
+
+        if (! is_string($password) || $password === '') {
             return null;
         }
 
