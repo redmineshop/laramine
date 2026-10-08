@@ -34,6 +34,11 @@ final class DateWindow
 
     public function __construct(private readonly CarbonImmutable $today) {}
 
+    public static function userZone(?User $user): DateTimeZone
+    {
+        return self::zone($user);
+    }
+
     public static function forUser(?User $user, ?CarbonImmutable $now = null): self
     {
         $zone = self::zone($user);

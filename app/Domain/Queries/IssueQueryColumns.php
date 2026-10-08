@@ -29,6 +29,9 @@ final class IssueQueryColumns
      * `total_estimated_hours` sums visible descendant estimates. `total_spent_hours`
      * is omitted unless the actor can view time entries.
      * `estimated_remaining_hours` is the issue's own estimate times the undone ratio.
+     * `description` and `last_notes` are block columns. `parent.subject` is the
+     * parent issue's subject. `last_updated_by` is the latest visible journal's
+     * author. `relations` and `attachments` and `watcher_users` are plain lists.
      *
      * @var list<string>
      */
@@ -37,11 +40,13 @@ final class IssueQueryColumns
         'project',
         'tracker',
         'parent',
+        'parent.subject',
         'status',
         'priority',
         'subject',
         'author',
         'assigned_to',
+        'watcher_users',
         'updated_on',
         'category',
         'fixed_version',
@@ -55,8 +60,12 @@ final class IssueQueryColumns
         'done_ratio',
         'created_on',
         'closed_on',
+        'last_updated_by',
+        'relations',
+        'attachments',
         'is_private',
         'description',
+        'last_notes',
     ];
 
     /**

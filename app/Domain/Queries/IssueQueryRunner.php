@@ -27,6 +27,8 @@ final class IssueQueryRunner
         private readonly SavedQueryService $saved,
         private readonly IssueQueryProjection $projection,
         private readonly IssueQueryBoard $board,
+        private readonly IssueQueryGrouping $grouping,
+        private readonly IssueQueryLayout $layout,
     ) {}
 
     /**
@@ -100,15 +102,46 @@ final class IssueQueryRunner
     {
         $issues = $this->execute($actor, $query)->get();
         $project = $this->boundProject($query);
-        $display = IssueQueryDisplay::resolve(QueryPayload::options($query->options));
+        $options = QueryPayload::options($query->options);
+        $display = IssueQueryDisplay::resolve($options);
         $columns = $this->projection->names($actor, $project, QueryPayload::columnNames($query->column_names));
+        [$inline, $block] = $this->layout->split($actor, $project, $columns);
+        $groupBy = is_string($query->group_by) && $query->group_by !== '' ? $query->group_by : null;
+        $groups = $groupBy !== null && $this->grouping->isGroupable($groupBy, $actor, $project)
+            ? $this->grouping->summarize($actor, $project, $issues, $groupBy, $this->totals->columns($options, $actor, $project))
+            : [];
 
         return new IssueQueryView(
             $display,
             $columns,
             $this->projection->rows($actor, $issues, $columns),
             $display === IssueQueryDisplay::BOARD ? $this->board->columns($issues) : [],
+            $inline,
+            $block,
+            $groups,
         );
+    }
+
+    /**
+     * Filters of a visible IssueQuery. Calendar and Gantt ignore group and sort.
+     *
+     * @return array<string, array{operator: string, values: list<string>}>
+     */
+    public function savedFilters(?User $actor, Query $query): array
+    {
+        $this->assertIssueQuery($actor, $query);
+
+        return QueryPayload::filters($query->filters);
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function savedOptions(?User $actor, Query $query): ?array
+    {
+        $this->assertIssueQuery($actor, $query);
+
+        return QueryPayload::options($query->options);
     }
 
     /**
@@ -125,9 +158,6 @@ final class IssueQueryRunner
         }
 
         $group = $groupBy === null || $groupBy === '' ? null : $groupBy;
-        if ($group !== null) {
-            $this->sort->assertAvailable($group, QueryType::ISSUE, $actor, $project);
-        }
 
         $builder = $this->filtered($actor, $project, $map);
         $this->sort->apply($builder, $group, $pairs, $actor, $project);
@@ -153,10 +183,21 @@ final class IssueQueryRunner
     {
         $names = QueryPayload::columnNames($query->column_names);
         if ($names === null) {
-            return IssueQueryColumns::DEFAULT;
+            return $this->layout->defaultNames($this->boundProject($query));
         }
 
         return $names;
+    }
+
+    private function assertIssueQuery(?User $actor, Query $query): void
+    {
+        if ($query->type !== QueryType::ISSUE) {
+            throw new QueryValidationException('Only IssueQuery can be executed.');
+        }
+
+        if (! $this->saved->canView($actor, $query)) {
+            throw new DomainException('Saved query is not visible.');
+        }
     }
 
     /**

@@ -77,6 +77,57 @@ final class CustomFieldFilterSql
     }
 
     /**
+     * Same operators as {@see self::apply}, on custom-value rows the caller scopes.
+     *
+     * The callback runs after `custom_values` is selected. It must point those
+     * rows at the associated record. `!`, `!~`, and `!*` stay NOT EXISTS.
+     *
+     * @param  Builder<Issue>  $query
+     * @param  callable(QueryBuilder): void  $scope
+     */
+    public function applyScoped(Builder $query, QueryFilter $filter, CustomField $field, callable $scope, ?User $actor, DateWindow $dates): void
+    {
+        $format = $this->formats->get((string) $field->field_format);
+        $filterType = $format->queryFilterType();
+        OperatorMatrix::assert($filterType, $filter->operator, $filter->field);
+        FilterValues::assertCount($filter);
+
+        $negative = in_array($filter->operator, ['!', '!~', '!*'], true);
+        $positive = match ($filter->operator) {
+            '!' => '=',
+            '!~' => '~',
+            '!*' => '*',
+            default => $filter->operator,
+        };
+        $formatKey = $format->key();
+        $callback = function (QueryBuilder $sub) use ($scope, $filter, $filterType, $positive, $dates, $actor, $formatKey): void {
+            $sub->selectRaw('1')->from('custom_values');
+            $scope($sub);
+            $this->predicate($sub, $filter, $filterType, $positive, $dates, $actor, $formatKey);
+        };
+
+        if ($negative) {
+            $query->whereNotExists($callback);
+
+            return;
+        }
+
+        $query->whereExists($callback);
+    }
+
+    /**
+     * Adds the value predicate to a custom-value subquery the caller already scoped.
+     */
+    public function applyScopedValue(QueryBuilder $sub, QueryFilter $filter, CustomField $field, ?User $actor, DateWindow $dates): void
+    {
+        $format = $this->formats->get((string) $field->field_format);
+        $filterType = $format->queryFilterType();
+        OperatorMatrix::assert($filterType, $filter->operator, $filter->field);
+        FilterValues::assertCount($filter);
+        $this->predicate($sub, $filter, $filterType, $filter->operator, $dates, $actor, $format->key());
+    }
+
+    /**
      * User fields accept `me` as that user id. Other formats reject it.
      * Group ids are not added.
      *

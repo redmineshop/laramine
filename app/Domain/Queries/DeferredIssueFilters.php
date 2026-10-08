@@ -6,7 +6,8 @@ namespace App\Domain\Queries;
  * Chained custom-field suffixes that are not compiled.
  *
  * Version fields accept `due_date` and `status` before this check runs.
- * Shipped formats do not define any other chain.
+ * `cf_N.cf_M` and `project|author|assigned_to|fixed_version.cf_N` are compiled
+ * by the association custom-field filter. Any other suffix is rejected.
  */
 final class DeferredIssueFilters
 {

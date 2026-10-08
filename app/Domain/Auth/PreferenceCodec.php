@@ -68,7 +68,7 @@ final class PreferenceCodec
     {
         $clean = [];
         foreach ($input as $key => $value) {
-            if (! array_key_exists($key, self::CHOICES) && ! in_array($key, self::FLAGS, true) && ! $this->ganttKey($key)) {
+            if (! array_key_exists($key, self::CHOICES) && ! in_array($key, self::FLAGS, true) && ! $this->ganttKey($key) && $key !== 'default_issue_query') {
                 throw new AccountValidationException([
                     'others' => ['Preference key is unknown: '.$key.'.'],
                 ]);
@@ -109,6 +109,12 @@ final class PreferenceCodec
             return is_string($text) && preg_match('/^[1-9]\d*$/', $text) === 1 ? $text : null;
         }
 
+        if ($key === 'default_issue_query') {
+            $text = is_int($value) ? (string) $value : $value;
+
+            return is_string($text) && preg_match('/^[1-9]\d*$/', $text) === 1 ? $text : null;
+        }
+
         if (in_array($key, self::FLAGS, true)) {
             if (is_bool($value)) {
                 return $value;
@@ -132,6 +138,6 @@ final class PreferenceCodec
 
     private function ganttKey(string $key): bool
     {
-        return $key === 'gantt_zoom' || $key === 'gantt_months';
+        return $key === 'gantt_zoom' || $key === 'gantt_months' || $key === 'default_issue_query';
     }
 }
