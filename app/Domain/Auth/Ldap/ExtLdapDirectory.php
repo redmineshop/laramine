@@ -4,6 +4,7 @@ namespace App\Domain\Auth\Ldap;
 
 use App\Models\AuthSource;
 use LDAP\Connection;
+use LDAP\Result;
 
 /**
  * Live directory through PHP's LDAP extension.
@@ -38,7 +39,7 @@ final class ExtLdapDirectory implements LdapDirectory
             if ($result === false && ldap_errno($conn) !== self::SIZE_LIMIT) {
                 $this->raise($conn, $timeout, $started);
             }
-            if ($result === false) {
+            if (! $result instanceof Result) {
                 return [];
             }
             $raw = ldap_get_entries($conn, $result);
@@ -177,7 +178,9 @@ final class ExtLdapDirectory implements LdapDirectory
             $context,
         );
         if ($client === false) {
-            if ($this->streamTimedOut($errno, $errstr, $started, $timeout)) {
+            $code = is_int($errno) ? $errno : 0;
+            $detail = is_string($errstr) ? $errstr : '';
+            if ($this->streamTimedOut($code, $detail, $started, $timeout)) {
                 throw new LdapTimeoutException('LDAP timed out.');
             }
             throw new LdapBindException('LDAP connection failed.');
@@ -197,7 +200,8 @@ final class ExtLdapDirectory implements LdapDirectory
 
     private function port(AuthSource $source): int
     {
-        $stored = $source->port;
+        $attributes = $source->getAttributes();
+        $stored = $attributes['port'] ?? null;
         if ($stored === null || $stored === '' || (is_numeric($stored) && (int) $stored === 0)) {
             return 389;
         }
@@ -292,7 +296,7 @@ final class ExtLdapDirectory implements LdapDirectory
         $elapsed = microtime(true) - $started;
         $timed = $errno === -5
             || $errno === 85
-            || (is_string($message) && str_contains(strtolower($message), 'timed out'))
+            || str_contains(strtolower($message), 'timed out')
             || $elapsed >= ($timeout - 0.05);
         if ($timed) {
             throw new LdapTimeoutException('LDAP timed out.');

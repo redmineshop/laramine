@@ -24,7 +24,7 @@
         "login": "a,b",
         "substituted": "uid=a\\,b,ou=$login,dc=example,dc=test",
         "live_account": "uid=$login,ou=people,dc=example,dc=test",
-        "comma_dn": "uid=a\\,b,ou=people,dc=example,dc=test"
+        "comma_dn": "uid=a\\2Cb,ou=people,dc=example,dc=test"
     },
     "auth_filter": {
         "login": "a*b",
