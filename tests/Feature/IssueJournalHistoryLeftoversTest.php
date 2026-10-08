@@ -48,8 +48,9 @@ class IssueJournalHistoryLeftoversTest extends TestCase
         $world = DomainFixture::boot('journal-thumbs');
         config([
             'redmine.gs_command' => '',
-            'redmine.imagemagick_convert_command' => '',
         ]);
+        $this->assertTrue(app(ThumbnailBinaries::class)->convertAvailable());
+        $this->assertFalse(app(ThumbnailBinaries::class)->gsAvailable());
         $admin = User::factory()->create(['admin' => true, 'login' => 'thumbs-admin']);
         $issues = app(IssueService::class);
         $history = app(IssueHistoryPresenter::class);
@@ -110,6 +111,21 @@ class IssueJournalHistoryLeftoversTest extends TestCase
             $this->assertSame([], $disabled->notesEntries);
             $this->assertFalse($disabled->historyEntries[0]->hasThumbnails);
             $this->assertFalse($disabled->historyEntries[0]->attachments[0]->thumbnailable);
+
+            $this->setting(SettingValue::THUMBNAILS_ENABLED, '1');
+            config(['redmine.imagemagick_convert_command' => '']);
+            $this->assertFalse(app(ThumbnailBinaries::class)->convertAvailable());
+            $withoutConvert = $history->present($admin, $issue->fresh());
+            $this->assertSame(
+                [IssueHistoryPresenter::TAB_HISTORY, IssueHistoryPresenter::TAB_PROPERTIES],
+                $withoutConvert->historyTabLabels,
+            );
+            $this->assertSame([], $withoutConvert->notesEntries);
+            foreach ($withoutConvert->historyEntries as $entry) {
+                foreach ($entry->attachments as $file) {
+                    $this->assertFalse($file->thumbnailable);
+                }
+            }
         } finally {
             $this->unlinkAll($paths);
         }

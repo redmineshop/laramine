@@ -65,10 +65,14 @@
         "disposition": "attachment",
         "cache_pattern": "{digest}_{filesize}_{size}.thumb",
         "path": "/attachments/thumbnail/{id}/{size}",
+        "missing_row_default": "1",
+        "view_when_enabled": true,
         "disabled_value": "0",
-        "disabled_message": "Thumbnails are disabled.",
+        "disabled_route_status": 200,
+        "view_when_disabled": false,
         "unreadable_filename": "photo.jpg",
-        "unreadable_message": "Thumbnail image could not be read."
+        "not_found_status": 404,
+        "not_found_body": ""
     },
     "project_file": {
         "filename": "notes.txt",

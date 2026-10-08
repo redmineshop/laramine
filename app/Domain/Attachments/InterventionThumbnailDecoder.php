@@ -10,9 +10,10 @@ use Throwable;
 /**
  * Decodes GIF, JPEG, BMP, WebP, and AVIF into a PNG.
  *
- * GD reads the formats it was built with. AVIF falls through to Imagick, then
- * to ImageMagick `convert`, when those are present. A file none of them can
- * read produces no PNG.
+ * Nothing is decoded unless ImageMagick `convert` answers `-version`.
+ * GD then reads the formats it was built with. AVIF falls through to
+ * Imagick, then to `convert`, when those are present. A file none of them
+ * can read produces no PNG.
  */
 final class InterventionThumbnailDecoder implements ThumbnailDecoder
 {
@@ -28,8 +29,11 @@ final class InterventionThumbnailDecoder implements ThumbnailDecoder
 
     public function supports(string $kind): bool
     {
+        if (! $this->binaries->convertAvailable()) {
+            return false;
+        }
         if ($kind === 'avif') {
-            return $this->gdSupports('avif') || $this->imagick->supportsAvif() || $this->binaries->convertAvailable();
+            return true;
         }
 
         return $this->gdSupports($kind);
@@ -37,7 +41,7 @@ final class InterventionThumbnailDecoder implements ThumbnailDecoder
 
     public function toPng(string $bytes): ?string
     {
-        if ($bytes === '') {
+        if (! $this->binaries->convertAvailable() || $bytes === '') {
             return null;
         }
         $gd = $this->gdPng($bytes);

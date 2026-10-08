@@ -9,6 +9,8 @@ use App\Domain\Attachments\AttachmentThumbnailRenderer;
 use App\Domain\Attachments\PngImage;
 use App\Domain\Attachments\ThumbnailBinaries;
 use App\Domain\Attachments\ThumbnailDecoder;
+use App\Domain\Issues\History\JournalAttachmentList;
+use App\Domain\Issues\History\JournalAttachmentView;
 use App\Domain\Issues\IssueRelationService;
 use App\Domain\PermissionDeniedException;
 use App\Domain\Projects\ProjectService;
@@ -182,7 +184,9 @@ class AttachmentParityTest extends TestCase
 
         $thumb = $expected['thumbnail'];
         $this->assertIsArray($thumb);
-        $this->setting('thumbnails_enabled', $this->stringField($thumb, 'enabled'));
+        Setting::query()->where('name', 'thumbnails_enabled')->delete();
+        $this->assertSame($this->stringField($thumb, 'missing_row_default'), '1');
+        $this->assertTrue(app(SettingValue::class)->thumbnailsEnabled());
         $requested = $this->intField($thumb, 'size');
         $edge = app(AttachmentThumbnailRenderer::class)->edge($requested);
         $this->assertSame($this->intField($thumb, 'clamped_size'), $edge);
@@ -203,10 +207,23 @@ class AttachmentParityTest extends TestCase
         file_put_contents($cache, 'POISON');
         $this->assertSame('POISON', $this->actingAs($ada)->get('/attachments/'.$attachment->id.'/thumbnail?size='.$requested)->streamedContent());
 
+        $issue = Issue::query()->findOrFail((int) $expected['issue_id']);
+        $shown = $this->namedAttachment(
+            app(JournalAttachmentList::class)->forIssue($issue),
+            (string) $attachment->filename,
+        );
+        $this->assertSame($this->boolField($thumb, 'view_when_enabled'), $shown->thumbnailable);
+
         $this->setting('thumbnails_enabled', $this->stringField($thumb, 'disabled_value'));
-        $this->actingAs($ada)->getJson('/attachments/'.$attachment->id.'/thumbnail?size='.$edge)
-            ->assertNotFound()
-            ->assertJsonPath('message', $this->stringField($thumb, 'disabled_message'));
+        $hidden = $this->namedAttachment(
+            app(JournalAttachmentList::class)->forIssue($issue),
+            (string) $attachment->filename,
+        );
+        $this->assertSame($this->boolField($thumb, 'view_when_disabled'), $hidden->thumbnailable);
+        file_put_contents($cache, $fitted);
+        $whileOff = $this->actingAs($ada)->get('/attachments/'.$attachment->id.'/thumbnail?size='.$edge);
+        $whileOff->assertStatus($this->intField($thumb, 'disabled_route_status'));
+        $this->assertSame($fitted, $whileOff->streamedContent());
 
         $this->setting('thumbnails_enabled', $this->stringField($thumb, 'enabled'));
         $jpegToken = $this->token($ada, $this->stringField($thumb, 'unreadable_filename'), 'not-a-png', 'image/jpeg');
@@ -216,9 +233,10 @@ class AttachmentParityTest extends TestCase
         ])->assertOk();
         $jpegId = $jpeg->json('id');
         $this->assertIsInt($jpegId);
-        $this->actingAs($ada)->getJson('/attachments/'.$jpegId.'/thumbnail?size='.$requested)
-            ->assertNotFound()
-            ->assertJsonPath('message', $this->stringField($thumb, 'unreadable_message'));
+        $this->assertEmptyThumbnail(
+            $this->actingAs($ada)->get('/attachments/'.$jpegId.'/thumbnail?size='.$requested),
+            $thumb,
+        );
 
         $projectFile = $expected['project_file'];
         $this->assertIsArray($projectFile);
@@ -350,6 +368,7 @@ class AttachmentParityTest extends TestCase
         $issueId = $this->intField($expected, 'issue_id');
         $poisoned = false;
         $pathed = false;
+        $cachedId = null;
 
         $this->assertTrue(app(ThumbnailBinaries::class)->pdfReady());
         foreach ($this->stringList($expected, 'required') as $kind) {
@@ -387,6 +406,7 @@ class AttachmentParityTest extends TestCase
                     $this->stringField($expected, 'cache_poison'),
                     $this->actingAs($ada)->get('/attachments/thumbnail/'.$id.'/'.$requested)->streamedContent(),
                 );
+                $cachedId = $id;
                 $poisoned = true;
             }
         }
@@ -400,9 +420,10 @@ class AttachmentParityTest extends TestCase
             'text/plain',
             $issueId,
         );
-        $this->actingAs($ada)->getJson('/attachments/thumbnail/'.$plainId.'/'.$requested)
-            ->assertStatus($this->intField($expected, 'missing_status'))
-            ->assertJsonPath('message', $this->stringField($expected, 'not_image_message'));
+        $this->assertEmptyThumbnail(
+            $this->actingAs($ada)->get('/attachments/thumbnail/'.$plainId.'/'.$requested),
+            $expected,
+        );
 
         $pdf = $expected['pdf'];
         $this->assertIsArray($pdf);
@@ -444,9 +465,10 @@ class AttachmentParityTest extends TestCase
             'application/pdf',
             $issueId,
         );
-        $this->actingAs($ada)->getJson('/attachments/thumbnail/'.$scriptId.'/'.$pdfRequested)
-            ->assertStatus($this->intField($expected, 'missing_status'))
-            ->assertJsonPath('message', $this->stringField($expected, 'unreadable_message'));
+        $this->assertEmptyThumbnail(
+            $this->actingAs($ada)->get('/attachments/thumbnail/'.$scriptId.'/'.$pdfRequested),
+            $expected,
+        );
         $log = file_get_contents($marker);
         $this->assertIsString($log);
         $this->assertStringNotContainsString($this->stringField($pdf, 'raster_flag'), $log);
@@ -458,9 +480,10 @@ class AttachmentParityTest extends TestCase
             'application/pdf',
             $issueId,
         );
-        $this->actingAs($ada)->getJson('/attachments/thumbnail/'.$brokenId.'/'.$pdfRequested)
-            ->assertStatus($this->intField($expected, 'missing_status'))
-            ->assertJsonPath('message', $this->stringField($expected, 'unreadable_message'));
+        $this->assertEmptyThumbnail(
+            $this->actingAs($ada)->get('/attachments/thumbnail/'.$brokenId.'/'.$pdfRequested),
+            $expected,
+        );
 
         config([
             'redmine.gs_command' => $this->stringField($pdf, 'missing_gs'),
@@ -468,20 +491,36 @@ class AttachmentParityTest extends TestCase
         ]);
         $this->assertFalse(app(ThumbnailBinaries::class)->pdfReady());
         $silentId = $this->claimFile($ada, 'silent.pdf', $page, 'application/pdf', $issueId);
-        $this->actingAs($ada)->getJson('/attachments/thumbnail/'.$silentId.'/'.$pdfRequested)
-            ->assertStatus($this->intField($expected, 'missing_status'))
-            ->assertJsonPath('message', $this->stringField($expected, 'not_image_message'));
+        $this->assertEmptyThumbnail(
+            $this->actingAs($ada)->get('/attachments/thumbnail/'.$silentId.'/'.$pdfRequested),
+            $expected,
+        );
 
         config([
             'redmine.gs_command' => 'gs',
             'redmine.imagemagick_convert_command' => $this->stringField($pdf, 'missing_convert'),
         ]);
-        $this->assertFalse(app(ThumbnailBinaries::class)->pdfReady());
-        $this->actingAs($ada)->getJson('/attachments/thumbnail/'.$silentId.'/'.$pdfRequested)
-            ->assertStatus($this->intField($expected, 'missing_status'))
-            ->assertJsonPath('message', $this->stringField($expected, 'not_image_message'));
-        $pngStill = $this->claimFile($ada, 'kept.png', $this->png(), 'image/png', $issueId);
-        $this->actingAs($ada)->get('/attachments/thumbnail/'.$pngStill.'/'.$requested)->assertOk();
+        $this->assertFalse(app(ThumbnailBinaries::class)->convertAvailable());
+        $this->assertEmptyThumbnail(
+            $this->actingAs($ada)->get('/attachments/thumbnail/'.$silentId.'/'.$pdfRequested),
+            $expected,
+        );
+        $this->assertIsInt($cachedId);
+        $this->assertEmptyThumbnail(
+            $this->actingAs($ada)->get('/attachments/thumbnail/'.$cachedId.'/'.$requested),
+            $expected,
+        );
+        $pngStill = $this->claimFile(
+            $ada,
+            $this->stringField($pdf, 'image_without_convert'),
+            $this->png(),
+            'image/png',
+            $issueId,
+        );
+        $this->assertEmptyThumbnail(
+            $this->actingAs($ada)->get('/attachments/thumbnail/'.$pngStill.'/'.$requested),
+            $expected,
+        );
 
         config([
             'redmine.gs_command' => 'gs',
@@ -493,9 +532,10 @@ class AttachmentParityTest extends TestCase
         }
         $jpeg = $this->raster('jpeg', $this->intField($expected, 'width'), $this->intField($expected, 'height'), 0, 0, 255);
         $jpegId = $this->claimFile($ada, 'again.jpg', $jpeg, 'image/jpeg', $issueId);
-        $this->actingAs($ada)->getJson('/attachments/'.$jpegId.'/thumbnail?size='.$requested)
-            ->assertNotFound()
-            ->assertJsonPath('message', $this->stringField($expected, 'unreadable_message'));
+        $this->assertEmptyThumbnail(
+            $this->actingAs($ada)->get('/attachments/'.$jpegId.'/thumbnail?size='.$requested),
+            $expected,
+        );
         $pngId = $this->claimFile($ada, 'still.png', $this->png(), 'image/png', $issueId);
         $this->actingAs($ada)->get('/attachments/'.$pngId.'/thumbnail?size='.$requested)->assertOk();
         if (is_file($wrapper)) {
@@ -1068,5 +1108,39 @@ class AttachmentParityTest extends TestCase
         $this->assertIsInt($value, $key);
 
         return $value;
+    }
+
+    /**
+     * @param  array<mixed>  $row
+     */
+    private function boolField(array $row, string $key): bool
+    {
+        $value = $row[$key] ?? null;
+        $this->assertIsBool($value, $key);
+
+        return $value;
+    }
+
+    /**
+     * @param  list<JournalAttachmentView>  $files
+     */
+    private function namedAttachment(array $files, string $filename): JournalAttachmentView
+    {
+        foreach ($files as $file) {
+            if ($file->filename === $filename) {
+                return $file;
+            }
+        }
+
+        $this->fail($filename);
+    }
+
+    /**
+     * @param  array<mixed>  $spec
+     */
+    private function assertEmptyThumbnail(TestResponse $response, array $spec): void
+    {
+        $response->assertStatus($this->intField($spec, 'not_found_status'));
+        $this->assertSame($this->stringField($spec, 'not_found_body'), $response->getContent());
     }
 }

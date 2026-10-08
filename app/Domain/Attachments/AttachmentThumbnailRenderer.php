@@ -12,9 +12,10 @@ use App\Models\Attachment;
  * The requested edge is rounded up to a multiple of 50 and capped at 800.
  * A missing request uses `thumbnails_size`, then 100. The cache file is
  * `thumbnails/{digest}_{filesize}_{edge}.thumb` and is reused while it exists.
- * PNG is decoded in process. Other images go through the thumbnail converter.
- * A PDF is the first page from Ghostscript when `gs` and `convert` both
- * answer. A missing converter leaves no thumbnail.
+ * Every thumbnail requires ImageMagick convert to answer `-version`.
+ * PNG is then decoded in process. Other images go through the thumbnail
+ * converter. A PDF is the first page from Ghostscript when `gs` also
+ * answers. A missing converter leaves no thumbnail.
  */
 final class AttachmentThumbnailRenderer
 {
@@ -40,7 +41,7 @@ final class AttachmentThumbnailRenderer
     public function render(Attachment $attachment, int $edge): string
     {
         $filename = (string) $attachment->filename;
-        if (! $this->images->canThumbnail($filename, $this->binaries->pdfReady())) {
+        if (! $this->images->canThumbnail($filename, $this->binaries->convertAvailable(), $this->binaries->gsAvailable())) {
             throw new DomainException('Attachment is not an image.');
         }
         $source = $this->files->absolutePath($attachment);
@@ -86,6 +87,9 @@ final class AttachmentThumbnailRenderer
 
     private function pngBytes(string $filename, string $source, int $edge): ?string
     {
+        if (! $this->binaries->convertAvailable()) {
+            return null;
+        }
         if ($this->images->isPdfLike($filename)) {
             $raster = $this->pdfs->firstPagePng($source);
             if ($raster === null) {

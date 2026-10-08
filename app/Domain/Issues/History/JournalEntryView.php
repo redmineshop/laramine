@@ -9,7 +9,8 @@ namespace App\Domain\Issues\History;
  * anchorHref is #note-n for the same visible index.
  * hasNote is true when the journal stores note text. hasDetails is true when
  * at least one detail line is visible to the actor. hasThumbnails is true
- * when thumbnail display is on and a file name is an image. A Property changes
+ * when thumbnail display is on, convert answers, and a file name is an image
+ * or a ready PDF. A Property changes
  * copy keeps those flags, clears the note text, and keeps only reaction.
  */
 final readonly class JournalEntryView

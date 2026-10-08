@@ -85,7 +85,11 @@ final class JournalAttachmentList
     private function view(Attachment $row, bool $enabled, int $size): JournalAttachmentView
     {
         $filename = (string) $row->filename;
-        $thumbnailable = $enabled && $this->thumbnails->canThumbnail($filename, $this->binaries->pdfReady());
+        $thumbnailable = $enabled && $this->thumbnails->canThumbnail(
+            $filename,
+            $this->binaries->convertAvailable(),
+            $this->binaries->gsAvailable(),
+        );
         $contentType = $row->content_type;
         $description = $row->description;
 

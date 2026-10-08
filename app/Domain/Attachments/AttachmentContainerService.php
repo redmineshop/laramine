@@ -11,7 +11,6 @@ use App\Domain\Issues\IssueJournalWriter;
 use App\Domain\Notifications\IssueNotifier;
 use App\Domain\Notifications\ModuleNotifier;
 use App\Domain\PermissionDeniedException;
-use App\Domain\Settings\SettingValue;
 use App\Domain\Wiki\WikiService;
 use App\Models\Attachment;
 use App\Models\Board;
@@ -52,7 +51,6 @@ final class AttachmentContainerService
         private readonly IssueJournalWriter $journals,
         private readonly IssueNotifier $notifications,
         private readonly ModuleNotifier $moduleMail,
-        private readonly SettingValue $settings,
         private readonly ThumbnailBinaries $binaries,
     ) {}
 
@@ -177,13 +175,10 @@ final class AttachmentContainerService
 
     public function thumbnail(?User $actor, Attachment $attachment, ?int $requestedSize): AttachmentDownload
     {
-        if (! $this->settings->thumbnailsEnabled()) {
-            throw new DomainException('Thumbnails are disabled.');
-        }
         $this->assertContainerFile($attachment);
         $this->assertCanRead($actor, $attachment);
         $filename = (string) $attachment->filename;
-        if (! $this->images->canThumbnail($filename, $this->binaries->pdfReady())) {
+        if (! $this->images->canThumbnail($filename, $this->binaries->convertAvailable(), $this->binaries->gsAvailable())) {
             throw new DomainException('Attachment is not an image.');
         }
         $edge = $this->thumbnails->edge($requestedSize);

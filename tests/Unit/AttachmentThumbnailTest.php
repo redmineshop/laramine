@@ -28,9 +28,13 @@ class AttachmentThumbnailTest extends TestCase
         $this->assertTrue($thumbnails->isPdfLike('page.PDF'));
         $this->assertTrue($thumbnails->isPdfLike('folder/drawing.ai'));
         $this->assertFalse($thumbnails->isPdfLike('notes.txt'));
-        $this->assertTrue($thumbnails->canThumbnail('page.pdf', true));
-        $this->assertFalse($thumbnails->canThumbnail('page.pdf', false));
-        $this->assertFalse($thumbnails->canThumbnail('notes.txt', true));
+        $this->assertTrue($thumbnails->canThumbnail('shot.png', true, false));
+        $this->assertFalse($thumbnails->canThumbnail('shot.png', false, true));
+        $this->assertFalse($thumbnails->canThumbnail('frame.avif', false, false));
+        $this->assertTrue($thumbnails->canThumbnail('page.pdf', true, true));
+        $this->assertFalse($thumbnails->canThumbnail('page.pdf', true, false));
+        $this->assertFalse($thumbnails->canThumbnail('page.pdf', false, true));
+        $this->assertFalse($thumbnails->canThumbnail('notes.txt', true, true));
     }
 
     public function test_requested_thumbnail_edge_rounds_up_by_fifty_and_stops_at_800(): void

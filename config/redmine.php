@@ -7,7 +7,7 @@ return [
     | ImageMagick convert
     |--------------------------------------------------------------------------
     |
-    | PDF thumbnails are refused unless this program answers `-version`.
+    | Every thumbnail is refused unless this program answers `-version`.
     | An empty string means the converter is not configured. When the
     | environment value is missing, `convert` is taken from PATH.
     |
