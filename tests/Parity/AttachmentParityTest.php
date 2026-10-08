@@ -7,6 +7,7 @@ use App\Domain\Attachments\AbsentThumbnailDecoder;
 use App\Domain\Attachments\AttachmentService;
 use App\Domain\Attachments\AttachmentThumbnailRenderer;
 use App\Domain\Attachments\PngImage;
+use App\Domain\Attachments\ThumbnailBinaries;
 use App\Domain\Attachments\ThumbnailDecoder;
 use App\Domain\Issues\IssueRelationService;
 use App\Domain\PermissionDeniedException;
@@ -26,6 +27,7 @@ use App\Models\User;
 use App\Models\Version;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Testing\TestResponse;
+use Symfony\Component\Process\Process;
 use Tests\Parity\Support\Redmine701Fixture;
 use Tests\TestCase;
 use ZipArchive;
@@ -181,18 +183,25 @@ class AttachmentParityTest extends TestCase
         $thumb = $expected['thumbnail'];
         $this->assertIsArray($thumb);
         $this->setting('thumbnails_enabled', $this->stringField($thumb, 'enabled'));
-        $edge = $this->intField($thumb, 'size');
-        $thumbResponse = $this->actingAs($ada)->get('/attachments/'.$attachment->id.'/thumbnail?size='.$edge);
+        $requested = $this->intField($thumb, 'size');
+        $edge = app(AttachmentThumbnailRenderer::class)->edge($requested);
+        $this->assertSame($this->intField($thumb, 'clamped_size'), $edge);
+        $thumbResponse = $this->actingAs($ada)->get('/attachments/'.$attachment->id.'/thumbnail?size='.$requested);
         $thumbResponse->assertOk();
         $this->assertStringContainsString($this->stringField($thumb, 'content_type'), (string) $thumbResponse->headers->get('content-type'));
+        $this->assertStringContainsString($this->stringField($thumb, 'disposition'), (string) $thumbResponse->headers->get('content-disposition'));
         $fitted = PngImage::fit($png, $edge);
         $this->assertSame($fitted, $thumbResponse->streamedContent());
         $this->assertSame([$this->intField($thumb, 'width'), $this->intField($thumb, 'height')], PngImage::size($fitted));
+        $pathThumb = $this->actingAs($ada)->get('/attachments/thumbnail/'.$attachment->id.'/'.$requested);
+        $pathThumb->assertOk();
+        $this->assertSame($fitted, $pathThumb->streamedContent());
 
         $cache = app(AttachmentThumbnailRenderer::class)->cachePath($attachment, $edge);
         $this->assertTrue(is_file($cache));
+        $this->assertSame($this->cacheName($attachment, $edge, $this->stringField($thumb, 'cache_pattern')), basename($cache));
         file_put_contents($cache, 'POISON');
-        $this->assertSame('POISON', $this->actingAs($ada)->get('/attachments/'.$attachment->id.'/thumbnail?size='.$edge)->streamedContent());
+        $this->assertSame('POISON', $this->actingAs($ada)->get('/attachments/'.$attachment->id.'/thumbnail?size='.$requested)->streamedContent());
 
         $this->setting('thumbnails_enabled', $this->stringField($thumb, 'disabled_value'));
         $this->actingAs($ada)->getJson('/attachments/'.$attachment->id.'/thumbnail?size='.$edge)
@@ -207,7 +216,7 @@ class AttachmentParityTest extends TestCase
         ])->assertOk();
         $jpegId = $jpeg->json('id');
         $this->assertIsInt($jpegId);
-        $this->actingAs($ada)->getJson('/attachments/'.$jpegId.'/thumbnail?size='.$edge)
+        $this->actingAs($ada)->getJson('/attachments/'.$jpegId.'/thumbnail?size='.$requested)
             ->assertNotFound()
             ->assertJsonPath('message', $this->stringField($thumb, 'unreadable_message'));
 
@@ -327,11 +336,22 @@ class AttachmentParityTest extends TestCase
         $expected = $this->expectation('attachments/thumbnails.json');
         $ada = $this->user('ada');
         $decoder = app(ThumbnailDecoder::class);
+        $renderer = app(AttachmentThumbnailRenderer::class);
         $this->setting('thumbnails_enabled', $this->stringField($expected, 'enabled'));
-        $edge = $this->intField($expected, 'edge');
+        $requested = $this->intField($expected, 'edge');
+        $edge = $renderer->edge($requested);
+        $this->assertSame($this->intField($expected, 'clamped_edge'), $edge);
+        $this->assertSame($this->intField($expected, 'over_edge'), $renderer->edge($this->intField($expected, 'over_requested')));
+        $this->setting('thumbnails_size', $this->stringField($expected, 'setting_size'));
+        $this->assertSame($this->intField($expected, 'setting_edge'), app(AttachmentThumbnailRenderer::class)->edge(null));
+        $this->setting('thumbnails_size', $this->stringField($expected, 'zero_setting'));
+        $this->assertSame($this->intField($expected, 'fallback_edge'), app(AttachmentThumbnailRenderer::class)->edge(null));
+        Setting::query()->where('name', 'thumbnails_size')->delete();
         $issueId = $this->intField($expected, 'issue_id');
         $poisoned = false;
+        $pathed = false;
 
+        $this->assertTrue(app(ThumbnailBinaries::class)->pdfReady());
         foreach ($this->stringList($expected, 'required') as $kind) {
             $this->assertTrue($decoder->supports($kind), $kind);
         }
@@ -339,62 +359,151 @@ class AttachmentParityTest extends TestCase
         foreach ($this->listField($expected, 'formats') as $format) {
             $kind = $this->stringField($format, 'kind');
             $filename = $this->stringField($format, 'filename');
-            if (! $decoder->supports($kind)) {
-                $id = $this->claimFile($ada, $filename, 'not-an-image', 'application/octet-stream', $issueId);
-                $this->actingAs($ada)->getJson('/attachments/'.$id.'/thumbnail?size='.$edge)
-                    ->assertNotFound()
-                    ->assertJsonPath('message', $this->stringField($expected, 'unreadable_message'));
-
-                continue;
-            }
             $bytes = $this->raster($kind, $this->intField($expected, 'width'), $this->intField($expected, 'height'));
             $id = $this->claimFile($ada, $filename, $bytes, 'application/octet-stream', $issueId);
-            $response = $this->actingAs($ada)->get('/attachments/'.$id.'/thumbnail?size='.$edge);
-            $response->assertOk();
-            $this->assertStringContainsString($this->stringField($expected, 'content_type'), (string) $response->headers->get('content-type'));
+            $response = $this->actingAs($ada)->get('/attachments/thumbnail/'.$id.'/'.$requested);
+            $this->assertSame(200, $response->getStatusCode(), $kind.' '.$response->getContent());
+            $this->assertStringContainsString($this->stringField($format, 'content_type'), (string) $response->headers->get('content-type'));
+            $this->assertStringContainsString($this->stringField($expected, 'disposition'), (string) $response->headers->get('content-disposition'));
             $fitted = $response->streamedContent();
             $this->assertSame(
                 [$this->intField($expected, 'thumb_width'), $this->intField($expected, 'thumb_height')],
                 PngImage::size($fitted),
                 $kind,
             );
+            if (! $pathed) {
+                $query = $this->actingAs($ada)->get('/attachments/'.$id.'/thumbnail?size='.$requested);
+                $query->assertOk();
+                $this->assertSame($fitted, $query->streamedContent());
+                $pathed = true;
+            }
             if (! $poisoned) {
                 $attachment = Attachment::query()->findOrFail($id);
                 $cache = app(AttachmentThumbnailRenderer::class)->cachePath($attachment, $edge);
                 $this->assertTrue(is_file($cache));
+                $this->assertSame($this->cacheName($attachment, $edge, $this->stringField($expected, 'cache_pattern')), basename($cache));
                 file_put_contents($cache, $this->stringField($expected, 'cache_poison'));
                 $this->assertSame(
                     $this->stringField($expected, 'cache_poison'),
-                    $this->actingAs($ada)->get('/attachments/'.$id.'/thumbnail?size='.$edge)->streamedContent(),
+                    $this->actingAs($ada)->get('/attachments/thumbnail/'.$id.'/'.$requested)->streamedContent(),
                 );
                 $poisoned = true;
             }
         }
 
+        $plain = $expected['plain'];
+        $this->assertIsArray($plain);
+        $plainId = $this->claimFile(
+            $ada,
+            $this->stringField($plain, 'filename'),
+            $this->stringField($plain, 'body'),
+            'text/plain',
+            $issueId,
+        );
+        $this->actingAs($ada)->getJson('/attachments/thumbnail/'.$plainId.'/'.$requested)
+            ->assertStatus($this->intField($expected, 'missing_status'))
+            ->assertJsonPath('message', $this->stringField($expected, 'not_image_message'));
+
         $pdf = $expected['pdf'];
         $this->assertIsArray($pdf);
-        $pdfId = $this->claimFile(
+        $pdfRequested = $this->intField($pdf, 'requested_size');
+        $pdfEdge = app(AttachmentThumbnailRenderer::class)->edge($pdfRequested);
+        $this->assertSame($this->intField($pdf, 'clamped_size'), $pdfEdge);
+        $page = $this->onePagePdf($this->intField($pdf, 'page_width'), $this->intField($pdf, 'page_height'));
+        $pdfId = $this->claimFile($ada, $this->stringField($pdf, 'filename'), $page, 'application/pdf', $issueId);
+        $pdfResponse = $this->actingAs($ada)->get('/attachments/thumbnail/'.$pdfId.'/'.$pdfRequested);
+        $pdfResponse->assertStatus($this->intField($expected, 'ok_status'));
+        $this->assertStringContainsString($this->stringField($pdf, 'content_type'), (string) $pdfResponse->headers->get('content-type'));
+        $this->assertStringContainsString($this->stringField($expected, 'disposition'), (string) $pdfResponse->headers->get('content-disposition'));
+        $pdfBytes = $pdfResponse->streamedContent();
+        $this->assertSame(
+            [$this->intField($pdf, 'thumb_width'), $this->intField($pdf, 'thumb_height')],
+            PngImage::size($pdfBytes),
+        );
+        $pdfRow = Attachment::query()->findOrFail($pdfId);
+        $pdfCache = app(AttachmentThumbnailRenderer::class)->cachePath($pdfRow, $pdfEdge);
+        $this->assertSame($this->cacheName($pdfRow, $pdfEdge, $this->stringField($expected, 'cache_pattern')), basename($pdfCache));
+
+        $drawingId = $this->claimFile($ada, $this->stringField($pdf, 'illustrator_filename'), $page, 'application/illustrator', $issueId);
+        $drawing = $this->actingAs($ada)->get('/attachments/thumbnail/'.$drawingId.'/'.$pdfRequested);
+        $drawing->assertOk();
+        $this->assertSame(
+            [$this->intField($pdf, 'thumb_width'), $this->intField($pdf, 'thumb_height')],
+            PngImage::size($drawing->streamedContent()),
+        );
+
+        $marker = tempnam(sys_get_temp_dir(), 'gsthumb');
+        $this->assertNotFalse($marker);
+        $wrapper = $this->gsWrapper($marker);
+        config(['redmine.gs_command' => $wrapper]);
+        file_put_contents($marker, '');
+        $scriptId = $this->claimFile(
             $ada,
-            $this->stringField($pdf, 'filename'),
-            $this->stringField($pdf, 'body'),
+            'script.pdf',
+            $this->stringField($pdf, 'postscript_body'),
             'application/pdf',
             $issueId,
         );
-        $this->actingAs($ada)->getJson('/attachments/'.$pdfId.'/thumbnail?size='.$edge)
-            ->assertNotFound()
+        $this->actingAs($ada)->getJson('/attachments/thumbnail/'.$scriptId.'/'.$pdfRequested)
+            ->assertStatus($this->intField($expected, 'missing_status'))
+            ->assertJsonPath('message', $this->stringField($expected, 'unreadable_message'));
+        $log = file_get_contents($marker);
+        $this->assertIsString($log);
+        $this->assertStringNotContainsString($this->stringField($pdf, 'raster_flag'), $log);
+
+        $brokenId = $this->claimFile(
+            $ada,
+            'broken.pdf',
+            $this->stringField($pdf, 'invalid_body'),
+            'application/pdf',
+            $issueId,
+        );
+        $this->actingAs($ada)->getJson('/attachments/thumbnail/'.$brokenId.'/'.$pdfRequested)
+            ->assertStatus($this->intField($expected, 'missing_status'))
+            ->assertJsonPath('message', $this->stringField($expected, 'unreadable_message'));
+
+        config([
+            'redmine.gs_command' => $this->stringField($pdf, 'missing_gs'),
+            'redmine.imagemagick_convert_command' => 'convert',
+        ]);
+        $this->assertFalse(app(ThumbnailBinaries::class)->pdfReady());
+        $silentId = $this->claimFile($ada, 'silent.pdf', $page, 'application/pdf', $issueId);
+        $this->actingAs($ada)->getJson('/attachments/thumbnail/'.$silentId.'/'.$pdfRequested)
+            ->assertStatus($this->intField($expected, 'missing_status'))
             ->assertJsonPath('message', $this->stringField($expected, 'not_image_message'));
 
+        config([
+            'redmine.gs_command' => 'gs',
+            'redmine.imagemagick_convert_command' => $this->stringField($pdf, 'missing_convert'),
+        ]);
+        $this->assertFalse(app(ThumbnailBinaries::class)->pdfReady());
+        $this->actingAs($ada)->getJson('/attachments/thumbnail/'.$silentId.'/'.$pdfRequested)
+            ->assertStatus($this->intField($expected, 'missing_status'))
+            ->assertJsonPath('message', $this->stringField($expected, 'not_image_message'));
+        $pngStill = $this->claimFile($ada, 'kept.png', $this->png(), 'image/png', $issueId);
+        $this->actingAs($ada)->get('/attachments/thumbnail/'.$pngStill.'/'.$requested)->assertOk();
+
+        config([
+            'redmine.gs_command' => 'gs',
+            'redmine.imagemagick_convert_command' => 'convert',
+        ]);
         $this->app->instance(ThumbnailDecoder::class, new AbsentThumbnailDecoder);
         foreach ($this->app->make('router')->getRoutes() as $route) {
             $route->flushController();
         }
-        $jpeg = $this->raster('jpeg', $this->intField($expected, 'width'), $this->intField($expected, 'height'));
+        $jpeg = $this->raster('jpeg', $this->intField($expected, 'width'), $this->intField($expected, 'height'), 0, 0, 255);
         $jpegId = $this->claimFile($ada, 'again.jpg', $jpeg, 'image/jpeg', $issueId);
-        $this->actingAs($ada)->getJson('/attachments/'.$jpegId.'/thumbnail?size='.$edge)
+        $this->actingAs($ada)->getJson('/attachments/'.$jpegId.'/thumbnail?size='.$requested)
             ->assertNotFound()
             ->assertJsonPath('message', $this->stringField($expected, 'unreadable_message'));
         $pngId = $this->claimFile($ada, 'still.png', $this->png(), 'image/png', $issueId);
-        $this->actingAs($ada)->get('/attachments/'.$pngId.'/thumbnail?size='.$edge)->assertOk();
+        $this->actingAs($ada)->get('/attachments/'.$pngId.'/thumbnail?size='.$requested)->assertOk();
+        if (is_file($wrapper)) {
+            unlink($wrapper);
+        }
+        if (is_file($marker)) {
+            unlink($marker);
+        }
     }
 
     public function test_bulk_download_matches_the_pin(): void
@@ -666,6 +775,59 @@ class AttachmentParityTest extends TestCase
         $role->save();
     }
 
+    private function cacheName(Attachment $attachment, int $edge, string $pattern): string
+    {
+        $digest = $attachment->digest;
+        $this->assertIsString($digest);
+        $size = $attachment->filesize;
+        $filesize = is_int($size) ? $size : (is_string($size) ? (int) $size : 0);
+
+        return str_replace(
+            ['{digest}', '{filesize}', '{size}'],
+            [$digest, (string) $filesize, (string) $edge],
+            $pattern,
+        );
+    }
+
+    private function onePagePdf(int $width, int $height): string
+    {
+        $stream = "q\n1 0 0 RG\n1 0 0 rg\n0 0 {$width} {$height} re\nf\nQ\n";
+        $objects = [
+            '<< /Type /Catalog /Pages 2 0 R >>',
+            '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+            "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 {$width} {$height}] /Contents 4 0 R /Resources << >> >>",
+            '<< /Length '.strlen($stream)." >>\nstream\n{$stream}endstream",
+        ];
+        $out = "%PDF-1.4\n";
+        $offsets = [];
+        foreach ($objects as $index => $object) {
+            $offsets[] = strlen($out);
+            $number = $index + 1;
+            $out .= "{$number} 0 obj\n{$object}\nendobj\n";
+        }
+        $xref = strlen($out);
+        $count = count($objects) + 1;
+        $out .= "xref\n0 {$count}\n";
+        $out .= "0000000000 65535 f \n";
+        foreach ($offsets as $offset) {
+            $out .= sprintf('%010d 00000 n ', $offset)."\n";
+        }
+        $out .= "trailer\n<< /Size {$count} /Root 1 0 R >>\nstartxref\n{$xref}\n%%EOF\n";
+
+        return $out;
+    }
+
+    private function gsWrapper(string $marker): string
+    {
+        $script = tempnam(sys_get_temp_dir(), 'gswrap');
+        $this->assertNotFalse($script);
+        $body = "#!/bin/sh\necho \"\$@\" >> ".escapeshellarg($marker)."\nexec gs \"\$@\"\n";
+        file_put_contents($script, $body);
+        chmod($script, 0755);
+
+        return $script;
+    }
+
     private function claimFile(User $actor, string $filename, string $body, string $contentType, int $issueId): int
     {
         $token = $this->token($actor, $filename, $body, $contentType);
@@ -679,11 +841,11 @@ class AttachmentParityTest extends TestCase
         return $id;
     }
 
-    private function raster(string $kind, int $width, int $height): string
+    private function raster(string $kind, int $width, int $height, int $red = 255, int $green = 0, int $blue = 0): string
     {
         $image = imagecreatetruecolor($width, $height);
         $this->assertNotFalse($image);
-        $color = imagecolorallocate($image, 255, 0, 0);
+        $color = imagecolorallocate($image, $red, $green, $blue);
         $this->assertNotFalse($color);
         imagefilledrectangle($image, 0, 0, $width, $height, $color);
         ob_start();
@@ -692,13 +854,45 @@ class AttachmentParityTest extends TestCase
             'jpeg' => imagejpeg($image),
             'bmp' => imagebmp($image),
             'webp' => imagewebp($image),
-            'avif' => function_exists('imageavif') ? imageavif($image) : false,
+            'avif' => false,
             default => false,
         };
         $bytes = ob_get_clean();
         imagedestroy($image);
+        if ($kind === 'avif') {
+            return $this->avifBytes($width, $height);
+        }
         $this->assertTrue($written);
         $this->assertIsString($bytes);
+
+        return $bytes;
+    }
+
+    private function avifBytes(int $width, int $height): string
+    {
+        $image = imagecreatetruecolor($width, $height);
+        $this->assertNotFalse($image);
+        $color = imagecolorallocate($image, 255, 0, 0);
+        $this->assertNotFalse($color);
+        imagefilledrectangle($image, 0, 0, $width, $height, $color);
+        $png = tempnam(sys_get_temp_dir(), 'avifsrc');
+        $this->assertNotFalse($png);
+        $avif = $png.'.avif';
+        $this->assertTrue(imagepng($image, $png));
+        imagedestroy($image);
+        $process = new Process(['avifenc', '-q', '60', $png, $avif]);
+        $process->setTimeout(20);
+        $process->run();
+        $bytes = is_file($avif) ? file_get_contents($avif) : false;
+        if (is_file($png)) {
+            unlink($png);
+        }
+        if (is_file($avif)) {
+            unlink($avif);
+        }
+        $this->assertTrue($process->isSuccessful(), $process->getErrorOutput());
+        $this->assertIsString($bytes);
+        $this->assertNotSame('', $bytes);
 
         return $bytes;
     }

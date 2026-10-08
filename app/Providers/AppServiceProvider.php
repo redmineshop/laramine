@@ -38,9 +38,9 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(PermissionCatalog::class);
         $this->app->singleton(LdapDirectory::class, MemoryLdapDirectory::class);
-        $this->app->bind(ThumbnailDecoder::class, function (): ThumbnailDecoder {
+        $this->app->bind(ThumbnailDecoder::class, function (Application $app): ThumbnailDecoder {
             if (InterventionThumbnailDecoder::present()) {
-                return new InterventionThumbnailDecoder;
+                return $app->make(InterventionThumbnailDecoder::class);
             }
 
             return new AbsentThumbnailDecoder;

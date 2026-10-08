@@ -7,13 +7,14 @@ use App\Domain\Settings\SettingValue;
 use App\Models\Attachment;
 
 /**
- * Builds a cached PNG thumbnail for an image attachment.
+ * Builds a cached PNG thumbnail for an image or a PDF attachment.
  *
- * The requested edge is used when it is between 1 and 800. Otherwise the
- * `thumbnails_size` setting is used, falling back to 100. The cache file is
- * `thumbnails/{id}_{digest}_{edge}.png` and is reused until the digest changes.
- * PNG is decoded in process. Other image types go through the thumbnail
- * converter, and a missing converter leaves no thumbnail.
+ * The requested edge is rounded up to a multiple of 50 and capped at 800.
+ * A missing request uses `thumbnails_size`, then 100. The cache file is
+ * `thumbnails/{digest}_{filesize}_{edge}.thumb` and is reused while it exists.
+ * PNG is decoded in process. Other images go through the thumbnail converter.
+ * A PDF is the first page from Ghostscript when `gs` and `convert` both
+ * answer. A missing converter leaves no thumbnail.
  */
 final class AttachmentThumbnailRenderer
 {
@@ -22,29 +23,24 @@ final class AttachmentThumbnailRenderer
         private readonly AttachmentThumbnails $images,
         private readonly SettingValue $settings,
         private readonly ThumbnailDecoder $decoder,
+        private readonly PdfPageRasterizer $pdfs,
+        private readonly ThumbnailBinaries $binaries,
     ) {}
 
     public function edge(?int $requested): int
     {
-        if ($requested !== null && $requested >= 1 && $requested <= 800) {
-            return $requested;
-        }
-        $stored = $this->settings->thumbnailsSize();
-        if ($stored >= 1 && $stored <= 800) {
-            return $stored;
-        }
-
-        return 100;
+        return ThumbnailSize::edge($requested, $this->settings->thumbnailsSize());
     }
 
     public function cachePath(Attachment $attachment, int $edge): string
     {
-        return $this->files->diskPath('thumbnails/'.$attachment->id.'_'.$this->token($attachment).'_'.$edge.'.png');
+        return $this->files->diskPath('thumbnails/'.$this->token($attachment).'_'.$this->fileSize($attachment).'_'.$edge.'.thumb');
     }
 
     public function render(Attachment $attachment, int $edge): string
     {
-        if (! $this->images->isImage((string) $attachment->filename)) {
+        $filename = (string) $attachment->filename;
+        if (! $this->images->canThumbnail($filename, $this->binaries->pdfReady())) {
             throw new DomainException('Attachment is not an image.');
         }
         $source = $this->files->absolutePath($attachment);
@@ -55,18 +51,9 @@ final class AttachmentThumbnailRenderer
         if (is_file($cache)) {
             return $cache;
         }
-        $bytes = file_get_contents($source);
-        if ($bytes === false) {
+        $png = $this->pngBytes($filename, $source, $edge);
+        if ($png === null) {
             throw new DomainException('Thumbnail image could not be read.');
-        }
-        if (str_starts_with($bytes, "\x89PNG\r\n\x1a\n")) {
-            $png = PngImage::fit($bytes, $edge);
-        } else {
-            $converted = $this->decoder->toPng($bytes);
-            if ($converted === null) {
-                throw new DomainException('Thumbnail image could not be read.');
-            }
-            $png = PngImage::fit($converted, $edge);
         }
         $directory = dirname($cache);
         if (! is_dir($directory) && ! mkdir($directory, 0775, true) && ! is_dir($directory)) {
@@ -86,7 +73,7 @@ final class AttachmentThumbnailRenderer
         if (! is_dir($directory)) {
             return;
         }
-        $matches = glob($directory.'/'.$attachment->id.'_'.$token.'_*.png');
+        $matches = glob($directory.'/'.$token.'_'.$this->fileSize($attachment).'_*.thumb');
         if ($matches === false) {
             return;
         }
@@ -97,10 +84,59 @@ final class AttachmentThumbnailRenderer
         }
     }
 
+    private function pngBytes(string $filename, string $source, int $edge): ?string
+    {
+        if ($this->images->isPdfLike($filename)) {
+            $raster = $this->pdfs->firstPagePng($source);
+            if ($raster === null) {
+                return null;
+            }
+
+            try {
+                return PngImage::fit($raster, $edge);
+            } catch (DomainException) {
+                return null;
+            }
+        }
+        $bytes = file_get_contents($source);
+        if ($bytes === false) {
+            return null;
+        }
+        if (str_starts_with($bytes, "\x89PNG\r\n\x1a\n")) {
+            try {
+                return PngImage::fit($bytes, $edge);
+            } catch (DomainException) {
+                return null;
+            }
+        }
+        $converted = $this->decoder->toPng($bytes);
+        if ($converted === null) {
+            return null;
+        }
+        try {
+            return PngImage::fit($converted, $edge);
+        } catch (DomainException) {
+            return null;
+        }
+    }
+
     private function token(Attachment $attachment): string
     {
         $digest = $attachment->digest;
 
         return is_string($digest) && preg_match('/^[A-Fa-f0-9]+$/', $digest) === 1 ? $digest : 'nodigest';
+    }
+
+    private function fileSize(Attachment $attachment): int
+    {
+        $size = $attachment->filesize;
+        if (is_int($size)) {
+            return $size;
+        }
+        if (is_string($size) && preg_match('/^\d+$/', $size) === 1) {
+            return (int) $size;
+        }
+
+        return 0;
     }
 }

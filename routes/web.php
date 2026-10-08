@@ -83,6 +83,10 @@ Route::get('/attachments/{objectType}/{objectId}/download', [AttachmentControlle
     ->where('objectType', 'issues|journals|projects|versions|news|documents|wiki_pages|messages')
     ->whereNumber('objectId')
     ->name('attachments.download-all');
+Route::get('/attachments/thumbnail/{attachment}/{size?}', [AttachmentController::class, 'thumbnail'])
+    ->whereNumber('attachment')
+    ->where('size', '[0-9]+')
+    ->name('attachments.thumbnail.size');
 Route::get('/attachments/{attachment}/thumbnail', [AttachmentController::class, 'thumbnail'])
     ->whereNumber('attachment')
     ->name('attachments.thumbnail');

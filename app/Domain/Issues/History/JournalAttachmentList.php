@@ -3,6 +3,7 @@
 namespace App\Domain\Issues\History;
 
 use App\Domain\Attachments\AttachmentThumbnails;
+use App\Domain\Attachments\ThumbnailBinaries;
 use App\Domain\Settings\SettingValue;
 use App\Models\Attachment;
 use App\Models\Issue;
@@ -18,6 +19,7 @@ final class JournalAttachmentList
     public function __construct(
         private readonly SettingValue $settings,
         private readonly AttachmentThumbnails $thumbnails,
+        private readonly ThumbnailBinaries $binaries,
     ) {}
 
     /**
@@ -83,7 +85,7 @@ final class JournalAttachmentList
     private function view(Attachment $row, bool $enabled, int $size): JournalAttachmentView
     {
         $filename = (string) $row->filename;
-        $thumbnailable = $enabled && $this->thumbnails->isImage($filename);
+        $thumbnailable = $enabled && $this->thumbnails->canThumbnail($filename, $this->binaries->pdfReady());
         $contentType = $row->content_type;
         $description = $row->description;
 

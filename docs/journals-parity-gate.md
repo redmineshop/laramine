@@ -92,7 +92,7 @@ These rows used to be open after Block C and the note writes. A green test here 
 | Item | What the test locks | Automated by |
 | --- | --- | --- |
 | Download all files | The journal menu and the issue show model list it when that container has more than one attachment. `AttachmentArchive` zips those files, renaming repeats as `name(2).ext`. One file is rejected. A private journal is refused without `view_private_notes`. | `test_download_all_files_zips_issue_and_journal_attachments` |
-| Thumbnail-only journals on Notes | With `thumbnails_enabled`, an image filename and no note stays on Notes. A non-image does not. Turning the setting off drops that journal from Notes. | `test_thumbnail_only_journal_is_kept_on_notes_when_thumbnails_are_enabled` |
+| Thumbnail-only journals on Notes | With `thumbnails_enabled`, an image filename and no note stays on Notes. A PDF filename stays on Notes when `gs` and `convert` both answer, and stays off Notes when they do not. Turning the setting off drops that journal from Notes. | `test_thumbnail_only_journal_is_kept_on_notes_when_thumbnails_are_enabled` |
 | Absolute copy-link URL | Copy link is `{protocol}://{host}/issues/{id}#note-n` for the visible index. The anchor href stays `#note-n`. | `test_copy_link_is_an_absolute_issue_url` and Block C criterion 17 |
 | Spent time and associated revisions | The tabs are Spent time and Associated revisions. Spent time follows `view_time_entries` and `time_entries_visibility`. Revisions follow `view_changesets` and `changesets_issues`. | `test_spent_time_and_associated_revisions_tabs_follow_permission` |
 
@@ -104,7 +104,7 @@ These rows used to be open after Block C and the note writes. A green test here 
 
 | Item | Status |
 | --- | --- |
-| HTTP download, thumbnail bytes, and the issue page | **Compared on the time entries row.** `tests/Parity/AttachmentParityTest.php` compares container download, image thumbnails, and the download-all zip to `tests/Parity/fixtures/redmine-7.0.1/expectations/attachments/http.json`, `thumbnails.json`, and `bulk.json`. PDF is not thumbnailed. The issue page is not a Redmine screen. |
+| HTTP download, thumbnail bytes, and the issue page | **Compared on the time entries row.** `tests/Parity/AttachmentParityTest.php` compares container download, image and PDF thumbnails, and the download-all zip to `tests/Parity/fixtures/redmine-7.0.1/expectations/attachments/http.json`, `thumbnails.json`, and `bulk.json`. The issue page is not a Redmine screen. |
 | Time-entry writes | **Compared on the time entries row.** `tests/Parity/TimeEntryParityTest.php` compares writes, the default activity, rollup, and TimeEntryQuery results to `tests/Parity/fixtures/redmine-7.0.1/expectations/time-entries/`. |
 | Attachment and relation-removal journal writes | **Compared on the time entries row.** Upload, delete, and relation delete write the details compared in `tests/Parity/AttachmentParityTest.php` against `tests/Parity/fixtures/redmine-7.0.1/expectations/attachments/journals.json`. Relation add stays on the source issue. |
 | Changeset sync and repository browse | **Open.** The tab reads `repositories`, `changesets`, and `changesets_issues`. `changes` and `changeset_parents` are not migrated. Commits are not fetched. SCM stays out of the journals comparison. |
