@@ -27,6 +27,23 @@ jobs:
           --health-timeout=5s
           --health-retries=20
           --health-start-period=20s
+      openldap:
+        image: osixia/openldap:1.5.0
+        env:
+          LDAP_ORGANISATION: Laramine
+          LDAP_DOMAIN: example.test
+          LDAP_ADMIN_PASSWORD: adminsecret
+          LDAP_CONFIG_PASSWORD: adminsecret
+          LDAP_TLS_VERIFY_CLIENT: never
+        ports:
+          - 389:389
+          - 636:636
+        options: >-
+          --health-cmd="ldapsearch -x -H ldap://127.0.0.1:389 -b dc=example,dc=test -D cn=admin,dc=example,dc=test -w adminsecret -s base"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+          --health-start-period=20s
 
     env:
       DB_CONNECTION: mysql
@@ -35,6 +52,15 @@ jobs:
       DB_DATABASE: laramine_testing
       DB_USERNAME: root
       DB_PASSWORD: password
+      LDAP_HOST: 127.0.0.1
+      LDAP_PORT: 389
+      LDAP_TLS_PORT: 636
+      LDAP_BASE_DN: dc=example,dc=test
+      LDAP_ADMIN_DN: cn=admin,dc=example,dc=test
+      LDAP_ADMIN_PASSWORD: adminsecret
+      LDAP_CONFIG_DN: cn=admin,cn=config
+      LDAP_CONFIG_PASSWORD: adminsecret
+      LDAP_PEOPLE_DN: ou=people,dc=example,dc=test
 
     steps:
       - uses: actions/checkout@v4
@@ -47,7 +73,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: "8.3"
-          extensions: mbstring, xml, curl, zip, mysql, pdo_mysql, bcmath, intl, gd, imagick
+          extensions: mbstring, xml, curl, zip, mysql, pdo_mysql, bcmath, intl, gd, imagick, ldap
           coverage: none
 
       - name: Install Composer deps
@@ -63,6 +89,12 @@ jobs:
 
       - name: PHPStan
         run: composer stan
+
+      - name: Seed OpenLDAP fixture
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ldap-utils
+          tests/Parity/fixtures/redmine-7.0.1/ldap/seed.sh
 
       - name: Tests
         run: composer test

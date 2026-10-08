@@ -1,0 +1,115 @@
+{
+    "pin": "7.0.1",
+    "directory": {
+        "port": 389,
+        "tls_port": 636,
+        "base_dn": "dc=example,dc=test",
+        "people_dn": "ou=people,dc=example,dc=test",
+        "admin_dn": "cn=admin,dc=example,dc=test",
+        "admin_password": "adminsecret",
+        "config_dn": "cn=admin,cn=config",
+        "config_password": "adminsecret",
+        "password": "directory-secret"
+    },
+    "modes": ["ldap", "ldaps_verify_none", "ldaps_verify_peer"],
+    "start_tls": "not_exposed",
+    "timeout": {
+        "blank": 20,
+        "zero": 20,
+        "negative": 20,
+        "stored": 4
+    },
+    "dn": {
+        "account": "uid=$login,ou=$login,dc=example,dc=test",
+        "login": "a,b",
+        "substituted": "uid=a\\,b,ou=$login,dc=example,dc=test",
+        "live_account": "uid=$login,ou=people,dc=example,dc=test",
+        "comma_dn": "uid=a\\,b,ou=people,dc=example,dc=test"
+    },
+    "auth_filter": {
+        "login": "a*b",
+        "extra": "(departmentNumber=eng)",
+        "filter": "(&(uid=a\\2ab)(departmentNumber=eng))"
+    },
+    "user_filter": {
+        "query": "gin",
+        "filter": "(&(objectClass=*)(uid=gin*))"
+    },
+    "onthefly": {
+        "login": "gina",
+        "firstname": "Gina Mapped",
+        "lastname": "Directory",
+        "mail": "gina@parity.test",
+        "decision": "accepted",
+        "status": 1
+    },
+    "rejected": [
+        "half",
+        "badmail",
+        "taken",
+        "longname",
+        "a*b",
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    ],
+    "search": {
+        "query": "gin",
+        "login": "gina",
+        "firstname": "Gina",
+        "crowd_query": "crowd",
+        "crowd_limit": 10,
+        "crowd_logins": [
+            "crowd00",
+            "crowd01",
+            "crowd02",
+            "crowd03",
+            "crowd04",
+            "crowd05",
+            "crowd06",
+            "crowd07",
+            "crowd08",
+            "crowd09",
+            "crowd10",
+            "crowd11"
+        ]
+    },
+    "accounts": {
+        "active_status": 1,
+        "registered_status": 2,
+        "locked_status": 3,
+        "inactive_status": 0,
+        "stored_lastname": "Stored"
+    },
+    "decisions": {
+        "gina_wrong": "password",
+        "nobody": "unknown",
+        "omar": "unknown",
+        "ada_local": "accepted",
+        "ada_directory": "password",
+        "ada_lastname": "Lovelace",
+        "bea_before": "Manager",
+        "bea": "accepted",
+        "bea_lastname": "Mapped",
+        "bea_mail": "bea-mapped@parity.test",
+        "lars_before": "Locked",
+        "lars": "locked",
+        "lars_lastname": "Held",
+        "pending": "registered",
+        "pending_lastname": "Queued",
+        "idle": "inactive",
+        "idle_lastname": "Paused",
+        "nova": "accepted",
+        "nova_firstname": "Nova",
+        "nova_lastname": "Dollar",
+        "nova_mail": "nova@parity.test",
+        "comma": "accepted",
+        "comma_lastname": "Comma",
+        "nina": "unknown"
+    },
+    "errors": {
+        "host": "LDAP host is blank.",
+        "credentials": "Service account bind failed.",
+        "timeout": "LDAP timed out.",
+        "tls": "LDAP connection failed."
+    },
+    "local_password": "secret"
+}

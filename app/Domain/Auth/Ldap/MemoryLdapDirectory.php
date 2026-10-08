@@ -43,7 +43,7 @@ final class MemoryLdapDirectory implements LdapDirectory
         ];
     }
 
-    public function search(AuthSource $source, string $filter): array
+    public function search(AuthSource $source, string $filter, ?string $login = null, ?string $password = null, ?int $sizeLimit = null): array
     {
         $this->assertService($source);
         $clauses = $this->clauses($filter);
@@ -77,6 +77,17 @@ final class MemoryLdapDirectory implements LdapDirectory
         }
 
         return false;
+    }
+
+    public function testConnection(AuthSource $source): void
+    {
+        if (trim((string) $source->host) === '') {
+            throw new LdapBindException('LDAP host is blank.');
+        }
+        $account = (string) $source->account;
+        if (trim($account) !== '' && ! str_contains($account, '$login') && (string) $source->account_password !== '') {
+            $this->assertService($source);
+        }
     }
 
     private function assertService(AuthSource $source): void

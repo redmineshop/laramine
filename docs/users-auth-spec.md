@@ -1,6 +1,6 @@
 # Users and authentication spec
 
-**Status: founder lock 2026-10-07. Phases 1–10 are implemented.** The Phase 2 checklist row is **VERIFIED** by `tests/Parity/UsersAuthParityTest.php`. The later-phase sub-rows are **VERIFIED** by `tests/Parity/UsersAuthGapParityTest.php`. Outbound mail is **VERIFIED** by `tests/Parity/NotificationParityTest.php`. Activity for issues, journals, and time entries is **VERIFIED** by `tests/Parity/ActivityParityTest.php`. OpenID Connect is **N/A**. The full REST API row is **VERIFIED** by `tests/Parity/RestApiParityTest.php`. Live LDAP stays **NOT VERIFIED**. This is not a 0.1 tag and it is not production-ready. A green feature test by itself is Laramine behavior. `users_visibility` is compared on the identity row.
+**Status: founder lock 2026-10-07. Phases 1–10 are implemented.** The Phase 2 checklist row is **VERIFIED** by `tests/Parity/UsersAuthParityTest.php`. The later-phase sub-rows are **VERIFIED** by `tests/Parity/UsersAuthGapParityTest.php`. Outbound mail is **VERIFIED** by `tests/Parity/NotificationParityTest.php`. Activity for issues, journals, and time entries is **VERIFIED** by `tests/Parity/ActivityParityTest.php`. OpenID Connect is **N/A**. The full REST API row is **VERIFIED** by `tests/Parity/RestApiParityTest.php`. The live LDAP row is **VERIFIED** by `tests/Parity/LiveLdapParityTest.php`. This is not a 0.1 tag and it is not production-ready. A green feature test by itself is Laramine behavior. `users_visibility` is compared on the identity row.
 
 Column lists stay in [schema-inventory.md](schema-inventory.md) (section “1. Identity / ACL”) and in the structure dump [sources/redmine-7.0.1-schema.rb](sources/redmine-7.0.1-schema.rb). This file does not copy that inventory and does not copy Redmine Ruby.
 
@@ -54,7 +54,7 @@ The sixteen decisions below are closed. A later slice follows them. If a new pro
 
 6. **Registration and `must_change_passwd`.** Self-registration follows the setting values disabled (`0`), email activation (`1`), manual activation (`2`), and automatic activation (`3`). A missing value is manual (`2`). Activation consumes a `register` token and moves status from `2` to `1`. `must_change_passwd` forces a password change after the password check succeeds, before the rest of the app is usable. `passwd_changed_on` records the change. Phase 2 enforces this. An active administrator can activate a status `2` account.
 
-7. **`auth_sources` / LDAP.** A user with `auth_source_id` set is checked against that source, not against `hashed_password`. On-the-fly registration stays a property of the source. A blank host fails closed. The tested adapter is in memory. A live directory is not implemented.
+7. **`auth_sources` / LDAP.** A user with `auth_source_id` set is checked against that source, not against `hashed_password`. On-the-fly registration stays a property of the source. A blank host fails closed. `MemoryLdapDirectory` is the adapter while the application is under test. `ExtLdapDirectory` talks to a live server and is compared on the live LDAP row.
 
 8. **Two-factor columns.** Columns stay `twofa_required`, `twofa_scheme`, `twofa_totp_key`, and `twofa_totp_last_used_at`. Backup codes are `tokens` rows with action `twofa_backup_code`. Setting `twofa` selects disabled, optional, required for administrators, or required for every account. A stored scheme is ignored while the setting is disabled. The challenge is not a session until the code succeeds. API keys and bearer tokens skip that challenge. HTTP basic does not.
 
@@ -80,7 +80,7 @@ The sixteen decisions below are closed. A later slice follows them. If a new pro
 | --- | --- | --- |
 | 1 | Redmine-compatible digest, session sign-in and sign-out, active-status gate, generic failure, `last_login_on` | Landed |
 | 2 | Registration, `register` token, password change, `must_change_passwd`, `recovery` token via `email_addresses`, status notices | Landed. Compared by `tests/Parity/UsersAuthParityTest.php`. Account mail is compared on the outbound mail row. |
-| 3 | `auth_sources` / LDAP, including on-the-fly registration | Landed. `MemoryLdapDirectory` is the tested adapter. A live directory is not implemented. |
+| 3 | `auth_sources` / LDAP, including on-the-fly registration | Landed. `MemoryLdapDirectory` is the adapter under test. `ExtLdapDirectory` is compared by `tests/Parity/LiveLdapParityTest.php`. |
 | 4 | Two-factor scheme, TOTP, backup codes | Landed. Setting `twofa` is `0` disabled, `1` optional, `2` required for administrators, `3` required. A disabled setting ignores a stored scheme. |
 | 5 | OAuth services on the existing `oauth_*` tables | Landed for the authorization-code grant, PKCE (`S256` and `plain`), and refresh-token rotation. OpenID Connect and an external identity provider are not in 7.0.1 core and are not implemented. |
 | 6 | API and feed tokens | Landed. `GET /users/current.json` accepts `X-Redmine-API-Key`, `key`, HTTP basic, and a bearer access token when `rest_api_enabled` is on. `GET /my.atom` accepts a `feeds` key and renders that account's activity feed. The activity comparison is the Activity checklist row. The full REST API is the separate checklist row. |
@@ -142,7 +142,7 @@ These forms are Blade. They are not Redmine screens. The Inertia sign-in page li
 | Mail | `email_addresses` | No `email` column on `users`. Sign-in may use any address (decision 2). |
 | Action tokens | `tokens` | Actions are decision 3. `recovery` and `register` expire after one day. `api` and `feeds` do not. `session`, `autologin`, and `twofa_backup_code` keep at most ten rows. |
 | Preferences | `user_preferences` | `others` is JSON, not Ruby YAML. |
-| External auth | `auth_sources` | LDAP type `AuthSourceLdap`. The tested directory is in memory. |
+| External auth | `auth_sources` | LDAP type `AuthSourceLdap`. The in-memory adapter is the default under test. The live adapter is the live LDAP row. |
 | Group membership | `groups_users` | Project role expansion stays in [domain.md](domain.md). |
 | Project membership | `members`, `member_roles` | `manage_members` is not account admin. |
 | Who can see which users | `roles.users_visibility` | Decision 11. Applied by `UserVisibility`. The directory uses the same scope. |
@@ -158,20 +158,26 @@ Laravel `sessions` is the Phase 1 web session store. `sessions.user_id` referenc
 - `user_preferences.others` is JSON. A Ruby YAML document in that column is ignored on read. `gantt_zoom` (`1` through `4`) and `gantt_months` (a positive integer) are stored as strings when a signed-in user changes the gantt window. Those two keys are compared on the calendar and Gantt row. The preferences comparison itself stays `expectations/users-auth/gap.json`.
 - `settings.notified_events` is JSON. Message ids have no random suffix. A blank `mail_notification` does not receive mail. Lock and unlock queue an informational message. The HTTP notice still does not include the token value; the mail body does. News, document, and file mail, and message and wiki mail, are compared on their notification rows.
 - `users_visibility` is applied by `UserVisibility` on the ACL path and on the user directory. The Phase 2 sign-in comparison does not read it.
-- OpenID Connect is not in the 7.0.1 schema pin. A live LDAP directory is not implemented. The REST API is compared by `tests/Parity/RestApiParityTest.php`. Activity Atom feeds cover issues, journals, time entries, news, documents, files, wiki edits, and messages. Changesets have no activity provider.
+- OpenID Connect is not in the 7.0.1 schema pin. The live LDAP comparison is `tests/Parity/LiveLdapParityTest.php`. On-the-fly creation stores a random sealed digest. A validation failure does not insert a row, and there is no register-form HTTP flow for that failure. A successful check of an existing directory user writes the mapped name and mail. `tls` selects LDAPS, and `verify_peer` selects certificate checking. STARTTLS is not a 7.0.1 column and is not sent. On-the-fly login is required, at most 60 characters, and limited to letters, digits, `_`, `-`, `@`, and `.`. First name is at most 30 characters, last name at most 255, and mail at most 254 characters and a valid address. Duplicate login and mail are case-insensitive. The REST API is compared by `tests/Parity/RestApiParityTest.php`. Activity Atom feeds cover issues, journals, time entries, news, documents, files, wiki edits, and messages. Changesets have no activity provider.
 - The forty-zero placeholder never verifies, even if a digest collided with it.
 - Posted passwords are not trimmed. Identifiers are trimmed.
 - A wrong password stays on the generic notice. Locked and registered accounts get their own notice only after the digest matches.
 - The sign-in screen is an Inertia page. Register, lost password, activation, and the password form are Blade. None of them is a Redmine screen.
 
+## Live directory
+
+`ExtLdapDirectory` uses the PHP LDAP extension. PHPUnit keeps `MemoryLdapDirectory` as the default binding so the in-memory row stays on that adapter. The live comparison overrides the binding for `tests/Parity/LiveLdapParityTest.php`.
+
+Local OpenLDAP matches the CI service (`osixia/openldap:1.5.0`, domain `example.test`, admin and config passwords `adminsecret`, ports 389 and 636). Load `tests/Parity/fixtures/redmine-7.0.1/ldap/directory.ldif` with `tests/Parity/fixtures/redmine-7.0.1/ldap/seed.sh`. The same command is in [CONTRIBUTING.md](../CONTRIBUTING.md). `phpunit.xml` forces `LDAP_HOST` `127.0.0.1` and the ports above. A directory that is not listening fails the comparison.
+
 ## What the parity row covers
 
-`tests/Parity/UsersAuthParityTest.php` loads the shared pin and compares digest check, session login and logout, status notices, `must_change_passwd`, and the `recovery` / `register` token rules to `tests/Parity/fixtures/redmine-7.0.1/expectations/users-auth/sign-in.json`. `tests/Parity/UsersAuthGapParityTest.php` compares the later phases to `tests/Parity/fixtures/redmine-7.0.1/expectations/users-auth/gap.json`. Passing the ACL/workflow smoke does not close users and auth. `users_visibility` is part of the identity comparison. OpenID Connect and live LDAP stay out of both comparisons. The REST API is a separate checklist row. Outbound mail and activity are separate checklist rows.
+`tests/Parity/UsersAuthParityTest.php` loads the shared pin and compares digest check, session login and logout, status notices, `must_change_passwd`, and the `recovery` / `register` token rules to `tests/Parity/fixtures/redmine-7.0.1/expectations/users-auth/sign-in.json`. `tests/Parity/UsersAuthGapParityTest.php` compares the later phases to `tests/Parity/fixtures/redmine-7.0.1/expectations/users-auth/gap.json`. Passing the ACL/workflow smoke does not close users and auth. `users_visibility` is part of the identity comparison. OpenID Connect stays out of both comparisons. Live LDAP is `tests/Parity/LiveLdapParityTest.php`. The REST API is a separate checklist row. Outbound mail and activity are separate checklist rows.
 
 ## Checklist links
 
 | Checklist | Users / auth status |
 | --- | --- |
-| [parity-checklist.md](parity-checklist.md) | **VERIFIED** for the Phase 2 row, the later-phase sub-rows that cite a passing pin comparison, the outbound mail row, and the activity row. OpenID Connect is **N/A**. The full REST API row is **VERIFIED** by `tests/Parity/RestApiParityTest.php`. Live LDAP stays **NOT VERIFIED**. `users_visibility` is on the identity row. Not a 0.1 tag. |
+| [parity-checklist.md](parity-checklist.md) | **VERIFIED** for the Phase 2 row, the later-phase sub-rows that cite a passing pin comparison, the outbound mail row, and the activity row. OpenID Connect is **N/A**. The full REST API row is **VERIFIED** by `tests/Parity/RestApiParityTest.php`. The live LDAP row is **VERIFIED** by `tests/Parity/LiveLdapParityTest.php`. `users_visibility` is on the identity row. Not a 0.1 tag. |
 | [acl-workflow-parity-gate.md](acl-workflow-parity-gate.md) | Smoke **PASS** is not the checklist. `users_visibility` is applied by `UserVisibility`. The directory comparison is the users and authentication row. Not a 0.1 tag. |
 | [QUALITY.md](../QUALITY.md) | No 0.1 tag. Phase 1 is not a production-ready claim. |

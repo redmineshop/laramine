@@ -7,15 +7,21 @@ use App\Models\AuthSource;
 /**
  * Directory port used by LDAP sign-in.
  *
- * The in-memory adapter is the tested implementation. A live server is an
- * external service and is not contacted by the parity comparison.
+ * `MemoryLdapDirectory` is the default binding while the application is under
+ * test. `ExtLdapDirectory` talks to a live server.
  */
 interface LdapDirectory
 {
     /**
      * @return list<LdapEntry>
      */
-    public function search(AuthSource $source, string $filter): array;
+    public function search(AuthSource $source, string $filter, ?string $login = null, ?string $password = null, ?int $sizeLimit = null): array;
 
     public function authenticate(AuthSource $source, string $dn, string $password): bool;
+
+    /**
+     * Open the server. A fixed account with a password must bind.
+     * An account that contains `$login`, or a blank account, only opens the socket.
+     */
+    public function testConnection(AuthSource $source): void;
 }

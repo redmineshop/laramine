@@ -20,6 +20,15 @@ use Illuminate\Support\Facades\DB;
  */
 final class LdapAuthenticator
 {
+    /**
+     * How many "add user from LDAP" rows one search returns.
+     */
+    public const SEARCH_LIMIT = 10;
+
+    private const LOGIN_LIMIT = 60;
+
+    private const MAIL_LIMIT = 254;
+
     public function __construct(
         private readonly LdapDirectory $directory,
         private readonly RedminePassword $passwords,
@@ -81,6 +90,65 @@ final class LdapAuthenticator
         return '(&'.$loginClause.$extra.')';
     }
 
+    /**
+     * Prefix search used when an administrator adds an account from the directory.
+     *
+     * A blank query, a blank host, an account containing `$login`, or a blank
+     * mapped attribute returns no rows. At most {@see SEARCH_LIMIT} rows are returned.
+     *
+     * @return list<LdapUserMatch>
+     */
+    public function searchUsers(AuthSource $source, string $query): array
+    {
+        $query = trim($query);
+        if ($query === '' || trim((string) $source->host) === '' || ! $this->searchable($source)) {
+            return [];
+        }
+        $entries = $this->directory->search($source, $this->userFilter($source, $query), null, null, self::SEARCH_LIMIT);
+        $matches = [];
+        foreach ($entries as $entry) {
+            $login = $entry->first((string) $source->attr_login);
+            if ($login === '') {
+                continue;
+            }
+            $matches[] = new LdapUserMatch(
+                $login,
+                $entry->first((string) $source->attr_firstname),
+                $entry->first((string) $source->attr_lastname),
+                $entry->first((string) $source->attr_mail),
+                $entry->dn,
+            );
+            if (count($matches) >= self::SEARCH_LIMIT) {
+                break;
+            }
+        }
+
+        return $matches;
+    }
+
+    public function userFilter(AuthSource $source, string $query): string
+    {
+        $loginAttr = trim((string) $source->attr_login);
+        $prefix = '('.$loginAttr.'='.$this->escape($query).'*)';
+        $extra = trim((string) $source->filter);
+        if ($extra === '') {
+            return '(&(objectClass=*)'.$prefix.')';
+        }
+        if (! str_starts_with($extra, '(')) {
+            $extra = '('.$extra.')';
+        }
+
+        return '(&(objectClass=*)'.$prefix.$extra.')';
+    }
+
+    public function testConnection(AuthSource $source): void
+    {
+        if (trim((string) $source->host) === '') {
+            throw new LdapBindException('LDAP host is blank.');
+        }
+        $this->directory->testConnection($source);
+    }
+
     private function bind(AuthSource $source, string $login, string $password): LdapEntry|LoginDecision
     {
         if ($password === '') {
@@ -91,7 +159,7 @@ final class LdapAuthenticator
         }
 
         try {
-            $entries = $this->directory->search($source, $this->filter($source, $login));
+            $entries = $this->directory->search($source, $this->filter($source, $login), $login, $password);
         } catch (LdapBindException) {
             return LoginDecision::ExternalAuth;
         }
@@ -116,13 +184,9 @@ final class LdapAuthenticator
         $firstname = $entry->first($this->attribute($source->attr_firstname, 'givenName'));
         $lastname = $entry->first($this->attribute($source->attr_lastname, 'sn'));
         $mail = $entry->first($this->attribute($source->attr_mail, 'mail'));
-        if ($login === '' || $firstname === '' || $lastname === '' || $mail === '') {
+        if (! $this->onTheFlyAttributes($login, $firstname, $lastname, $mail)) {
             return;
         }
-
-        $login = mb_substr($login, 0, 255);
-        $firstname = mb_substr($firstname, 0, 30);
-        $lastname = mb_substr($lastname, 0, 255);
         if ($this->loginTaken($login) || $this->mailTaken($mail)) {
             return;
         }
@@ -193,6 +257,35 @@ final class LdapAuthenticator
             'is_default' => true,
             'notify' => true,
         ]);
+    }
+
+    private function searchable(AuthSource $source): bool
+    {
+        if (str_contains((string) $source->account, '$login')) {
+            return false;
+        }
+        foreach ([$source->attr_login, $source->attr_firstname, $source->attr_lastname, $source->attr_mail] as $name) {
+            if (trim((string) $name) === '') {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function onTheFlyAttributes(string $login, string $firstname, string $lastname, string $mail): bool
+    {
+        if ($login === '' || $firstname === '' || $lastname === '' || $mail === '') {
+            return false;
+        }
+        if (mb_strlen($login) > self::LOGIN_LIMIT || preg_match('/\A[A-Za-z0-9_\-@.]*\z/', $login) !== 1) {
+            return false;
+        }
+        if (mb_strlen($firstname) > 30 || mb_strlen($lastname) > 255 || mb_strlen($mail) > self::MAIL_LIMIT) {
+            return false;
+        }
+
+        return filter_var($mail, FILTER_VALIDATE_EMAIL) !== false;
     }
 
     private function attribute(?string $stored, string $default): string
